@@ -11,4 +11,5 @@ chmod +x /data/local/tmp/chroot-distro.rc
 mount -o remount,rw /system/bin
 cp /data/local/tmp/chroot-distro /system/bin
 chmod +x /system/bin/chroot-distro
+dos2unix chroot-distro
 mount -o remount,ro /system/bin
