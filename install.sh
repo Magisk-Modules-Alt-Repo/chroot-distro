@@ -6,3 +6,8 @@ if [ ! -d "/system/etc/init.d/" ]; then
     mkdir /system/etc/init.d/
 fi
 curl -o /system/etc/init.d/chroot-distro.rc https://raw.githubusercontent.com/YasserNull/chroot-distro/main/chroot-distro.rc
+while IFS= read -r line; do
+    mount -o remount,rw $line
+   cp /data/local/tmp/chroot-distro $line
+   mount -o remount,rw $line
+done <<< "$PATH | tr ':' '\n'"
