@@ -1,7 +1,3 @@
-if [ ! -d "/data/local/tmp/" ]; then
-    mkdir /data/local/tmp/
-fi
-
 while IFS= read -r line; do
     mount -o remount,rw $line
    cp /data/local/tmp/chroot-distro $line
