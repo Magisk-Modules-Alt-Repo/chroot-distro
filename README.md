@@ -32,6 +32,12 @@ login
 + void: Void Linux
 
 ### best features :
-> you can use chroot-distro on any terminal
+you can use chroot-distro on any terminal
+
+### required :
++ android os
++ root
++ chroot
++ amount
 
 ### Install chroot-distro
