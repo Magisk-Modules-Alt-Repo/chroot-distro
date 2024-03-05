@@ -47,4 +47,13 @@ like mt manger , termux , twrp , Android terminal emulator...
 + commands
 
 ### install with commands
-..
+
+install
+```
+curl -sSL https://github.com/YasserNull/chroot-distro/raw/main/install.sh | sh
+```
+
+if you restart your device :
+```
+mount -o remount,rw /system/bin && cp /data/local/tmp/chroot-distro /system/bin && dos2unix /system/bin/chroot-distro && chmod +x /system/bin/chroot-distro && mount -o remount,ro /system/bin
+```
