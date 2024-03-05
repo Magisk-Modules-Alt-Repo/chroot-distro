@@ -33,7 +33,7 @@ login
 
 ### best features :
 you can use chroot-distro on any terminal
-
+like mt manger , termux , twrp , Android terminal emulator...
 ### required :
 + android os
 + root
