@@ -30,3 +30,4 @@ login
 + pardus: Pardus 
 + ubuntu: Ubuntu
 + void: Void Linux
+### Install chroot-distro
