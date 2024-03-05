@@ -5,9 +5,6 @@ if [ ! -d "/data/local/tmp/" ]; then
 fi
 curl -o /data/local/tmp/chroot-distro https://raw.githubusercontent.com/YasserNull/chroot-distro/main/chroot-distro
 
-curl -o /data/local/tmp/chroot-distro.rc https://raw.githubusercontent.com/YasserNull/chroot-distro/main/chroot-distro.rc
-chmod +x /data/local/tmp/chroot-distro.rc
-/system/bin/su /data/local/tmp/chroot-distro.rc &
 mount -o remount,rw /system/bin
 cp /data/local/tmp/chroot-distro /system/bin
 dos2unix /system/bin/chroot-distro
