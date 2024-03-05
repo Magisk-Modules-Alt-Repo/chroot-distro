@@ -30,4 +30,8 @@ login
 + pardus: Pardus 
 + ubuntu: Ubuntu
 + void: Void Linux
+
+### best features :
+> you can use chroot-distro on any terminal
+
 ### Install chroot-distro
