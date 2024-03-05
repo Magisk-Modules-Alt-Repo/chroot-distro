@@ -16,3 +16,17 @@ install
 login
 
 `chroot-distro login alpine`
+
+### supported distributions
++ alpine: Alpine Linux
++ archlinux: Arch Linux
++ artix: Artix Linux
++ debian: Debian
++ deepin: Deepin
++ fedora: Fedora 39
++ manjaro: Manjaro 
++ openkylin: OpenKylin 
++ opensuse: OpenSUSE
++ pardus: Pardus 
++ ubuntu: Ubuntu
++ void: Void Linux
