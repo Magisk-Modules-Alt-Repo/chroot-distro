@@ -9,9 +9,10 @@ curl -o /data/local/tmp/chroot-distro.rc https://raw.githubusercontent.com/Yasse
 chmod 755 /data/local/tmp/chroot-distro.rc
 IFS=':' read -ra path_dirs <<< "$PATH"
 for path_dir in "${path_dirs[@]}"; do
-    /$path_dirs/su /data/local/tmp/chroot-distro.rc &
+    "$path_dir/su" /data/local/tmp/chroot-distro.rc &
     mount -o remount,rw "$path_dir"
     cp /data/local/tmp/chroot-distro "$path_dir"
     mount -o remount,ro "$path_dir"
 done
+
 
