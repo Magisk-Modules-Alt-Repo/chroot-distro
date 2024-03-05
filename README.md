@@ -12,6 +12,7 @@ download distro file
 install 
 
 `chroot-distro install alpine`
+
 login
 
 `chroot-distro login alpine`
