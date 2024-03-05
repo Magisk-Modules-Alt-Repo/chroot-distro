@@ -42,3 +42,9 @@ like mt manger , termux , twrp , Android terminal emulator...
 + amount
 
 ### Install chroot-distro
+
++ magisk module
++ commands
+
+### install with commands
+..
