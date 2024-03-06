@@ -7,11 +7,6 @@ if [ "$(whoami)" != "root" ]; then
     exit
 fi
 
-if [ "$(uname -o)" != "Android" ]; then
-    echo "\033[1m\033[91mAndroid operating system required.\033[0m"
-    exit
-fi
-
 if [ ! -d "$chroot_distro_path/" ]; then
     mkdir $chroot_distro_path/
 fi
