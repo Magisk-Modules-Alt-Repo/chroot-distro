@@ -50,7 +50,7 @@ like mt manger , termux , twrp , Android terminal emulator...
 
 install
 ```
-curl -sSL https://github.com/YasserNull/chroot-distro/raw/main/install.sh | sh
+busybox wget -O - https://github.com/YasserNull/chroot-distro/raw/main/install.sh | sh
 ```
 
 if you restart your device :
