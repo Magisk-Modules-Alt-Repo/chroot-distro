@@ -38,8 +38,6 @@ like mt manger , termux , twrp , Android terminal emulator...
 ### required :
 + android os
 + root
-+ chroot
-+ amount
 
 ### Install chroot-distro
 
