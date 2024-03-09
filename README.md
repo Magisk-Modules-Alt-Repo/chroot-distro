@@ -103,5 +103,5 @@ like mt manger , termux , twrp , Android terminal emulator...
 ### Install chroot-distro
 
 + module
-
+ [GitHub Pages](https://github.com/YasserNull/chroot-distro/releases/download/module/chroot-distro.ziphttps://github.com/YasserNull/chroot-distro/releases/download/module/chroot-distro.zip).
 > warning : required busybox for android ndk module 
