@@ -4,39 +4,90 @@ chroot-distro :
 > warning : this work only on rooted android devices
 ### usage
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/help.png)
-### examples
-download distro file
 
-`chroot-distro download alpine`
++ help
+```
+chroot-distro help
+```
++ list of available linux distributions
+```
+chroot-distro list
+```
 
-install 
++ download rootfs file
+```
+chroot-distro download <distro>
+```
++ redownload rootfs file
+```
+chroot-distro redownload <distro>
+```
++ delete rootfs 
+```
+chroot-distro delete <distro>
+```
 
-`chroot-distro install alpine`
++ install distro
+```
+chroot-distro install <distro>
+```
++ reinstall distro
+```
+chroot-distro reinstall <distro>
+```
++ uninstall distro
+```
+chroot-distro uninstall <distro>
+```
 
-login
++ backup distro
+```
+chroot-distro backup <distro>
+```
++ backup distro with custom path
+```
+chroot-distro backup <distro> <path>
+```
++ remove backup distro
+```
+chroot-distro unbackup <distro>
+```
++ restore distro
+```
+chroot-distro restore <distro>
+```
++ restore distro with custom path
+```
+chroot-distro restore <distro> <path>
+```
 
-`chroot-distro login alpine`
++ login to distro
+```
+chroot-distro login <distro> - login to distro
+```
 
 ### supported distributions
-+ alpine: Alpine Linux
-+ archlinux: Arch Linux
-+ artix: Artix Linux
-+ debian: Debian
-+ deepin: Deepin
-+ fedora: Fedora 39
-+ manjaro: Manjaro 
-+ openkylin: OpenKylin 
-+ opensuse: OpenSUSE
-+ pardus: Pardus 
-+ ubuntu: Ubuntu
-+ void: Void Linux
++ kali-linux : Kali Linux
++ alpine : Alpine Linux
++ archlinux : Arch Linux
++ artix : Artix Linux
++ debian : Debian
++ deepin : Deepin
++ fedora : Fedora 39
++ manjaro : Manjaro 
++ openkylin : OpenKylin 
++ opensuse : OpenSUSE
++ pardus : Pardus 
++ ubuntu : Ubuntu
++ void : Void Linux
 
 ### best features :
 you can use chroot-distro on any terminal
 like mt manger , termux , twrp , Android terminal emulator...
-![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/terminal.png)
-
+![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/debian.png)
+![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/kali-linux.png)
 ### Install chroot-distro
 
-+ magisk module
++ module
 
+> warning : required busybox for android ndk module
