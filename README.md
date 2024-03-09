@@ -2,6 +2,19 @@
 chroot-distro :
   Install linux distributions on android    with chroot
 > warning : this work only on rooted android devices
+
++ chroot-distro path : /data/local/chroot-distro/
+
+### Android paths on distributions :
++ /dev 
++ /sys
++ /proc
++ /dev/pts
++ /sdcard 
++ /system
++ /storage
++ /data
+
 ### usage
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/help.png)
 
