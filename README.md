@@ -102,6 +102,5 @@ like mt manger , termux , twrp , Android terminal emulator...
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/debian_vnc.png)
 ### Install chroot-distro
 
-+ module
- [GitHub Pages](https://github.com/YasserNull/chroot-distro/releases/download/module/chroot-distro.ziphttps://github.com/YasserNull/chroot-distro/releases/download/module/chroot-distro.zip).
++ [module](https://github.com/YasserNull/chroot-distro/releases/download/module/chroot-distro.ziphttps://github.com/YasserNull/chroot-distro/releases/download/module/chroot-distro.zip).
 > warning : required busybox for android ndk module 
