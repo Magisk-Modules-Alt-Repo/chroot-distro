@@ -1,10 +1,6 @@
 # chroot-distro
 chroot-distro :
   Install linux distributions on android
-> warning : # chroot-distro
-chroot-distro :
-  Install linux distributions on android
-> warning : this work only on rooted android devices
 
 + chroot-distro path : /data/local/chroot-distro/
 
