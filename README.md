@@ -1,6 +1,6 @@
 # chroot-distro
 chroot-distro :
-  Install linux distributions on android    with chroot
+  Install linux distributions on android
 > warning : this work only on rooted android devices
 
 + chroot-distro path : /data/local/chroot-distro/
@@ -27,11 +27,11 @@ chroot-distro help
 chroot-distro list
 ```
 
-+ download rootfs file
++ download rootfs
 ```
 chroot-distro download <distro>
 ```
-+ redownload rootfs file
++ redownload rootfs
 ```
 chroot-distro redownload <distro>
 ```
@@ -61,7 +61,7 @@ chroot-distro backup <distro>
 ```
 chroot-distro backup <distro> <path>
 ```
-+ remove backup distro
++ delete backup
 ```
 chroot-distro unbackup <distro>
 ```
@@ -74,15 +74,30 @@ chroot-distro restore <distro>
 chroot-distro restore <distro> <path>
 ```
 
++ run command
+```
+chroot-distro command <distro>
+```
 + login to distro
 ```
 chroot-distro login <distro> 
 ```
 
+### example
+```
+chroot-distro download ubuntu
+chroot-distro install ubuntu
+chroot-distro login ubuntu
+```
+
 ### supported distributions
-+ kali-linux : Kali Linux
++ kali : Kali Linux
++ parrot : Parrot OS
 + alpine : Alpine Linux
 + archlinux : Arch Linux
++ BackBox : backbox
++ Centos : centos
++ Centos Stream : centos_stream
 + artix : Artix Linux
 + debian : Debian
 + deepin : Deepin
@@ -99,7 +114,30 @@ you can use chroot-distro on any terminal
 like mt manger , termux , twrp , Android terminal emulator...
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/debian.png)
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/kali-linux.png)
+### vnc
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/debian_vnc.png)
+your can use any vnc app , tutorial (tested on ubuntu and debian)
+```
+apt update
+apt upgrade
+apt install tightvncserver nano dbus-x11 xfce4 xfce4-goodies xfce4-terminal
+update-alternatives --config x-terminal-emulator
+vncserver
+vncserver -kill :1
+nano ~/.vnc/xstartup
+```
+Add this to the last line
+```
+startxfce4 &
+```
+start server : 
+```
+vncserver
+```
+stop server :
+```
+vncserver -kill :1
+```
 ### Install chroot-distro
 
 + [module](https://github.com/YasserNull/chroot-distro/releases/tag/module)
