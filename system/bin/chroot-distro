@@ -171,11 +171,14 @@ if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "
 if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
         echo "[4] ubuntu mantic 23.10"
         fi
-if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
-        echo "[5] ubuntu trusty 14.04.6"
+if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
+        echo "[5] ubuntu noble 24.04"
         fi
 if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
-        echo "[6] ubuntu xenial 16.04.6"
+        echo "[6] ubuntu trusty 14.04.6"
+        fi
+if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
+        echo "[7] ubuntu xenial 16.04.6"
         fi
         while true; do
             printf "Enter a number : "
@@ -185,8 +188,9 @@ if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$
                 2) rootfs="focal";rootfs_version="20.04.5"; break;;
                 3) rootfs="jammy";rootfs_version="22.04.4"; break;;
                 4) rootfs="mantic";rootfs_version="23.10"; break;;
-                5) rootfs="trusty";rootfs_version="14.04.6"; break;;
-                6) rootfs="xenial";rootfs_version="16.04.6"; break;;
+                5) rootfs="noble";rootfs_version="24.04"; break;;
+                6) rootfs="trusty";rootfs_version="14.04.6"; break;;
+                7) rootfs="xenial";rootfs_version="16.04.6"; break;;
                 *) echo "Unknown option : $number";;
             esac
         done
