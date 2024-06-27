@@ -578,6 +578,57 @@ chroot_distro_delete() {
     fi
 }
 
+chroot_distro_mount_system_point() {
+    path_to_mount=$1
+    mount_point=$2
+    if [ ! -d $mount_point ]; then
+        if ! mkdir -p $mount_point; then
+            echo "creating mount point $mount_point failed"
+            exit 1
+        fi
+    fi
+    if ! mount --bind $path_to_mount $mount_point; then
+        echo "could not mount $path_to_mount to $mount_point"
+        exit 1
+    fi
+}
+
+chroot_distro_mount_system_points() {
+    distro_path=$1
+    chroot_distro_mount_system_point /dev $distro_path/dev
+    chroot_distro_mount_system_point /sys $distro_path/sys
+    chroot_distro_mount_system_point /proc $distro_path/proc
+    chroot_distro_mount_system_point /dev/pts $distro_path/dev/pts
+    chroot_distro_mount_system_point /sdcard $distro_path/sdcard
+    chroot_distro_mount_system_point /system $distro_path/system
+    chroot_distro_mount_system_point /data $distro_path/data
+    for file in "/storage"/*; do
+        chroot_distro_mount_system_point /$file $distro_path/$file
+    done
+}
+
+chroot_distro_unmount_system_point() {
+    mount_point=$1
+    if ! umount -lf $mount_point; then
+        echo "could not unmount $mount_point, uninstall may need manual intervention, proceed with care"
+        exit 1
+    fi
+}
+
+chroot_distro_unmount_system_points() {
+    distro_path=$1
+    for file in "/storage"/*; do
+        chroot_distro_unmount_system_point $distro_path/$file
+    done
+    chroot_distro_unmount_system_point $distro_path/data
+    chroot_distro_unmount_system_point $distro_path/system
+    chroot_distro_unmount_system_point $distro_path/sdcard
+    chroot_distro_unmount_system_point $distro_path/dev/pts
+    chroot_distro_unmount_system_point $distro_path/proc
+    chroot_distro_unmount_system_point $distro_path/sys
+    chroot_distro_unmount_system_point $distro_path/dev
+}
+
 chroot_distro_install() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
     if ! chroot_distro_check_if_supported $supported $1; then
@@ -604,21 +655,8 @@ chroot_distro_install() {
         mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.rootfs/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
     fi
 
-    mount --bind /dev $distro_path/dev
-    mount --bind /sys $distro_path/sys
-    mount --bind /proc $distro_path/proc
-    mount --bind /dev/pts $distro_path/dev/pts
-    mkdir -p $distro_path/sdcard
-    mkdir -p $distro_path/system
-    mkdir -p $distro_path/storage
-    mkdir -p $distro_path/data
-    mount --bind /sdcard $distro_path/sdcard
-    mount --bind /system $distro_path/system
-    for file in "/storage"/*; do
-        mkdir -p $chroot_distro_path/$1/$file
-        mount --bind /$file $chroot_distro_path/$1/$file
-    done
-    mount --bind /data $distro_path/data
+    chroot_distro_mount_system_points $distro_path
+
     echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
     echo "127.0.0.1 localhost" > $distro_path/etc/hosts
     chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
@@ -638,9 +676,10 @@ chroot_distro_uninstall() {
         exit 1
     fi
 
-    if [ -d "$chroot_distro_path/$1" ]; then
-        umount -lf $chroot_distro_path/$1/* > /dev/null 2>&1
-        rm -rf $chroot_distro_path/$1
+    distro_path=$chroot_distro_path/$1
+    if [ -d "$distro_path" ]; then
+        chroot_distro_unmount_system_points $distro_path
+        rm -rf $distro_path
     else
         echo "$1 not installed"
         exit 1
@@ -708,21 +747,8 @@ chroot_distro_restore() {
             mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.backup/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
         fi
 
-        mount --bind /dev $distro_path/dev
-        mount --bind /sys $distro_path/sys
-        mount --bind /proc $distro_path/proc
-        mount --bind /dev/pts $distro_path/dev/pts
-        mkdir -p $distro_path/sdcard
-        mkdir -p $distro_path/system
-        mkdir -p $distro_path/storage
-        mkdir -p $distro_path/data
-        mount --bind /sdcard $distro_path/sdcard
-        mount --bind /system $distro_path/system
-        for file in "/storage"/*; do
-            mkdir -p $chroot_distro_path/$1/$file
-            mount --bind /$file $chroot_distro_path/$1/$file
-        done
-        mount --bind /data $distro_path/data
+        chroot_distro_mount_system_points $distro_path
+
         echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
         echo "127.0.0.1 localhost" > $distro_path/etc/hosts
         chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
@@ -743,21 +769,8 @@ chroot_distro_restore() {
             mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.backup/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
         fi
 
-        mount --bind /dev $distro_path/dev
-        mount --bind /sys $distro_path/sys
-        mount --bind /proc $distro_path/proc
-        mount --bind /dev/pts $distro_path/dev/pts
-        mkdir -p $distro_path/sdcard
-        mkdir -p $distro_path/system
-        mkdir -p $distro_path/storage
-        mkdir -p $distro_path/data
-        mount --bind /sdcard $distro_path/sdcard
-        mount --bind /system $distro_path/system
-        for file in "/storage"/*; do
-            mkdir -p $chroot_distro_path/$1/$file
-            mount --bind /$file $chroot_distro_path/$1/$file
-        done
-        mount --bind /data $distro_path/data
+        chroot_distro_mount_system_points $distro_path
+
         echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
         echo "127.0.0.1 localhost" > $distro_path/etc/hosts
         chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
@@ -786,18 +799,10 @@ chroot_distro_command() {
         exit 1
     fi
 
-    mount --bind /dev $chroot_distro_path/$1/dev
-    mount --bind /sys $chroot_distro_path/$1/sys
-    mount --bind /proc $chroot_distro_path/$1/proc
-    mount --bind /dev/pts $chroot_distro_path/$1/dev/pts
-    mount --bind /sdcard $chroot_distro_path/$1/sdcard
-    mount --bind /system $chroot_distro_path/$1/system
-    for file in "/storage"/*; do
-        mkdir -p $chroot_distro_path/$1/$file
-        mount --bind /$file $chroot_distro_path/$1/$file
-    done
-    mount --bind /data $chroot_distro_path/$1/data
-    chroot $chroot_distro_path/$1/ /bin/$2
+    distro_path=$chroot_distro_path/$1
+    chroot_distro_mount_system_points $distro_path
+
+    chroot $distro_path /bin/$2
 }
 
 chroot_distro_login() {
@@ -812,17 +817,9 @@ chroot_distro_login() {
         exit 1
     fi
 
-    mount --bind /dev $chroot_distro_path/$1/dev
-    mount --bind /sys $chroot_distro_path/$1/sys
-    mount --bind /proc $chroot_distro_path/$1/proc
-    mount --bind /dev/pts $chroot_distro_path/$1/dev/pts
-    mount --bind /sdcard $chroot_distro_path/$1/sdcard
-    mount --bind /system $chroot_distro_path/$1/system
-    for file in "/storage"/*; do
-        mkdir -p $chroot_distro_path/$1/$file
-        mount --bind /$file $chroot_distro_path/$1/$file
-    done
-    mount --bind /data $chroot_distro_path/$1/data
+    distro_path=$chroot_distro_path/$1
+    chroot_distro_mount_system_points $distro_path
+
     chroot $chroot_distro_path/$1/ /bin/su - root
 }
 
