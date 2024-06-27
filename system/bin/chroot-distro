@@ -565,267 +565,265 @@ chroot_distro_check_if_supported() {
 
 chroot_distro_delete() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if chroot_distro_check_if_supported $supported $1; then
-        if [ -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-            rm $chroot_distro_path/.rootfs/$1.tar.xz
-        else
-            echo "$1 not downloaded"
-            exit 1
-        fi
-    else
+    if ! chroot_distro_check_if_supported $supported $1; then
         echo "unavailable distro $1"
+        exit 1
+    fi
+
+    if [ -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
+        rm $chroot_distro_path/.rootfs/$1.tar.xz
+    else
+        echo "$1 not downloaded"
         exit 1
     fi
 }
 
 chroot_distro_install() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if chroot_distro_check_if_supported $supported $1; then
-        if [ -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-            if [ ! -d "$chroot_distro_path/$1" ]; then
-                distro_path=$chroot_distro_path/$1
-                mkdir $distro_path
-                if [ $(tar -tf $chroot_distro_path/.rootfs/"$1".tar.xz 2>/dev/null | grep -E '^.*\/$' | wc -l) -gt 2 ]; then
-                    tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$chroot_distro_path/$1/"
-                else
-                    tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$chroot_distro_path/"
-                    mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.rootfs/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
-                fi
-
-                mount --bind /dev $distro_path/dev
-                mount --bind /sys $distro_path/sys
-                mount --bind /proc $distro_path/proc
-                mount --bind /dev/pts $distro_path/dev/pts
-                mkdir -p $distro_path/sdcard
-                mkdir -p $distro_path/system
-                mkdir -p $distro_path/storage
-                mkdir -p $distro_path/data
-                mount --bind /sdcard $distro_path/sdcard
-                mount --bind /system $distro_path/system
-                for file in "/storage"/*; do
-                    mkdir -p $chroot_distro_path/$1/$file
-                    mount --bind /$file $chroot_distro_path/$1/$file
-                done
-                mount --bind /data $distro_path/data
-                echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
-                echo "127.0.0.1 localhost" > $distro_path/etc/hosts
-                chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
-                chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
-                chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
-                chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-                chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
-                chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
-                chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
-                chroot $distro_path /bin/su - root
-            else
-                echo "$1 already installed"
-                exit 1
-            fi
-        else
-            echo "$1 not downloaded"
-            exit 1
-        fi
-    else
+    if ! chroot_distro_check_if_supported $supported $1; then
         echo "unavailable distro $1"
         exit 1
     fi
+
+    if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
+        echo "$1 not downloaded"
+        exit 1
+    fi
+
+    if [ -d "$chroot_distro_path/$1" ]; then
+        echo "$1 already installed"
+        exit 1
+    fi
+
+    distro_path=$chroot_distro_path/$1
+    mkdir $distro_path
+    if [ $(tar -tf $chroot_distro_path/.rootfs/"$1".tar.xz 2>/dev/null | grep -E '^.*\/$' | wc -l) -gt 2 ]; then
+        tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$chroot_distro_path/$1/"
+    else
+        tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$chroot_distro_path/"
+        mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.rootfs/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
+    fi
+
+    mount --bind /dev $distro_path/dev
+    mount --bind /sys $distro_path/sys
+    mount --bind /proc $distro_path/proc
+    mount --bind /dev/pts $distro_path/dev/pts
+    mkdir -p $distro_path/sdcard
+    mkdir -p $distro_path/system
+    mkdir -p $distro_path/storage
+    mkdir -p $distro_path/data
+    mount --bind /sdcard $distro_path/sdcard
+    mount --bind /system $distro_path/system
+    for file in "/storage"/*; do
+        mkdir -p $chroot_distro_path/$1/$file
+        mount --bind /$file $chroot_distro_path/$1/$file
+    done
+    mount --bind /data $distro_path/data
+    echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
+    echo "127.0.0.1 localhost" > $distro_path/etc/hosts
+    chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
+    chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
+    chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
+    chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
+    chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
+    chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+    chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
+    chroot $distro_path /bin/su - root
 }
 
 chroot_distro_uninstall() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if chroot_distro_check_if_supported $supported $1; then
-        if [ -d "$chroot_distro_path/$1" ]; then
-            umount -lf $chroot_distro_path/$1/* > /dev/null 2>&1
-            rm -rf $chroot_distro_path/$1
-        else
-            echo "$1 not installed"
-            exit 1
-        fi
-    else
+    if ! chroot_distro_check_if_supported $supported $1; then
         echo "unavailable distro $1"
+        exit 1
+    fi
+
+    if [ -d "$chroot_distro_path/$1" ]; then
+        umount -lf $chroot_distro_path/$1/* > /dev/null 2>&1
+        rm -rf $chroot_distro_path/$1
+    else
+        echo "$1 not installed"
         exit 1
     fi
 }
 
 chroot_distro_backup() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if chroot_distro_check_if_supported $supported $1; then
-        if [ "$2" = "" ]; then
-            if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
-                tar -cvf $chroot_distro_path/.backup/$1.tar.xz $chroot_distro_path/$1
-            else
-                echo "backup already exist, unbackup and try agin"
-                exit 1
-            fi
-        else
-            tar -cvf $2 $chroot_distro_path/$1
-        fi
-    else
+    if ! chroot_distro_check_if_supported $supported $1; then
         echo "unavailable distro $1"
         exit 1
+    fi
+
+    if [ "$2" = "" ]; then
+        if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
+            tar -cvf $chroot_distro_path/.backup/$1.tar.xz $chroot_distro_path/$1
+        else
+            echo "backup already exist, unbackup and try agin"
+            exit 1
+        fi
+    else
+        tar -cvf $2 $chroot_distro_path/$1
     fi
 }
 
 chroot_distro_unbackup() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if chroot_distro_check_if_supported $supported $1; then
-        if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
-            rm $chroot_distro_path/.backup/$1.tar.xz
-        else
-            echo "backup not found $1"
-            exit 1
-        fi
-    else
+    if ! chroot_distro_check_if_supported $supported $1; then
         echo "unavailable distro $1"
+        exit 1
+    fi
+
+    if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
+        rm $chroot_distro_path/.backup/$1.tar.xz
+    else
+        echo "backup not found $1"
         exit 1
     fi
 }
 
 chroot_distro_restore() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if chroot_distro_check_if_supported $supported $1; then
-        if [ ! -d "$chroot_distro_path/$1" ]; then
-            if [ "$2" = "" ]; then
-                if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
-                    distro_path=$chroot_distro_path/$1
-                    mkdir $distro_path
-                    if [ $(tar -tf $chroot_distro_path/.backup/"$1".tar.xz 2>/dev/null | grep -E '^.*\/$' | wc -l) -gt 2 ]; then
-                        tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/$1/"
-                    else
-                        tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/"
-                        mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.backup/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
-                    fi
+    if ! chroot_distro_check_if_supported $supported $1; then
+        echo "unavailable distro $1"
+        exit 1
+    fi
 
-                    mount --bind /dev $distro_path/dev
-                    mount --bind /sys $distro_path/sys
-                    mount --bind /proc $distro_path/proc
-                    mount --bind /dev/pts $distro_path/dev/pts
-                    mkdir -p $distro_path/sdcard
-                    mkdir -p $distro_path/system
-                    mkdir -p $distro_path/storage
-                    mkdir -p $distro_path/data
-                    mount --bind /sdcard $distro_path/sdcard
-                    mount --bind /system $distro_path/system
-                    for file in "/storage"/*; do
-                        mkdir -p $chroot_distro_path/$1/$file
-                        mount --bind /$file $chroot_distro_path/$1/$file
-                    done
-                    mount --bind /data $distro_path/data
-                    echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
-                    echo "127.0.0.1 localhost" > $distro_path/etc/hosts
-                    chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
-                    chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
-                    chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
-                    chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-                    chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
-                    chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
-                    chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
-                    chroot $distro_path /bin/su - root
-                else
-                    echo "backup not found"
-                    exit 1
-                fi
-            else
-                if [ -f "$2" ]; then
-                    distro_path=$chroot_distro_path/$1
-                    mkdir $distro_path
-                    if [ $(tar -tf $chroot_distro_path/.backup/"$1".tar.xz 2>/dev/null | grep -E '^.*\/$' | wc -l) -gt 2 ]; then
-                        tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/$1/"
-                    else
-                        tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/"
-                        mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.backup/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
-                    fi
+    if [ -d "$chroot_distro_path/$1" ]; then
+        echo "distro already installed , uninstall and try again"
+        exit 1
+    fi
 
-                    mount --bind /dev $distro_path/dev
-                    mount --bind /sys $distro_path/sys
-                    mount --bind /proc $distro_path/proc
-                    mount --bind /dev/pts $distro_path/dev/pts
-                    mkdir -p $distro_path/sdcard
-                    mkdir -p $distro_path/system
-                    mkdir -p $distro_path/storage
-                    mkdir -p $distro_path/data
-                    mount --bind /sdcard $distro_path/sdcard
-                    mount --bind /system $distro_path/system
-                    for file in "/storage"/*; do
-                        mkdir -p $chroot_distro_path/$1/$file
-                        mount --bind /$file $chroot_distro_path/$1/$file
-                    done
-                    mount --bind /data $distro_path/data
-                    echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
-                    echo "127.0.0.1 localhost" > $distro_path/etc/hosts
-                    chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
-                    chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
-                    chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
-                    chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-                    chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
-                    chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
-                    chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
-                    chroot $distro_path /bin/su - root
-                else
-                    echo "backup not found"
-                    exit 1
-                fi
-            fi
-        else
-            echo "distro already installed , uninstall and try again"
+    if [ "$2" = "" ]; then
+        if [ ! -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
+            echo "backup not found"
             exit 1
         fi
+
+        distro_path=$chroot_distro_path/$1
+        mkdir $distro_path
+        if [ $(tar -tf $chroot_distro_path/.backup/"$1".tar.xz 2>/dev/null | grep -E '^.*\/$' | wc -l) -gt 2 ]; then
+            tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/$1/"
+        else
+            tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/"
+            mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.backup/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
+        fi
+
+        mount --bind /dev $distro_path/dev
+        mount --bind /sys $distro_path/sys
+        mount --bind /proc $distro_path/proc
+        mount --bind /dev/pts $distro_path/dev/pts
+        mkdir -p $distro_path/sdcard
+        mkdir -p $distro_path/system
+        mkdir -p $distro_path/storage
+        mkdir -p $distro_path/data
+        mount --bind /sdcard $distro_path/sdcard
+        mount --bind /system $distro_path/system
+        for file in "/storage"/*; do
+            mkdir -p $chroot_distro_path/$1/$file
+            mount --bind /$file $chroot_distro_path/$1/$file
+        done
+        mount --bind /data $distro_path/data
+        echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
+        echo "127.0.0.1 localhost" > $distro_path/etc/hosts
+        chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
+        chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
+        chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
+        chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
+        chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
+        chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+        chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
+        chroot $distro_path /bin/su - root
+    elif [ -f "$2" ]; then
+        distro_path=$chroot_distro_path/$1
+        mkdir $distro_path
+        if [ $(tar -tf $chroot_distro_path/.backup/"$1".tar.xz 2>/dev/null | grep -E '^.*\/$' | wc -l) -gt 2 ]; then
+            tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/$1/"
+        else
+            tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/"
+            mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.backup/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
+        fi
+
+        mount --bind /dev $distro_path/dev
+        mount --bind /sys $distro_path/sys
+        mount --bind /proc $distro_path/proc
+        mount --bind /dev/pts $distro_path/dev/pts
+        mkdir -p $distro_path/sdcard
+        mkdir -p $distro_path/system
+        mkdir -p $distro_path/storage
+        mkdir -p $distro_path/data
+        mount --bind /sdcard $distro_path/sdcard
+        mount --bind /system $distro_path/system
+        for file in "/storage"/*; do
+            mkdir -p $chroot_distro_path/$1/$file
+            mount --bind /$file $chroot_distro_path/$1/$file
+        done
+        mount --bind /data $distro_path/data
+        echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
+        echo "127.0.0.1 localhost" > $distro_path/etc/hosts
+        chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
+        chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
+        chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
+        chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
+        chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
+        chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+        chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
+        chroot $distro_path /bin/su - root
     else
-        echo "unavailable distro $1"
+        echo "backup not found"
         exit 1
     fi
 }
 
 chroot_distro_command() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if chroot_distro_check_if_supported $supported $1; then
-        if [ -d "$chroot_distro_path/$1" ]; then
-            mount --bind /dev $chroot_distro_path/$1/dev
-            mount --bind /sys $chroot_distro_path/$1/sys
-            mount --bind /proc $chroot_distro_path/$1/proc
-            mount --bind /dev/pts $chroot_distro_path/$1/dev/pts
-            mount --bind /sdcard $chroot_distro_path/$1/sdcard
-            mount --bind /system $chroot_distro_path/$1/system
-            for file in "/storage"/*; do
-                mkdir -p $chroot_distro_path/$1/$file
-                mount --bind /$file $chroot_distro_path/$1/$file
-            done
-            mount --bind /data $chroot_distro_path/$1/data
-            chroot $chroot_distro_path/$1/ /bin/$2
-        else
-            echo "$1 not installed"
-            exit 1
-        fi
-    else
+    if ! chroot_distro_check_if_supported $supported $1; then
         echo "unavailable distro $1"
         exit 1
     fi
+
+    if [ ! -d "$chroot_distro_path/$1" ]; then
+        echo "$1 not installed"
+        exit 1
+    fi
+
+    mount --bind /dev $chroot_distro_path/$1/dev
+    mount --bind /sys $chroot_distro_path/$1/sys
+    mount --bind /proc $chroot_distro_path/$1/proc
+    mount --bind /dev/pts $chroot_distro_path/$1/dev/pts
+    mount --bind /sdcard $chroot_distro_path/$1/sdcard
+    mount --bind /system $chroot_distro_path/$1/system
+    for file in "/storage"/*; do
+        mkdir -p $chroot_distro_path/$1/$file
+        mount --bind /$file $chroot_distro_path/$1/$file
+    done
+    mount --bind /data $chroot_distro_path/$1/data
+    chroot $chroot_distro_path/$1/ /bin/$2
 }
 
 chroot_distro_login() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if chroot_distro_check_if_supported $supported $1; then
-        if [ -d "$chroot_distro_path/$1" ]; then
-            mount --bind /dev $chroot_distro_path/$1/dev
-            mount --bind /sys $chroot_distro_path/$1/sys
-            mount --bind /proc $chroot_distro_path/$1/proc
-            mount --bind /dev/pts $chroot_distro_path/$1/dev/pts
-            mount --bind /sdcard $chroot_distro_path/$1/sdcard
-            mount --bind /system $chroot_distro_path/$1/system
-            for file in "/storage"/*; do
-                mkdir -p $chroot_distro_path/$1/$file
-                mount --bind /$file $chroot_distro_path/$1/$file
-            done
-            mount --bind /data $chroot_distro_path/$1/data
-            chroot $chroot_distro_path/$1/ /bin/su - root
-        else
-            echo "$1 not installed"
-            exit 1
-        fi
-    else
+    if ! chroot_distro_check_if_supported $supported $1; then
         echo "unavailable distro $1"
         exit 1
     fi
+
+    if [ ! -d "$chroot_distro_path/$1" ]; then
+        echo "$1 not installed"
+        exit 1
+    fi
+
+    mount --bind /dev $chroot_distro_path/$1/dev
+    mount --bind /sys $chroot_distro_path/$1/sys
+    mount --bind /proc $chroot_distro_path/$1/proc
+    mount --bind /dev/pts $chroot_distro_path/$1/dev/pts
+    mount --bind /sdcard $chroot_distro_path/$1/sdcard
+    mount --bind /system $chroot_distro_path/$1/system
+    for file in "/storage"/*; do
+        mkdir -p $chroot_distro_path/$1/$file
+        mount --bind /$file $chroot_distro_path/$1/$file
+    done
+    mount --bind /data $chroot_distro_path/$1/data
+    chroot $chroot_distro_path/$1/ /bin/su - root
 }
 
 if [ "$1" = "help" ]; then
