@@ -67,7 +67,7 @@ chroot-distro login <distro> - login to distro
 "
 }
 
-chroot-distro_list_() {
+chroot_distro_list_item() {
     if [ -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
         echo "Downloaded : Yes"
     else
@@ -88,74 +88,74 @@ chroot-distro_list_() {
 chroot_distro_list() {
     echo "Ubuntu : ubuntu
 Rootfs : https://cdimage.ubuntu.com/ubuntu-base/releases/"
-    chroot-distro_list_ ubuntu
+    chroot_distro_list_item ubuntu
     echo "Kali Linux : kali
 Rootfs : http://kali.download/nethunter-images/"
-    chroot-distro_list_ kali
+    chroot_distro_list_item kali
     echo "Debian : debian
 Rootfs : https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Debian/
 Rootfs : https://github.com/termux/proot-distro/releases/download/v4.7.0/"
-    chroot-distro_list_ debian
+    chroot_distro_list_item debian
     echo "Parrot OS : parrot
 Rootfs : https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Parrot/"
-    chroot-distro_list_ parrot
+    chroot_distro_list_item parrot
     echo "Alpine : alpine
 Rootfs : http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/"
-    chroot-distro_list_ alpine
+    chroot_distro_list_item alpine
     echo "Void Linux : void
 Rootfs : https://repo-default.voidlinux.org/live/"
-    chroot-distro_list_ void
+    chroot_distro_list_item void
     if [ "$hardware_machine" != "i386" ]; then
         echo "Arch Linux : archlinux
 Rootfs : http://ca.us.mirror.archlinuxarm.org/os/
 Rootfs : https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/"
-        chroot-distro_list_ archlinux
+        chroot_distro_list_item archlinux
     fi
     if [ "$hardware_machine" = "arm64" ]; then
         echo "Artix Linux : artix
 Rootfs : https://github.com/termux/proot-distro/releases/download/v4.6.0/"
-        chroot-distro_list_ artix
+        chroot_distro_list_item artix
     fi
     if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
         echo "Deepin : deepin
 Rootfs : https://github.com/termux/proot-distro/releases/download/v4.6.0/"
-        chroot-distro_list_ deepin
+        chroot_distro_list_item deepin
     fi
     if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
         echo "Fedora : fedora
 Rootfs : https://github.com/termux/proot-distro/releases/download/v4.6.0/"
-        chroot-distro_list_ fedora
+        chroot_distro_list_item fedora
     fi
     if [ "$hardware_machine" = "arm64" ]; then
         echo "Manjaro : manjaro
 Rootfs : https://github.com/termux/proot-distro/releases/download/v4.6.0/"
-        chroot-distro_list_ manjaro
+        chroot_distro_list_item manjaro
     fi
     if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
         echo "OpenKylin : openkylin
 Rootfs : https://github.com/termux/proot-distro/releases/download/v4.6.0/"
-        chroot-distro_list_ openkylin
+        chroot_distro_list_item openkylin
     fi
     if [ "$hardware_machine" != "armhf" ]; then
         echo "Pardus : pardus
 Rootfs : https://github.com/termux/proot-distro/releases/download/v4.6.0/"
-        chroot-distro_list_ pardus
+        chroot_distro_list_item pardus
     fi
     echo "OpenSuse : opensuse
 Rootfs : https://github.com/termux/proot-distro/releases/download/v4.6.0/"
-    chroot-distro_list_ opensuse
+    chroot_distro_list_item opensuse
     echo "BackBox : backbox
 Rootfs : https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/BackBox/"
-    chroot-distro_list_ backbox
+    chroot_distro_list_item backbox
     if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
         echo "CentOS : centos
 Rootfs : https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/"
-        chroot-distro_list_ centos
+        chroot_distro_list_item centos
     fi
     if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
         echo "CentOS Stream : centos_stream
 Rootfs : https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS_Stream/"
-        chroot-distro_list_ centos_stream
+        chroot_distro_list_item centos_stream
     fi
 }
 
