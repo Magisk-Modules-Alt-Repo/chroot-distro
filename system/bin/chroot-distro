@@ -557,10 +557,10 @@ chroot_distro_download() {
 chroot_distro_check_if_supported() {
     echo "$1" | tr ' ' '\n' | while read -r distro; do
         if [ $distro = $2 ]; then
-            return 0
+            return 1
         fi
     done
-    return 1
+    return 0
 }
 
 chroot_distro_delete() {
