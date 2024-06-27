@@ -554,8 +554,18 @@ chroot_distro_download() {
     fi
 }
 
+chroot_distro_check_if_supported() {
+    echo "$1" | tr ' ' '\n' | while read -r distro; do
+        if [ $distro = $2 ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 chroot_distro_delete() {
-    if [ "$1" = "alpine" ] || [ "$1" = "archlinux" ] || [ "$1" = "artix" ] || [ "$1" = "debian" ] || [ "$1" = "deepin" ]  || [ "$1" = "fedora" ]  || [ "$1" = "manjaro" ]  || [ "$1" = "openkylin" ] || [ "$1" = "opensuse" ] || [ "$1" = "pardus" ] || [ "$1" = "ubuntu" ] || [ "$1" = "void" ] || [ "$1" = "kali" ] || [ "$1" = "parrot" ] || [ "$1" = "backbox" ] || [ "$1" = "centos" ] || [ "$1" = "centos_stream" ]; then
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if chroot_distro_check_if_supported $supported $1; then
         if [ -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             rm $chroot_distro_path/.rootfs/$1.tar.xz
         else
@@ -569,7 +579,8 @@ chroot_distro_delete() {
 }
 
 chroot_distro_install() {
-    if [ "$1" = "alpine" ] || [ "$1" = "archlinux" ] || [ "$1" = "artix" ] || [ "$1" = "debian" ] || [ "$1" = "deepin" ]  || [ "$1" = "fedora" ]  || [ "$1" = "manjaro" ]  || [ "$1" = "openkylin" ] || [ "$1" = "opensuse" ] || [ "$1" = "pardus" ] || [ "$1" = "ubuntu" ] || [ "$1" = "void" ] || [ "$1" = "kali" ] || [ "$1" = "parrot" ] || [ "$1" = "backbox" ] || [ "$1" = "centos" ] || [ "$1" = "centos_stream" ]; then
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if chroot_distro_check_if_supported $supported $1; then
         if [ -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             if [ ! -d "$chroot_distro_path/$1" ]; then
                 distro_path=$chroot_distro_path/$1
@@ -621,7 +632,8 @@ chroot_distro_install() {
 }
 
 chroot_distro_uninstall() {
-    if [ "$1" = "alpine" ] || [ "$1" = "archlinux" ] || [ "$1" = "artix" ] || [ "$1" = "debian" ] || [ "$1" = "deepin" ]  || [ "$1" = "fedora" ]  || [ "$1" = "manjaro" ]  || [ "$1" = "openkylin" ] || [ "$1" = "opensuse" ] || [ "$1" = "pardus" ] || [ "$1" = "ubuntu" ] || [ "$1" = "void" ] || [ "$1" = "kali" ] || [ "$1" = "parrot" ] || [ "$1" = "backbox" ] || [ "$1" = "centos" ] || [ "$1" = "centos_stream" ]; then
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if chroot_distro_check_if_supported $supported $1; then
         if [ -d "$chroot_distro_path/$1" ]; then
             umount -lf $chroot_distro_path/$1/* > /dev/null 2>&1
             rm -rf $chroot_distro_path/$1
@@ -636,7 +648,8 @@ chroot_distro_uninstall() {
 }
 
 chroot_distro_backup() {
-    if [ "$1" = "alpine" ] || [ "$1" = "archlinux" ] || [ "$1" = "artix" ] || [ "$1" = "debian" ] || [ "$1" = "deepin" ]  || [ "$1" = "fedora" ]  || [ "$1" = "manjaro" ]  || [ "$1" = "openkylin" ] || [ "$1" = "opensuse" ] || [ "$1" = "pardus" ] || [ "$1" = "ubuntu" ] || [ "$1" = "void" ] || [ "$1" = "kali" ] || [ "$1" = "parrot" ] || [ "$1" = "backbox" ] || [ "$1" = "centos" ] || [ "$1" = "centos_stream" ]; then
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if chroot_distro_check_if_supported $supported $1; then
         if [ "$2" = "" ]; then
             if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
                 tar -cvf $chroot_distro_path/.backup/$1.tar.xz $chroot_distro_path/$1
@@ -654,7 +667,8 @@ chroot_distro_backup() {
 }
 
 chroot_distro_unbackup() {
-    if [ "$1" = "alpine" ] || [ "$1" = "archlinux" ] || [ "$1" = "artix" ] || [ "$1" = "debian" ] || [ "$1" = "deepin" ]  || [ "$1" = "fedora" ]  || [ "$1" = "manjaro" ]  || [ "$1" = "openkylin" ] || [ "$1" = "opensuse" ] || [ "$1" = "pardus" ] || [ "$1" = "ubuntu" ] || [ "$1" = "void" ] || [ "$1" = "kali" ] || [ "$1" = "parrot" ] || [ "$1" = "backbox" ] || [ "$1" = "centos" ] || [ "$1" = "centos_stream" ]; then
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if chroot_distro_check_if_supported $supported $1; then
         if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
             rm $chroot_distro_path/.backup/$1.tar.xz
         else
@@ -668,7 +682,8 @@ chroot_distro_unbackup() {
 }
 
 chroot_distro_restore() {
-    if [ "$1" = "alpine" ] || [ "$1" = "archlinux" ] || [ "$1" = "artix" ] || [ "$1" = "debian" ] || [ "$1" = "deepin" ]  || [ "$1" = "fedora" ]  || [ "$1" = "manjaro" ]  || [ "$1" = "openkylin" ] || [ "$1" = "opensuse" ] || [ "$1" = "pardus" ] || [ "$1" = "ubuntu" ] || [ "$1" = "void" ] || [ "$1" = "kali" ] || [ "$1" = "parrot" ] || [ "$1" = "backbox" ] || [ "$1" = "centos" ] || [ "$1" = "centos_stream" ]; then
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if chroot_distro_check_if_supported $supported $1; then
         if [ ! -d "$chroot_distro_path/$1" ]; then
             if [ "$2" = "" ]; then
                 if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
@@ -762,7 +777,8 @@ chroot_distro_restore() {
 }
 
 chroot_distro_command() {
-    if [ "$1" = "alpine" ] || [ "$1" = "archlinux" ] || [ "$1" = "artix" ] || [ "$1" = "debian" ] || [ "$1" = "deepin" ]  || [ "$1" = "fedora" ]  || [ "$1" = "manjaro" ]  || [ "$1" = "openkylin" ] || [ "$1" = "opensuse" ] || [ "$1" = "pardus" ] || [ "$1" = "ubuntu" ] || [ "$1" = "void" ] || [ "$1" = "kali" ] || [ "$1" = "parrot" ] || [ "$1" = "backbox" ] || [ "$1" = "centos" ] || [ "$1" = "centos_stream" ]; then
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if chroot_distro_check_if_supported $supported $1; then
         if [ -d "$chroot_distro_path/$1" ]; then
             mount --bind /dev $chroot_distro_path/$1/dev
             mount --bind /sys $chroot_distro_path/$1/sys
@@ -787,7 +803,8 @@ chroot_distro_command() {
 }
 
 chroot_distro_login() {
-    if [ "$1" = "alpine" ] || [ "$1" = "archlinux" ] || [ "$1" = "artix" ] || [ "$1" = "debian" ] || [ "$1" = "deepin" ]  || [ "$1" = "fedora" ]  || [ "$1" = "manjaro" ]  || [ "$1" = "openkylin" ] || [ "$1" = "opensuse" ] || [ "$1" = "pardus" ] || [ "$1" = "ubuntu" ] || [ "$1" = "void" ] || [ "$1" = "kali" ] || [ "$1" = "parrot" ] || [ "$1" = "backbox" ] || [ "$1" = "centos" ] || [ "$1" = "centos_stream" ]; then
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if chroot_distro_check_if_supported $supported $1; then
         if [ -d "$chroot_distro_path/$1" ]; then
             mount --bind /dev $chroot_distro_path/$1/dev
             mount --bind /sys $chroot_distro_path/$1/sys
