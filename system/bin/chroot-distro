@@ -647,8 +647,8 @@ chroot_distro_install() {
     fi
 
     distro_path=$chroot_distro_path/$1
-    mkdir $distro_path
     if [ $(tar -tf $chroot_distro_path/.rootfs/"$1".tar.xz 2>/dev/null | grep -E -c '^[^/]*/$') -gt 2 ]; then
+        mkdir $distro_path
         tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$chroot_distro_path/$1/"
     else
         tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$chroot_distro_path/"
