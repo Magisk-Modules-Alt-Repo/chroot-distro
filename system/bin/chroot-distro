@@ -609,6 +609,10 @@ chroot_distro_mount_system_points() {
 
 chroot_distro_unmount_system_point() {
     mount_point=$1
+    if ! mountpoint -q $mount_point; then
+        # nothing to do, already unmounted
+        return
+    fi
     if ! umount -lf $mount_point; then
         echo "could not unmount $mount_point, uninstall may need manual intervention, proceed with care"
         exit 1
@@ -623,7 +627,9 @@ chroot_distro_unmount_system_points() {
     chroot_distro_unmount_system_point $distro_path/data
     chroot_distro_unmount_system_point $distro_path/system
     chroot_distro_unmount_system_point $distro_path/sdcard
-    chroot_distro_unmount_system_point $distro_path/dev/pts
+    if [ -f $distro_path/dev/pts ]; then
+        chroot_distro_unmount_system_point $distro_path/dev/pts
+    fi
     chroot_distro_unmount_system_point $distro_path/proc
     chroot_distro_unmount_system_point $distro_path/sys
     chroot_distro_unmount_system_point $distro_path/dev
