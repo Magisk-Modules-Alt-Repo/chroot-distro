@@ -653,12 +653,16 @@ chroot_distro_install() {
     fi
 
     distro_path=$chroot_distro_path/$1
-    if [ $(tar -tf $chroot_distro_path/.rootfs/"$1".tar.xz 2>/dev/null | grep -E -c '^[^/]*/$') -gt 2 ]; then
+    rootdir="."
+    if [ $(tar -tf $chroot_distro_path/.rootfs/"$1".tar.xz 2>/dev/null | grep -E -c '^[^/]*/$') -eq 1 ]; then
+        $rootdir="$( basename "$( tar -tf "$chroot_distro_path/.rootfs/$1.tar.xz" 2>/dev/null | head -n 1)" )"
+    fi
+    if [ $rootdir = "." ]; then
         mkdir $distro_path
-        tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$chroot_distro_path/$1/"
+        tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$distro_path/"
     else
         tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$chroot_distro_path/"
-        mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.rootfs/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
+        mv "$chroot_distro_path/$rootdir" "$distro_path"
     fi
 
     chroot_distro_mount_system_points $distro_path
