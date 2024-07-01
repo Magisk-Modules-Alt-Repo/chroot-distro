@@ -756,64 +756,44 @@ chroot_distro_restore() {
         exit 1
     fi
 
-    if [ -d "$chroot_distro_path/$1" ]; then
+    distro_path=$chroot_distro_path/$1
+    if [ -d "$distro_path" ]; then
         echo "distro already installed , uninstall and try again"
         exit 1
     fi
 
     if [ "$2" = "" ]; then
-        if [ ! -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
-            echo "backup not found"
-            exit 1
-        fi
-
-        distro_path=$chroot_distro_path/$1
-        mkdir $distro_path
-        if [ $(tar -tf $chroot_distro_path/.backup/"$1".tar.xz 2>/dev/null | grep -E '^.*\/$' | wc -l) -gt 2 ]; then
-            tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/$1/"
-        else
-            tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/"
-            mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.backup/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
-        fi
-
-        chroot_distro_mount_system_points $distro_path
-
-        echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
-        echo "127.0.0.1 localhost" > $distro_path/etc/hosts
-        chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
-        chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
-        chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
-        chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-        chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
-        chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
-        chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
-        chroot $distro_path /bin/su - root
-    elif [ -f "$2" ]; then
-        distro_path=$chroot_distro_path/$1
-        mkdir $distro_path
-        if [ $(tar -tf $chroot_distro_path/.backup/"$1".tar.xz 2>/dev/null | grep -E '^.*\/$' | wc -l) -gt 2 ]; then
-            tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/$1/"
-        else
-            tar -xf "$chroot_distro_path/.backup/$1.tar.xz" -C "$chroot_distro_path/"
-            mv "$chroot_distro_path/$( basename "$( tar -tf "$chroot_distro_path/.backup/$1.tar.xz" 2>/dev/null | head -n 1)")" "$chroot_distro_path/$1"
-        fi
-
-        chroot_distro_mount_system_points $distro_path
-
-        echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
-        echo "127.0.0.1 localhost" > $distro_path/etc/hosts
-        chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
-        chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
-        chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
-        chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-        chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
-        chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
-        chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
-        chroot $distro_path /bin/su - root
+        backup_path="$chroot_distro_path/.backup/$1.tar.xz"
     else
+        backup_path="$2"
+    fi
+
+    if [ ! -f "$backup_path" ]; then
         echo "backup not found"
         exit 1
     fi
+
+    rootdir="$( chroot_distro_find_archive_rootdir $backup_path )"
+    if [ "." = "$rootdir" ]; then
+        mkdir $distro_path
+        tar -xf "$backup_path" -C "$distro_path/"
+    else
+        tar -xf "$backup_path" -C "$chroot_distro_path/"
+        mv "$chroot_distro_path/$rootdir" "$distro_path"
+    fi
+
+    chroot_distro_mount_system_points $distro_path
+
+    echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
+    echo "127.0.0.1 localhost" > $distro_path/etc/hosts
+    chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
+    chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
+    chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
+    chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
+    chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
+    chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+    chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
+    chroot $distro_path /bin/su - root
 }
 
 chroot_distro_command() {
