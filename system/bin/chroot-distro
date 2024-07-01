@@ -689,6 +689,8 @@ chroot_distro_uninstall() {
     distro_path=$chroot_distro_path/$1
     if [ -d "$distro_path" ]; then
         chroot_distro_unmount_system_points $distro_path
+        # ensure that there is no symbolic links before nuking the rootfs, symbolic links may point outside of rootfs when outside of the chroot
+        find $distro_path -type l -exec unlink {} \;
         rm -rf $distro_path
     else
         echo "$1 not installed"
