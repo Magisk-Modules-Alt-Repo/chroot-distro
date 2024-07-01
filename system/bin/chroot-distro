@@ -556,7 +556,7 @@ chroot_distro_download() {
 
 chroot_distro_check_if_supported() {
     echo "$1" | tr ' ' '\n' | while read -r distro; do
-        if [ $distro = $2 ]; then
+        if [ "$distro" = "$2" ]; then
             return 1
         fi
     done
@@ -565,13 +565,14 @@ chroot_distro_check_if_supported() {
 
 chroot_distro_delete() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported $supported $1; then
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
 
-    if [ -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-        rm $chroot_distro_path/.rootfs/$1.tar.xz
+    archive_path="$chroot_distro_path/.rootfs/$1.tar.xz"
+    if [ -f "$archive_path" ]; then
+        rm "$archive_path"
     else
         echo "$1 not downloaded"
         exit 1
@@ -579,37 +580,37 @@ chroot_distro_delete() {
 }
 
 chroot_distro_mount_system_point() {
-    path_to_mount=$1
-    mount_point=$2
-    if [ ! -d $mount_point ]; then
-        if ! mkdir -p $mount_point; then
+    path_to_mount="$1"
+    mount_point="$2"
+    if [ ! -d "$mount_point" ]; then
+        if ! mkdir -p "$mount_point"; then
             echo "creating mount point $mount_point failed"
             exit 1
         fi
     fi
-    if ! mount --bind $path_to_mount $mount_point; then
+    if ! mount --bind "$path_to_mount" "$mount_point"; then
         echo "could not mount $path_to_mount to $mount_point"
         exit 1
     fi
 }
 
 chroot_distro_mount_system_points() {
-    distro_path=$1
-    chroot_distro_mount_system_point /dev $distro_path/dev
-    chroot_distro_mount_system_point /sys $distro_path/sys
-    chroot_distro_mount_system_point /proc $distro_path/proc
-    chroot_distro_mount_system_point /dev/pts $distro_path/dev/pts
-    chroot_distro_mount_system_point /sdcard $distro_path/sdcard
-    chroot_distro_mount_system_point /system $distro_path/system
-    chroot_distro_mount_system_point /data $distro_path/data
+    distro_path="$1"
+    chroot_distro_mount_system_point /dev "$distro_path/dev"
+    chroot_distro_mount_system_point /sys "$distro_path/sys"
+    chroot_distro_mount_system_point /proc "$distro_path/proc"
+    chroot_distro_mount_system_point /dev/pts "$distro_path/dev/pts"
+    chroot_distro_mount_system_point /sdcard "$distro_path/sdcard"
+    chroot_distro_mount_system_point /system "$distro_path/system"
+    chroot_distro_mount_system_point /data "$distro_path/data"
     for file in "/storage"/*; do
-        chroot_distro_mount_system_point /$file $distro_path/$file
+        chroot_distro_mount_system_point "/$file" "$distro_path/$file"
     done
 }
 
 chroot_distro_unmount_system_point() {
     mount_point="$1"
-    if [ ! -e $mount_point ]; then
+    if [ ! -e "$mount_point" ]; then
         # nothing to do, mount point missing
         return
     fi
@@ -624,36 +625,36 @@ chroot_distro_unmount_system_point() {
 }
 
 chroot_distro_unmount_system_points() {
-    distro_path=$1
+    distro_path="$1"
     if mountpoint -q "$distro_path/data" 2>/dev/null; then
         echo "$distro_path/data is circular reference! unmount manually, or reboot before proceeding"
         exit 1
     fi
     for file in "/storage"/*; do
-        chroot_distro_unmount_system_point $distro_path/$file
+        chroot_distro_unmount_system_point "$distro_path/$file"
     done
-    chroot_distro_unmount_system_point $distro_path/system
-    chroot_distro_unmount_system_point $distro_path/sdcard
-    if [ -f $distro_path/dev/pts ]; then
-        chroot_distro_unmount_system_point $distro_path/dev/pts
+    chroot_distro_unmount_system_point "$distro_path/system"
+    chroot_distro_unmount_system_point "$distro_path/sdcard"
+    if [ -f "$distro_path/dev/pts" ]; then
+        chroot_distro_unmount_system_point "$distro_path/dev/pts"
     fi
-    chroot_distro_unmount_system_point $distro_path/proc
-    chroot_distro_unmount_system_point $distro_path/sys
-    chroot_distro_unmount_system_point $distro_path/dev
+    chroot_distro_unmount_system_point "$distro_path/proc"
+    chroot_distro_unmount_system_point "$distro_path/sys"
+    chroot_distro_unmount_system_point "$distro_path/dev"
 }
 
 chroot_distro_find_archive_rootdir() {
     rootdir="."
-    if [ $(tar -tf "$1" 2>/dev/null | grep -E -c '^[^/]*/$') -eq 1 ]; then
+    if [ "$(tar -tf "$1" 2>/dev/null | grep -E -c '^[^/]*/$')" -eq 1 ]; then
         found_path="$( tar -tf "$1" 2>/dev/null | head -n 1)"
-        rootdir="$( basename $found_path 2>/dev/null )"
+        rootdir="$( basename "$found_path" 2>/dev/null )"
     fi
     echo "$rootdir"
 }
 
 chroot_distro_install() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported $supported $1; then
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
@@ -670,42 +671,42 @@ chroot_distro_install() {
         exit 1
     fi
 
-    rootdir="$( chroot_distro_find_archive_rootdir $archive_path )"
+    rootdir="$( chroot_distro_find_archive_rootdir "$archive_path" )"
     if [ "." = "$rootdir" ]; then
-        mkdir $distro_path
+        mkdir "$distro_path"
         tar -xf "$archive_path" -C "$distro_path/"
     else
         tar -xf "$archive_path" -C "$chroot_distro_path/"
         mv "$chroot_distro_path/$rootdir" "$distro_path"
     fi
 
-    chroot_distro_mount_system_points $distro_path
+    chroot_distro_mount_system_points "$distro_path"
 
-    echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
-    echo "127.0.0.1 localhost" > $distro_path/etc/hosts
-    chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
-    chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
-    chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
-    chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-    chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
-    chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
-    chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
-    chroot $distro_path /bin/su - root
+    echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
+    echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
+    chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null
+    chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
+    chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
+    chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
+    chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
+    chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+    chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
+    chroot "$distro_path" /bin/su - root
 }
 
 chroot_distro_uninstall() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported $supported $1; then
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
 
-    distro_path=$chroot_distro_path/$1
+    distro_path="$chroot_distro_path/$1"
     if [ -d "$distro_path" ]; then
-        chroot_distro_unmount_system_points $distro_path
+        chroot_distro_unmount_system_points "$distro_path"
         # ensure that there is no symbolic links before nuking the rootfs, symbolic links may point outside of rootfs when outside of the chroot
-        find $distro_path -type l -exec unlink {} \;
-        rm -rf $distro_path
+        find "$distro_path" -type l -exec unlink {} \;
+        rm -rf "$distro_path"
     else
         echo "$1 not installed"
         exit 1
@@ -714,7 +715,7 @@ chroot_distro_uninstall() {
 
 chroot_distro_backup() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported $supported $1; then
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
@@ -735,7 +736,7 @@ chroot_distro_backup() {
 
 chroot_distro_unbackup() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported $supported $1; then
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
@@ -751,12 +752,12 @@ chroot_distro_unbackup() {
 
 chroot_distro_restore() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported $supported $1; then
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
 
-    distro_path=$chroot_distro_path/$1
+    distro_path="$chroot_distro_path/$1"
     if [ -d "$distro_path" ]; then
         echo "distro already installed , uninstall and try again"
         exit 1
@@ -773,61 +774,61 @@ chroot_distro_restore() {
         exit 1
     fi
 
-    rootdir="$( chroot_distro_find_archive_rootdir $backup_path )"
+    rootdir="$( chroot_distro_find_archive_rootdir "$backup_path" )"
     if [ "." = "$rootdir" ]; then
-        mkdir $distro_path
+        mkdir "$distro_path"
         tar -xf "$backup_path" -C "$distro_path/"
     else
         tar -xf "$backup_path" -C "$chroot_distro_path/"
         mv "$chroot_distro_path/$rootdir" "$distro_path"
     fi
 
-    chroot_distro_mount_system_points $distro_path
+    chroot_distro_mount_system_points "$distro_path"
 
-    echo "nameserver 8.8.8.8" > $distro_path/etc/resolv.conf
-    echo "127.0.0.1 localhost" > $distro_path/etc/hosts
-    chroot $distro_path /sbin/groupadd -g 3003 aid_inet 2>/dev/null
-    chroot $distro_path /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
-    chroot $distro_path /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
-    chroot $distro_path /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-    chroot $distro_path /sbin/usermod -G 3003 -a root 2>/dev/null
-    chroot $distro_path /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
-    chroot $distro_path /sbin/locale-gen en_US.UTF-8 2>/dev/null
-    chroot $distro_path /bin/su - root
+    echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
+    echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
+    chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null
+    chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
+    chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
+    chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
+    chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
+    chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+    chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
+    chroot "$distro_path" /bin/su - root
 }
 
 chroot_distro_command() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported $supported $1; then
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
 
-    distro_path=$chroot_distro_path/$1
+    distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
         echo "$1 not installed"
         exit 1
     fi
 
-    chroot_distro_mount_system_points $distro_path
+    chroot_distro_mount_system_points "$distro_path"
 
-    chroot "$distro_path/" /bin/$2
+    chroot "$distro_path/" "/bin/$2"
 }
 
 chroot_distro_login() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported $supported $1; then
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
 
-    distro_path=$chroot_distro_path/$1
+    distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
         echo "$1 not installed"
         exit 1
     fi
 
-    chroot_distro_mount_system_points $distro_path
+    chroot_distro_mount_system_points "$distro_path"
 
     chroot "$distro_path/" /bin/su - root
 }
@@ -837,29 +838,29 @@ if [ "$1" = "help" ]; then
 elif [ "$1" = "list" ]; then
     chroot_distro_list
 elif [ "$1" = "download" ]; then
-    chroot_distro_download $2
+    chroot_distro_download "$2"
 elif [ "$1" = "redownload" ]; then
-    chroot_distro_delete $2
-    chroot_distro_download $2
+    chroot_distro_delete "$2"
+    chroot_distro_download "$2"
 elif [ "$1" = "delete" ]; then
-    chroot_distro_delete $2
+    chroot_distro_delete "$2"
 elif [ "$1" = "install" ]; then
-    chroot_distro_install $2
+    chroot_distro_install "$2"
 elif [ "$1" = "uninstall" ]; then
-    chroot_distro_uninstall $2
+    chroot_distro_uninstall "$2"
 elif [ "$1" = "reinstall" ]; then
-    chroot_distro_uninstall $2
-    chroot_distro_install $2
+    chroot_distro_uninstall "$2"
+    chroot_distro_install "$2"
 elif [ "$1" = "backup" ]; then
-    chroot_distro_backup $2 $3
+    chroot_distro_backup "$2" "$3"
 elif [ "$1" = "unbackup" ]; then
-    chroot_distro_unbackup $2
+    chroot_distro_unbackup "$2"
 elif [ "$1" = "restore" ]; then
-    chroot_distro_restore $2 $3
+    chroot_distro_restore "$2" "$3"
 elif [ "$1" = "command" ]; then
-    chroot_distro_command $2 $3
+    chroot_distro_command "$2" "$3"
 elif [ "$1" = "login" ]; then
-    chroot_distro_login $2
+    chroot_distro_login "$2"
 elif [ "$1" != "" ]; then
     echo "chroot-distro invalid option $1"
     echo "try 'chroot-distro help' for more information"
