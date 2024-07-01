@@ -608,12 +608,16 @@ chroot_distro_mount_system_points() {
 }
 
 chroot_distro_unmount_system_point() {
-    mount_point=$1
-    if ! mountpoint -q $mount_point; then
+    mount_point="$1"
+    if [ ! -e $mount_point ]; then
+        # nothing to do, mount point missing
+        return
+    fi
+    if ! mountpoint -q "$mount_point" 2>/dev/null; then
         # nothing to do, already unmounted
         return
     fi
-    if ! umount -lf $mount_point; then
+    if ! umount -lf "$mount_point"; then
         echo "could not unmount $mount_point, uninstall may need manual intervention, proceed with care"
         exit 1
     fi
@@ -621,10 +625,13 @@ chroot_distro_unmount_system_point() {
 
 chroot_distro_unmount_system_points() {
     distro_path=$1
+    if mountpoint -q "$distro_path/data" 2>/dev/null; then
+        echo "$distro_path/data is circular reference! unmount manually, or reboot before proceeding"
+        exit 1
+    fi
     for file in "/storage"/*; do
         chroot_distro_unmount_system_point $distro_path/$file
     done
-    chroot_distro_unmount_system_point $distro_path/data
     chroot_distro_unmount_system_point $distro_path/system
     chroot_distro_unmount_system_point $distro_path/sdcard
     if [ -f $distro_path/dev/pts ]; then
