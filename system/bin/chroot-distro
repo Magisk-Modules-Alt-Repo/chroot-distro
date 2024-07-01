@@ -642,6 +642,15 @@ chroot_distro_unmount_system_points() {
     chroot_distro_unmount_system_point $distro_path/dev
 }
 
+chroot_distro_find_archive_rootdir() {
+    rootdir="."
+    if [ $(tar -tf "$1" 2>/dev/null | grep -E -c '^[^/]*/$') -eq 1 ]; then
+        found_path="$( tar -tf "$1" 2>/dev/null | head -n 1)"
+        rootdir="$( basename $found_path 2>/dev/null )"
+    fi
+    echo "$rootdir"
+}
+
 chroot_distro_install() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
     if ! chroot_distro_check_if_supported $supported $1; then
@@ -649,26 +658,24 @@ chroot_distro_install() {
         exit 1
     fi
 
-    if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
+    archive_path="$chroot_distro_path/.rootfs/$1.tar.xz"
+    if [ ! -f "$archive_path" ]; then
         echo "$1 not downloaded"
         exit 1
     fi
 
-    if [ -d "$chroot_distro_path/$1" ]; then
+    distro_path="$chroot_distro_path/$1"
+    if [ -d "$distro_path" ]; then
         echo "$1 already installed"
         exit 1
     fi
 
-    distro_path=$chroot_distro_path/$1
-    rootdir="."
-    if [ $(tar -tf $chroot_distro_path/.rootfs/"$1".tar.xz 2>/dev/null | grep -E -c '^[^/]*/$') -eq 1 ]; then
-        $rootdir="$( basename "$( tar -tf "$chroot_distro_path/.rootfs/$1.tar.xz" 2>/dev/null | head -n 1)" )"
-    fi
-    if [ $rootdir = "." ]; then
+    rootdir="$( chroot_distro_find_archive_rootdir $archive_path )"
+    if [ "." = "$rootdir" ]; then
         mkdir $distro_path
-        tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$distro_path/"
+        tar -xf "$archive_path" -C "$distro_path/"
     else
-        tar -xf "$chroot_distro_path/.rootfs/$1.tar.xz" -C "$chroot_distro_path/"
+        tar -xf "$archive_path" -C "$chroot_distro_path/"
         mv "$chroot_distro_path/$rootdir" "$distro_path"
     fi
 
