@@ -719,15 +719,17 @@ chroot_distro_backup() {
         exit 1
     fi
 
+    distro_path="$chroot_distro_path/$1"
     if [ "$2" = "" ]; then
-        if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
-            tar -cvf $chroot_distro_path/.backup/$1.tar.xz $chroot_distro_path/$1
+        backup_path="$chroot_distro_path/.backup/$1.tar.xz"
+        if [ ! -f "$backup_path" ]; then
+            tar -cvf "$backup_path" "$distro_path"
         else
             echo "backup already exist, unbackup and try agin"
             exit 1
         fi
     else
-        tar -cvf $2 $chroot_distro_path/$1
+        tar -cvf "$2" "$distro_path"
     fi
 }
 
@@ -738,8 +740,9 @@ chroot_distro_unbackup() {
         exit 1
     fi
 
-    if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
-        rm $chroot_distro_path/.backup/$1.tar.xz
+    backup_path="$chroot_distro_path/.backup/$1.tar.xz"
+    if [ -f "$backup_path" ]; then
+        rm "$backup_path"
     else
         echo "backup not found $1"
         exit 1
@@ -820,15 +823,15 @@ chroot_distro_command() {
         exit 1
     fi
 
-    if [ ! -d "$chroot_distro_path/$1" ]; then
+    distro_path=$chroot_distro_path/$1
+    if [ ! -d "$distro_path" ]; then
         echo "$1 not installed"
         exit 1
     fi
 
-    distro_path=$chroot_distro_path/$1
     chroot_distro_mount_system_points $distro_path
 
-    chroot $distro_path /bin/$2
+    chroot "$distro_path/" /bin/$2
 }
 
 chroot_distro_login() {
@@ -838,15 +841,15 @@ chroot_distro_login() {
         exit 1
     fi
 
-    if [ ! -d "$chroot_distro_path/$1" ]; then
+    distro_path=$chroot_distro_path/$1
+    if [ ! -d "$distro_path" ]; then
         echo "$1 not installed"
         exit 1
     fi
 
-    distro_path=$chroot_distro_path/$1
     chroot_distro_mount_system_points $distro_path
 
-    chroot $chroot_distro_path/$1/ /bin/su - root
+    chroot "$distro_path/" /bin/su - root
 }
 
 if [ "$1" = "help" ]; then
