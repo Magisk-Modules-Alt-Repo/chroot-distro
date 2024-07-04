@@ -812,7 +812,7 @@ chroot_distro_command() {
 
     chroot_distro_mount_system_points "$distro_path"
 
-    chroot "$distro_path/" "/bin/$2"
+    chroot "$distro_path/" /bin/$2
 }
 
 chroot_distro_login() {
