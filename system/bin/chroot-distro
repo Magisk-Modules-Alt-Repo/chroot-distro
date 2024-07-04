@@ -235,15 +235,19 @@ chroot_distro_download() {
         echo "[1] kali linux full 2024.1"
         echo "[2] kali linux minimal 2024.1"
         echo "[3] kali linux nano 2024.1"
+        echo
         echo "[4] kali linux full 2023.4"
         echo "[5] kali linux minimal 2023.4"
         echo "[6] kali linux nano 2023.4"
+        echo
         echo "[7] kali linux full 2023.3b"
         echo "[8] kali linux minimal 2023.3b"
         echo "[9] kali linux nano 2023.3b"
+        echo
         echo "[10] kali linux full 2023.3"
         echo "[11] kali linux minimal 2023.3"
         echo "[12] kali linux nano 2023.3"
+        echo
         echo "[13] kali linux full current"
         echo "[14] kali linux minimal current"
         echo "[15] kali linux nano current"
