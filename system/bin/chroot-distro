@@ -62,7 +62,8 @@ chroot-distro unbackup <distro> - delete backup
 chroot-distro restore <distro> - restore distro
 chroot-distro restore <distro> <path> - restore distro with custom path
 
-chroot-distro command <distro> <command> - run command
+chroot-distro command <distro> [--as-is] <command> - run command
+    '--as-is' full path needs to be specified for the command
 chroot-distro login <distro> - login to distro
 "
 }
@@ -812,7 +813,17 @@ chroot_distro_command() {
 
     chroot_distro_mount_system_points "$distro_path"
 
-    chroot "$distro_path/" /bin/$2
+    command="/bin/$2"
+
+    if [ "$2" = "--as-is" ]; then
+        command="$3"
+    elif [ "$3" = "--as-is" ]; then
+        command="$2"
+    fi
+
+    # shellcheck disable=SC2086
+    # intentionally left out quotes to make it possible to provide arguments
+    chroot "$distro_path/" $command
 }
 
 chroot_distro_login() {
@@ -858,7 +869,7 @@ elif [ "$1" = "unbackup" ]; then
 elif [ "$1" = "restore" ]; then
     chroot_distro_restore "$2" "$3"
 elif [ "$1" = "command" ]; then
-    chroot_distro_command "$2" "$3"
+    chroot_distro_command "$2" "$3" "$4"
 elif [ "$1" = "login" ]; then
     chroot_distro_login "$2"
 elif [ "$1" != "" ]; then
