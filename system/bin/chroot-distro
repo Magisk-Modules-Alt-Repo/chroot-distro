@@ -13,6 +13,12 @@ if ! command -v busybox &> /dev/null; then
     exit 1
 fi
 
+getopt --test > /dev/null && true
+if [ $? -ne 4 ]; then
+    echo 'I’m sorry, `getopt --test` failed in this environment.'
+    exit 1
+fi
+
 if [ ! -d "$chroot_distro_path/" ]; then
     mkdir -p $chroot_distro_path/
 fi
@@ -817,12 +823,11 @@ chroot_distro_command() {
 
     chroot_distro_mount_system_points "$distro_path"
 
-    command="/bin/$2"
-
-    if [ "$2" = "--as-is" ]; then
-        command="$3"
-    elif [ "$3" = "--as-is" ]; then
+    as_is=$3
+    if [ "yes" = "$as_is" ]; then
         command="$2"
+    else
+        command="/bin/$2"
     fi
 
     # shellcheck disable=SC2086
@@ -848,37 +853,145 @@ chroot_distro_login() {
     chroot "$distro_path/" /bin/su - root
 }
 
-if [ "$1" = "help" ]; then
-    chroot_distro_help
-elif [ "$1" = "list" ]; then
-    chroot_distro_list
-elif [ "$1" = "download" ]; then
-    chroot_distro_download "$2"
-elif [ "$1" = "redownload" ]; then
-    chroot_distro_delete "$2"
-    chroot_distro_download "$2"
-elif [ "$1" = "delete" ]; then
-    chroot_distro_delete "$2"
-elif [ "$1" = "install" ]; then
-    chroot_distro_install "$2"
-elif [ "$1" = "uninstall" ]; then
-    chroot_distro_uninstall "$2"
-elif [ "$1" = "reinstall" ]; then
-    chroot_distro_uninstall "$2"
-    chroot_distro_install "$2"
-elif [ "$1" = "backup" ]; then
-    chroot_distro_backup "$2" "$3"
-elif [ "$1" = "unbackup" ]; then
-    chroot_distro_unbackup "$2"
-elif [ "$1" = "restore" ]; then
-    chroot_distro_restore "$2" "$3"
-elif [ "$1" = "command" ]; then
-    chroot_distro_command "$2" "$3" "$4"
-elif [ "$1" = "login" ]; then
-    chroot_distro_login "$2"
-elif [ "$1" != "" ]; then
-    echo "chroot-distro invalid option $1"
+chroot_distro_invalid_parameters() {
+    echo "chroot-distro - $1"
     echo "try 'chroot-distro help' for more information"
-else
+    exit 2
+}
+
+chroot_distro_user_check_parameters() {
+    chroot_distro_invalid_parameters "unknonwn parameters"
+}
+
+chroot_distro_missing_distro() {
+    chroot_distro_invalid_parameters "misssing distro"
+}
+
+if [ $# -eq 0 ]; then
     chroot_distro_help
+fi
+
+command=$1
+shift
+
+if [ "$command" = "help" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    chroot_distro_help
+elif [ "$command" = "list" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -ne 0 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_list
+elif [ "$command" = "download" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_download "$1"
+elif [ "$command" = "redownload" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_download "$1"
+elif [ "$command" = "delete" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_delete "$1"
+elif [ "$command" = "install" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_install "$1"
+elif [ "$command" = "uninstall" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_uninstall "$1"
+elif [ "$command" = "reinstall" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_uninstall "$1"
+    chroot_distro_install "$1"
+elif [ "$command" = "backup" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -gt 2 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_backup "$1" "$2"
+elif [ "$command" = "unbackup" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_unbackup "$1"
+elif [ "$command" = "restore" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -gt 2 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_restore "$1" "$2"
+elif [ "$command" = "command" ]; then
+    PARSED=$(getopt --options= --longoptions=as-is --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    as_is=no
+    while true; do
+        case "$1" in
+            --as-is)
+                as_is=yes
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -eq 1 ]; then
+        chroot_distro_invalid_parameters "program missing"
+    elif [ $# -ne 2 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_command "$1" "$2" "$as_is"
+elif [ "$command" = "login" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_login "$1"
+else
+    chroot_distro_invalid_parameters "invalid command $command"
 fi
