@@ -46,31 +46,33 @@ fi
 
 
 chroot_distro_help() {
-    echo "chroot-distro : install linux distributions
+    echo "$0 : install linux distributions
 
 usage :
 
-chroot-distro help - for more information
-chroot-distro list - list of available linux distributions
+$0 help - for more information
+$0 list - list of available linux distributions
 
-chroot-distro download <distro> - download rootfs
-chroot-distro redownload <distro> - redownload rootfs
-chroot-distro delete <distro> - delete rootfs
+$0 download <distro> - download rootfs
+$0 redownload <distro> - redownload rootfs
+$0 delete <distro> - delete rootfs
 
-chroot-distro install <distro> - install distro
-chroot-distro reinstall <distro> - reinstall distro
-chroot-distro uninstall <distro> - uninstall distro
+$0 install <distro> - install distro
+$0 reinstall <distro> - reinstall distro
+$0 uninstall <distro> - uninstall distro
 
-chroot-distro backup <distro> - backup distro
-chroot-distro backup <distro> <path> - backup distro with custom path
-chroot-distro unbackup <distro> - delete backup
+$0 unmount <distro> - unmount system mount points from distro
 
-chroot-distro restore <distro> - restore distro
-chroot-distro restore <distro> <path> - restore distro with custom path
+$0 backup <distro> - backup distro
+$0 backup <distro> <path> - backup distro with custom path
+$0 unbackup <distro> - delete backup
 
-chroot-distro command <distro> [--as-is] <command> - run command
+$0 restore <distro> - restore distro
+$0 restore <distro> <path> - restore distro with custom path
+
+$0 command <distro> [--as-is] <command> - run command
     '--as-is' full path needs to be specified for the command
-chroot-distro login <distro> - login to distro
+$0 login <distro> - login to distro
 "
 }
 
@@ -854,8 +856,8 @@ chroot_distro_login() {
 }
 
 chroot_distro_invalid_parameters() {
-    echo "chroot-distro - $1"
-    echo "try 'chroot-distro help' for more information"
+    echo "$0 - $1"
+    echo "try '$0 help' for more information"
     exit 2
 }
 
