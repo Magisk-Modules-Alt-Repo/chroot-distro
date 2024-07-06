@@ -57,8 +57,10 @@ $0 download <distro> - download rootfs
 $0 redownload <distro> - redownload rootfs
 $0 delete <distro> - delete rootfs
 
-$0 install <distro> - install distro
-$0 reinstall <distro> - reinstall distro
+$0 install <distro> [-d|--data] - install distro
+    '-d|--data' Installs also /data folder, by default not installed
+$0 reinstall <distro> [-d|--data] - reinstall distro
+    '-d|--data' Installs also /data folder, by default not installed
 $0 uninstall <distro> - uninstall distro
 
 $0 unmount <distro> - unmount system mount points from distro
@@ -609,13 +611,16 @@ chroot_distro_mount_system_point() {
 
 chroot_distro_mount_system_points() {
     distro_path="$1"
+    use_data="$2"
     chroot_distro_mount_system_point /dev "$distro_path/dev"
     chroot_distro_mount_system_point /sys "$distro_path/sys"
     chroot_distro_mount_system_point /proc "$distro_path/proc"
     chroot_distro_mount_system_point /dev/pts "$distro_path/dev/pts"
     chroot_distro_mount_system_point /sdcard "$distro_path/sdcard"
     chroot_distro_mount_system_point /system "$distro_path/system"
-    chroot_distro_mount_system_point /data "$distro_path/data"
+    if [ "yes" = "$use_data" ] || [ -d "$distro_path/data" ]; then
+        chroot_distro_mount_system_point /data "$distro_path/data"
+    fi
     for file in "/storage"/*; do
         chroot_distro_mount_system_point "/$file" "$distro_path/$file"
     done
@@ -639,13 +644,17 @@ chroot_distro_unmount_system_point() {
 
 chroot_distro_unmount_system_points() {
     distro_path="$1"
-    if mountpoint -q "$distro_path/data" 2>/dev/null; then
+    force="$2"
+    if [ "yes" = "$force" ]; then
+        : # do not check if data has been mounted, try to unmount it if possible
+    elif mountpoint -q "$distro_path/data" 2>/dev/null; then
         echo "$distro_path/data is circular reference! unmount manually, or reboot before proceeding"
         exit 1
     fi
     for file in "/storage"/*; do
         chroot_distro_unmount_system_point "$distro_path/$file"
     done
+    chroot_distro_unmount_system_point "$distro_path/data"
     chroot_distro_unmount_system_point "$distro_path/system"
     chroot_distro_unmount_system_point "$distro_path/sdcard"
     if [ -f "$distro_path/dev/pts" ]; then
@@ -666,21 +675,23 @@ chroot_distro_find_archive_rootdir() {
 }
 
 chroot_distro_install() {
+    distro=$1
+    use_data=$2
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
-        echo "unavailable distro $1"
+    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+        echo "unavailable distro $distro"
         exit 1
     fi
 
-    archive_path="$chroot_distro_path/.rootfs/$1.tar.xz"
+    archive_path="$chroot_distro_path/.rootfs/$distro.tar.xz"
     if [ ! -f "$archive_path" ]; then
-        echo "$1 not downloaded"
+        echo "$distro not downloaded"
         exit 1
     fi
 
-    distro_path="$chroot_distro_path/$1"
+    distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
-        echo "$1 already installed"
+        echo "$distro already installed"
         exit 1
     fi
 
@@ -693,7 +704,7 @@ chroot_distro_install() {
         mv "$chroot_distro_path/$rootdir" "$distro_path"
     fi
 
-    chroot_distro_mount_system_points "$distro_path"
+    chroot_distro_mount_system_points "$distro_path" "$use_data"
 
     echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
     echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
@@ -716,7 +727,7 @@ chroot_distro_uninstall() {
 
     distro_path="$chroot_distro_path/$1"
     if [ -d "$distro_path" ]; then
-        chroot_distro_unmount_system_points "$distro_path"
+        chroot_distro_unmount_system_points "$distro_path" no
         # ensure that there is no symbolic links before nuking the rootfs, symbolic links may point outside of rootfs when outside of the chroot
         find "$distro_path" -type l -exec unlink {} \;
         rm -rf "$distro_path"
@@ -796,7 +807,7 @@ chroot_distro_restore() {
         mv "$chroot_distro_path/$rootdir" "$distro_path"
     fi
 
-    chroot_distro_mount_system_points "$distro_path"
+    chroot_distro_mount_system_points "$distro_path" no
 
     echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
     echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
@@ -808,6 +819,22 @@ chroot_distro_restore() {
     chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
     chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
     chroot "$distro_path" /bin/su - root
+}
+
+chroot_distro_unmount() {
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
+        echo "unavailable distro $1"
+        exit 1
+    fi
+
+    distro_path="$chroot_distro_path/$1"
+    if [ ! -d "$distro_path" ]; then
+        echo "$1 not installed"
+        exit 1
+    fi
+
+    chroot_distro_unmount_system_points "$distro_path" yes
 }
 
 chroot_distro_command() {
@@ -823,7 +850,7 @@ chroot_distro_command() {
         exit 1
     fi
 
-    chroot_distro_mount_system_points "$distro_path"
+    chroot_distro_mount_system_points "$distro_path" no
 
     as_is=$3
     if [ "yes" = "$as_is" ]; then
@@ -850,7 +877,7 @@ chroot_distro_login() {
         exit 1
     fi
 
-    chroot_distro_mount_system_points "$distro_path"
+    chroot_distro_mount_system_points "$distro_path" no
 
     chroot "$distro_path/" /bin/su - root
 }
@@ -910,13 +937,31 @@ elif [ "$command" = "delete" ]; then
     fi
     chroot_distro_delete "$1"
 elif [ "$command" = "install" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=d --longoptions=data --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    data=no
+    while true; do
+        case "$1" in
+            -d|--data)
+                data=yes
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_install "$1"
+    chroot_distro_install "$1" "$data"
 elif [ "$command" = "uninstall" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     if [ $# -eq 0 ]; then
@@ -926,14 +971,32 @@ elif [ "$command" = "uninstall" ]; then
     fi
     chroot_distro_uninstall "$1"
 elif [ "$command" = "reinstall" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=d --longoptions=data --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    data=no
+    while true; do
+        case "$1" in
+            -d|--data)
+                data=yes
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_uninstall "$1"
-    chroot_distro_install "$1"
+    chroot_distro_install "$1" "$data"
 elif [ "$command" = "backup" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     if [ $# -eq 0 ]; then
@@ -994,6 +1057,14 @@ elif [ "$command" = "login" ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_login "$1"
+elif [ "$command" = "unmount" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_unmount "$1"
 else
     chroot_distro_invalid_parameters "invalid command $command"
 fi
