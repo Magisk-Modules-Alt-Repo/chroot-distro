@@ -65,12 +65,12 @@ $0 uninstall <distro> - uninstall distro
 
 $0 unmount <distro> - unmount system mount points from distro
 
-$0 backup <distro> - backup distro
-$0 backup <distro> <path> - backup distro with custom path
-$0 unbackup <distro> - delete backup
-
-$0 restore <distro> - restore distro
-$0 restore <distro> <path> - restore distro with custom path
+$0 backup <distro> [<path>] - backup distro
+    <path>          Custom path for backup location
+$0 restore <distro> [-d|--default] [<path>] - restore distro
+    <path>          Custom path for backup location
+    '-d|--default'  restore default settings (note: only those set during install)
+$0 unbackup <distro> - delete backup from default location
 
 $0 command <distro> [--as-is] <command> - run command
     '--as-is' full path needs to be specified for the command
@@ -775,22 +775,25 @@ chroot_distro_unbackup() {
 }
 
 chroot_distro_restore() {
+    distro="$1"
+    custom_backup_path="$2"
+    restore_defaults="$3"
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
-        echo "unavailable distro $1"
+    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+        echo "unavailable distro $distro"
         exit 1
     fi
 
-    distro_path="$chroot_distro_path/$1"
+    distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
         echo "distro already installed , uninstall and try again"
         exit 1
     fi
 
-    if [ "$2" = "" ]; then
+    if [ "" = "$custom_backup_path" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
     else
-        backup_path="$2"
+        backup_path="$custom_backup_path"
     fi
 
     if [ ! -f "$backup_path" ]; then
@@ -809,15 +812,17 @@ chroot_distro_restore() {
 
     chroot_distro_mount_system_points "$distro_path" no
 
-    echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
-    echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
-    chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null
-    chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
-    chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
-    chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-    chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
-    chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
-    chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
+    if [ "yes" = "$restore_defaults" ]; then
+        echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
+        echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
+        chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null
+        chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
+        chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
+        chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
+        chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
+        chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+        chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
+    fi
     chroot "$distro_path" /bin/su - root
 }
 
@@ -1014,13 +1019,31 @@ elif [ "$command" = "unbackup" ]; then
     fi
     chroot_distro_unbackup "$1"
 elif [ "$command" = "restore" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=d --longoptions=default --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    restore_defaults=no
+    while true; do
+        case "$1" in
+            -d|--default)
+                restore_defaults=yes
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -gt 2 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_restore "$1" "$2"
+    chroot_distro_restore "$1" "$2" "$restore_defaults"
 elif [ "$command" = "command" ]; then
     PARSED=$(getopt --options= --longoptions=as-is --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
