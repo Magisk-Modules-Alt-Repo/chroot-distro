@@ -665,6 +665,59 @@ chroot_distro_unmount_system_points() {
     chroot_distro_unmount_system_point "$distro_path/dev"
 }
 
+chroot_distro_check_if_system_point_mounted() {
+    mount_point="$1"
+    if [ ! -e "$mount_point" ]; then
+        # nothing to do, mount point missing
+        return 1
+    fi
+    mountpoint -q "$mount_point" 2>/dev/null
+    return $?
+}
+
+chroot_distro_check_if_system_points_mounted() {
+    distro_path="$1"
+    # dev/pts is not checked as it is assumed that if dev is mounted then also pts is mounted and if dev is not mounted then pts is not mounted
+    system_paths="'$distro_path/dev' '$distro_path/sys' '$distro_path/proc' '$distro_path/sdcard' '$distro_path/system' '$distro_path/data'"
+    for file in "/storage"/*; do
+        system_paths="$system_paths '$distro_path/$file'"
+    done
+    set -- $system_paths
+    partial=
+    quote="'"
+    while [ $# -gt 0 ]
+    do
+        # This case shenanigan is required to ensure that if there is space in the path that the path is constructed properly
+        # as we don't use quotes for set parameters. There is still possibility of somebody intentionally using path "/some' /path".
+        # In this case the path will be split wrongly but then again there is likely more pressing issues if somebody gets to do that.
+        case "$1" in
+            *$quote)
+                if [ "" = "$partial" ]; then
+                    full="$1"
+                else
+                    full="$partial $1"
+                fi
+                partial=
+                # strip quotes, assumes that path is 'some/path', ie. both start and end has quotes
+                full="$(expr "$full" : '.\(.*\).')"
+
+                if chroot_distro_check_if_system_point_mounted "$full"; then
+                    return 0
+                fi
+                ;;
+            *)
+                if [ "" = "$partial" ]; then
+                    partial="$1"
+                else
+                    partial="$partial $1"
+                fi
+                ;;
+        esac
+        shift
+    done
+    return 1
+}
+
 chroot_distro_find_archive_rootdir() {
     rootdir="."
     if [ "$(tar -tf "$1" 2>/dev/null | grep -E -c '^[^/]*/$')" -eq 1 ]; then
@@ -738,24 +791,60 @@ chroot_distro_uninstall() {
 }
 
 chroot_distro_backup() {
+    distro=$1
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
-        echo "unavailable distro $1"
+    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+        echo "unavailable distro $distro"
         exit 1
     fi
 
     distro_path="$chroot_distro_path/$1"
+    if [ ! -d "$distro_path" ]; then
+        echo "distro not installed, no need to backup"
+        exit
+    fi
+
+    # Check system mount points, to ensure that we are not backing up a running system.
+    # If system mount points are mounted then those will be backed up as well but in most
+    # cases those are not wanted, as the restore will not work properly (mounts will shadow
+    # the content). If data/sdcard etc. are needed to backup then it is better to do it
+    # with different tool (for example twrp) and/or from inside the chroot
+    if chroot_distro_check_if_system_points_mounted "$distro_path"; then
+        echo "distro is potentially running - if needed shutdown the distro, and unmount system mount points ($0 unmount $1) before proceeding"
+        exit
+    fi
+
     if [ "$2" = "" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
         if [ ! -f "$backup_path" ]; then
-            tar -cvf "$backup_path" "$distro_path"
+            (cd "$chroot_distro_path" || exit; tar -cvf "$backup_path" "$distro")
         else
             echo "backup already exist, unbackup and try agin"
             exit 1
         fi
     else
-        tar -cvf "$2" "$distro_path"
+        (cd "$chroot_distro_path" || exit; tar -cvf "$2" "$distro")
     fi
+}
+
+chroot_distro_find_archive_common_path() {
+    archive_path=$1
+    paths_to_check="$(tar -tf "$1" 2>/dev/null)"
+
+    i=1
+    prev_path=
+
+    while [ $i -lt 100 ]
+    do
+        path=$(echo "$paths_to_check" | cut -f1-"$i" -d/ | uniq -u)
+        if [ -z "$path" ]; then
+            prev_path=$(echo "$paths_to_check" | cut -f1-"$i" -d/ | uniq)
+        else
+            echo "$prev_path"
+            break
+        fi
+        i=$((i+1))
+    done
 }
 
 chroot_distro_unbackup() {
@@ -778,6 +867,7 @@ chroot_distro_restore() {
     distro="$1"
     custom_backup_path="$2"
     restore_defaults="$3"
+    force="$4"
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
     if ! chroot_distro_check_if_supported "$supported" "$distro"; then
         echo "unavailable distro $distro"
@@ -803,11 +893,40 @@ chroot_distro_restore() {
 
     rootdir="$( chroot_distro_find_archive_rootdir "$backup_path" )"
     if [ "." = "$rootdir" ]; then
+        # old format backups
+        common_path="$(chroot_distro_find_archive_common_path "$backup_path")"
+        if [ "" != "$common_path" ]; then
+            rootdir="$(echo "$common_path" | cut -f1 -d/)"
+        fi
+    fi
+    if [ "." = "$rootdir" ]; then
+        # backup has relative path, restoring is not a problem
         mkdir "$distro_path"
         tar -xf "$backup_path" -C "$distro_path/"
+    elif [ "data" = "$rootdir" ] && [ "yes" = "$force" ]; then
+        # Uses old format of backups. Accept only if user has reviewed the content as the backup needs to be
+        # applied from root directory, potentially rendering the system unstable and/or be compromised.
+        # Also, backup may contain files which will not be visible from running system and will potentially
+        # fill the internal storage. There is also possibility of using wrong backup.
+        (cd /; tar -xf "$backup_path")
+    elif [ "data" = "$rootdir" ]; then
+        echo "Will restore from root directory, review the contents and use --force."
+        echo "Warning: Old style backup. May contain file backups from sdcard and other system mount points."
+        echo "Restore may fail if not enough space on internal storage, and restored files from system mount"
+        echo "points will be shadowed by system mounts."
+        common_path="${common_path:-$(chroot_distro_find_archive_common_path "$backup_path")}"
+        if [ "/$common_path" != "$distro_path" ]; then
+            echo "Warning: Backup may be for different distro:"
+            echo "- expected common denominator path: $distro_path"
+            echo "- archive had following common denominator path: /$common_path"
+        fi
+        exit 4
+    elif [ "$distro" = "$rootdir" ]; then
+        # new format backups
+        (cd "$chroot_distro_path" || exit; tar -xf "$backup_path")
     else
-        tar -xf "$backup_path" -C "$chroot_distro_path/"
-        mv "$chroot_distro_path/$rootdir" "$distro_path"
+        echo "Backup may be for wrong distro (root directory $rootdir), review the backup before proceeding"
+        exit 4
     fi
 
     chroot_distro_mount_system_points "$distro_path" no
@@ -1019,13 +1138,19 @@ elif [ "$command" = "unbackup" ]; then
     fi
     chroot_distro_unbackup "$1"
 elif [ "$command" = "restore" ]; then
-    PARSED=$(getopt --options=d --longoptions=default --name "$0" -- "$@") || exit 2
+    OPTS=df LONGOPTS=default,force
+    PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     restore_defaults=no
+    force=no
     while true; do
         case "$1" in
             -d|--default)
                 restore_defaults=yes
+                shift
+                ;;
+            -f|--force)
+                force=yes
                 shift
                 ;;
             --)
@@ -1043,7 +1168,7 @@ elif [ "$command" = "restore" ]; then
     elif [ $# -gt 2 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_restore "$1" "$2" "$restore_defaults"
+    chroot_distro_restore "$1" "$2" "$restore_defaults" "$force"
 elif [ "$command" = "command" ]; then
     PARSED=$(getopt --options= --longoptions=as-is --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
