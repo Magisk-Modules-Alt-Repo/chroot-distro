@@ -597,6 +597,10 @@ chroot_distro_delete() {
 chroot_distro_mount_system_point() {
     path_to_mount="$1"
     mount_point="$2"
+    if [ ! -e "$path_to_mount" ]; then
+        echo "Warning: Missing system path $path_to_mount, skipping"
+        return
+    fi
     if [ ! -d "$mount_point" ]; then
         if ! mkdir -p "$mount_point"; then
             echo "creating mount point $mount_point failed"
@@ -622,7 +626,8 @@ chroot_distro_mount_system_points() {
         chroot_distro_mount_system_point /data "$distro_path/data"
     fi
     for file in "/storage"/*; do
-        chroot_distro_mount_system_point "/$file" "$distro_path/$file"
+        # no need for separator as separator already comes from file variable itself
+        chroot_distro_mount_system_point "$file" "$distro_path$file"
     done
 }
 
@@ -652,7 +657,8 @@ chroot_distro_unmount_system_points() {
         exit 1
     fi
     for file in "/storage"/*; do
-        chroot_distro_unmount_system_point "$distro_path/$file"
+        # no need for separator as separator already comes from file variable itself
+        chroot_distro_unmount_system_point "$distro_path$file"
     done
     chroot_distro_unmount_system_point "$distro_path/data"
     chroot_distro_unmount_system_point "$distro_path/system"
@@ -680,7 +686,8 @@ chroot_distro_check_if_system_points_mounted() {
     # dev/pts is not checked as it is assumed that if dev is mounted then also pts is mounted and if dev is not mounted then pts is not mounted
     system_paths="'$distro_path/dev' '$distro_path/sys' '$distro_path/proc' '$distro_path/sdcard' '$distro_path/system' '$distro_path/data'"
     for file in "/storage"/*; do
-        system_paths="$system_paths '$distro_path/$file'"
+        # no need for separator as separator already comes from file variable itself
+        system_paths="$system_paths '$distro_path$file'"
     done
     set -- $system_paths
     partial=
