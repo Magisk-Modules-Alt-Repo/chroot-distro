@@ -725,15 +725,6 @@ chroot_distro_check_if_system_points_mounted() {
     return 1
 }
 
-chroot_distro_find_archive_rootdir() {
-    rootdir="."
-    if [ "$(tar -tf "$1" 2>/dev/null | grep -E -c '^[^/]*/$')" -eq 1 ]; then
-        found_path="$( tar -tf "$1" 2>/dev/null | head -n 1)"
-        rootdir="$( basename "$found_path" 2>/dev/null )"
-    fi
-    echo "$rootdir"
-}
-
 chroot_distro_install() {
     distro=$1
     use_data=$2
@@ -755,8 +746,15 @@ chroot_distro_install() {
         exit 1
     fi
 
-    rootdir="$( chroot_distro_find_archive_rootdir "$archive_path" )"
-    if [ "." = "$rootdir" ]; then
+    common_path="$( chroot_distro_find_archive_common_path "$archive_path" )"
+    if [ "" == "$common_path" ]; then
+        common_path="."
+    fi
+    rootdir="$( echo "$common_path" | cut -f1 -d/ )"
+    if [ "$rootdir" != "$common_path" ]; then
+        echo "Unsupported archive. rootfs archive is expected to have only at most one subdirectory before the actual content."
+        exit 1
+    elif [ "." = "$rootdir" ]; then
         mkdir "$distro_path"
         tar -xf "$archive_path" -C "$distro_path/"
     else
@@ -898,14 +896,12 @@ chroot_distro_restore() {
         exit 1
     fi
 
-    rootdir="$( chroot_distro_find_archive_rootdir "$backup_path" )"
-    if [ "." = "$rootdir" ]; then
-        # old format backups
-        common_path="$(chroot_distro_find_archive_common_path "$backup_path")"
-        if [ "" != "$common_path" ]; then
-            rootdir="$(echo "$common_path" | cut -f1 -d/)"
-        fi
+    common_path="$(chroot_distro_find_archive_common_path "$backup_path")"
+    if [ "" == "$common_path" ]; then
+        common_path="."
     fi
+    rootdir="$( echo "$common_path" | cut -f1 -d/ )"
+
     if [ "." = "$rootdir" ]; then
         # backup has relative path, restoring is not a problem
         mkdir "$distro_path"
@@ -921,7 +917,6 @@ chroot_distro_restore() {
         echo "Warning: Old style backup. May contain file backups from sdcard and other system mount points."
         echo "Restore may fail if not enough space on internal storage, and restored files from system mount"
         echo "points will be shadowed by system mounts."
-        common_path="${common_path:-$(chroot_distro_find_archive_common_path "$backup_path")}"
         if [ "/$common_path" != "$distro_path" ]; then
             echo "Warning: Backup may be for different distro:"
             echo "- expected common denominator path: $distro_path"
