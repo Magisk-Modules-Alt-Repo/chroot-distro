@@ -94,19 +94,22 @@ chroot-distro login ubuntu
 ```
 
 ### supported distributions
+
+Note: left side is used as distro identifier, and it needs to be lowercase for it to be properly identified.
+
 + kali : Kali Linux
 + parrot : Parrot OS
 + alpine : Alpine Linux
 + archlinux : Arch Linux
-+ BackBox : backbox
-+ Centos : centos
-+ Centos Stream : centos_stream
++ backbox : BackBox
++ centos : Centos
++ centos_stream : Centos Stream
 + artix : Artix Linux
 + debian : Debian
 + deepin : Deepin
 + fedora : Fedora 39
 + manjaro : Manjaro 
-+ openkylin : OpenKylin 
++ openkylin : OpenKylin
 + opensuse : OpenSUSE
 + pardus : Pardus 
 + ubuntu : Ubuntu
