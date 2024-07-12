@@ -95,25 +95,25 @@ chroot-distro login ubuntu
 
 ### supported distributions
 
-Note: left side is used as distro identifier, and it needs to be lowercase for it to be properly identified.
+Note: right side is used as distro identifier, and it needs to be lowercase for it to be properly identified.
 
-+ kali : Kali Linux
-+ parrot : Parrot OS
-+ alpine : Alpine Linux
-+ archlinux : Arch Linux
-+ backbox : BackBox
-+ centos : Centos
-+ centos_stream : Centos Stream
-+ artix : Artix Linux
-+ debian : Debian
-+ deepin : Deepin
-+ fedora : Fedora 39
-+ manjaro : Manjaro 
-+ openkylin : OpenKylin
-+ opensuse : OpenSUSE
-+ pardus : Pardus 
-+ ubuntu : Ubuntu
-+ void : Void Linux
++ Kali Linux : kali
++ Parrot OS : parrot
++ Alpine Linux : alpine
++ Arch Linux : archlinux
++ BackBox : backbox
++ Centos : centos
++ Centos Stream : centos_stream
++ Artix Linux : artix
++ Debian : debian
++ Deepin : deepin
++ Fedora 39 : fedora
++ Manjaro : manjaro
++ OpenKylin : openkylin
++ OpenSUSE : opensuse
++ Pardus : pardus
++ Ubuntu : ubuntu
++ Void Linux : void
 
 ### best features :
 you can use chroot-distro on any terminal
