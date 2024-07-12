@@ -13,6 +13,12 @@ if ! command -v busybox &> /dev/null; then
     exit 1
 fi
 
+getopt --test > /dev/null && true
+if [ $? -ne 4 ]; then
+    echo 'I’m sorry, `getopt --test` failed in this environment.'
+    exit 1
+fi
+
 if [ ! -d "$chroot_distro_path/" ]; then
     mkdir -p $chroot_distro_path/
 fi
@@ -40,31 +46,35 @@ fi
 
 
 chroot_distro_help() {
-    echo "chroot-distro : install linux distributions
+    echo "$0 : install linux distributions
 
 usage :
 
-chroot-distro help - for more information
-chroot-distro list - list of available linux distributions
+$0 help - for more information
+$0 list - list of available linux distributions
 
-chroot-distro download <distro> - download rootfs
-chroot-distro redownload <distro> - redownload rootfs
-chroot-distro delete <distro> - delete rootfs
+$0 download <distro> - download rootfs
+$0 redownload <distro> - redownload rootfs
+$0 delete <distro> - delete rootfs
 
-chroot-distro install <distro> - install distro
-chroot-distro reinstall <distro> - reinstall distro
-chroot-distro uninstall <distro> - uninstall distro
+$0 install <distro> [-d|--data] - install distro
+    '-d|--data' Installs also /data folder, by default not installed
+$0 reinstall <distro> [-d|--data] - reinstall distro
+    '-d|--data' Installs also /data folder, by default not installed
+$0 uninstall <distro> - uninstall distro
 
-chroot-distro backup <distro> - backup distro
-chroot-distro backup <distro> <path> - backup distro with custom path
-chroot-distro unbackup <distro> - delete backup
+$0 unmount <distro> - unmount system mount points from distro
 
-chroot-distro restore <distro> - restore distro
-chroot-distro restore <distro> <path> - restore distro with custom path
+$0 backup <distro> [<path>] - backup distro
+    <path>          Custom path for backup location
+$0 restore <distro> [-d|--default] [<path>] - restore distro
+    <path>          Custom path for backup location
+    '-d|--default'  restore default settings (note: only those set during install)
+$0 unbackup <distro> - delete backup from default location
 
-chroot-distro command <distro> [--as-is] <command> - run command
+$0 command <distro> [--as-is] <command> - run command
     '--as-is' full path needs to be specified for the command
-chroot-distro login <distro> - login to distro
+$0 login <distro> - login to distro
 "
 }
 
@@ -587,6 +597,10 @@ chroot_distro_delete() {
 chroot_distro_mount_system_point() {
     path_to_mount="$1"
     mount_point="$2"
+    if [ ! -e "$path_to_mount" ]; then
+        echo "Warning: Missing system path $path_to_mount, skipping"
+        return
+    fi
     if [ ! -d "$mount_point" ]; then
         if ! mkdir -p "$mount_point"; then
             echo "creating mount point $mount_point failed"
@@ -601,15 +615,19 @@ chroot_distro_mount_system_point() {
 
 chroot_distro_mount_system_points() {
     distro_path="$1"
+    use_data="$2"
     chroot_distro_mount_system_point /dev "$distro_path/dev"
     chroot_distro_mount_system_point /sys "$distro_path/sys"
     chroot_distro_mount_system_point /proc "$distro_path/proc"
     chroot_distro_mount_system_point /dev/pts "$distro_path/dev/pts"
     chroot_distro_mount_system_point /sdcard "$distro_path/sdcard"
     chroot_distro_mount_system_point /system "$distro_path/system"
-    chroot_distro_mount_system_point /data "$distro_path/data"
+    if [ "yes" = "$use_data" ] || [ -d "$distro_path/data" ]; then
+        chroot_distro_mount_system_point /data "$distro_path/data"
+    fi
     for file in "/storage"/*; do
-        chroot_distro_mount_system_point "/$file" "$distro_path/$file"
+        # no need for separator as separator already comes from file variable itself
+        chroot_distro_mount_system_point "$file" "$distro_path$file"
     done
 }
 
@@ -631,13 +649,18 @@ chroot_distro_unmount_system_point() {
 
 chroot_distro_unmount_system_points() {
     distro_path="$1"
-    if mountpoint -q "$distro_path/data" 2>/dev/null; then
+    force="$2"
+    if [ "yes" = "$force" ]; then
+        : # do not check if data has been mounted, try to unmount it if possible
+    elif mountpoint -q "$distro_path/data" 2>/dev/null; then
         echo "$distro_path/data is circular reference! unmount manually, or reboot before proceeding"
         exit 1
     fi
     for file in "/storage"/*; do
-        chroot_distro_unmount_system_point "$distro_path/$file"
+        # no need for separator as separator already comes from file variable itself
+        chroot_distro_unmount_system_point "$distro_path$file"
     done
+    chroot_distro_unmount_system_point "$distro_path/data"
     chroot_distro_unmount_system_point "$distro_path/system"
     chroot_distro_unmount_system_point "$distro_path/sdcard"
     if [ -f "$distro_path/dev/pts" ]; then
@@ -648,36 +671,90 @@ chroot_distro_unmount_system_points() {
     chroot_distro_unmount_system_point "$distro_path/dev"
 }
 
-chroot_distro_find_archive_rootdir() {
-    rootdir="."
-    if [ "$(tar -tf "$1" 2>/dev/null | grep -E -c '^[^/]*/$')" -eq 1 ]; then
-        found_path="$( tar -tf "$1" 2>/dev/null | head -n 1)"
-        rootdir="$( basename "$found_path" 2>/dev/null )"
+chroot_distro_check_if_system_point_mounted() {
+    mount_point="$1"
+    if [ ! -e "$mount_point" ]; then
+        # nothing to do, mount point missing
+        return 1
     fi
-    echo "$rootdir"
+    mountpoint -q "$mount_point" 2>/dev/null
+    return $?
+}
+
+chroot_distro_check_if_system_points_mounted() {
+    distro_path="$1"
+    # dev/pts is not checked as it is assumed that if dev is mounted then also pts is mounted and if dev is not mounted then pts is not mounted
+    system_paths="'$distro_path/dev' '$distro_path/sys' '$distro_path/proc' '$distro_path/sdcard' '$distro_path/system' '$distro_path/data'"
+    for file in "/storage"/*; do
+        # no need for separator as separator already comes from file variable itself
+        system_paths="$system_paths '$distro_path$file'"
+    done
+    set -- $system_paths
+    partial=
+    quote="'"
+    while [ $# -gt 0 ]
+    do
+        # This case shenanigan is required to ensure that if there is space in the path that the path is constructed properly
+        # as we don't use quotes for set parameters. There is still possibility of somebody intentionally using path "/some' /path".
+        # In this case the path will be split wrongly but then again there is likely more pressing issues if somebody gets to do that.
+        case "$1" in
+            *$quote)
+                if [ "" = "$partial" ]; then
+                    full="$1"
+                else
+                    full="$partial $1"
+                fi
+                partial=
+                # strip quotes, assumes that path is 'some/path', ie. both start and end has quotes
+                full="$(expr "$full" : '.\(.*\).')"
+
+                if chroot_distro_check_if_system_point_mounted "$full"; then
+                    return 0
+                fi
+                ;;
+            *)
+                if [ "" = "$partial" ]; then
+                    partial="$1"
+                else
+                    partial="$partial $1"
+                fi
+                ;;
+        esac
+        shift
+    done
+    return 1
 }
 
 chroot_distro_install() {
+    distro=$1
+    use_data=$2
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
-        echo "unavailable distro $1"
+    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+        echo "unavailable distro $distro"
         exit 1
     fi
 
-    archive_path="$chroot_distro_path/.rootfs/$1.tar.xz"
+    archive_path="$chroot_distro_path/.rootfs/$distro.tar.xz"
     if [ ! -f "$archive_path" ]; then
-        echo "$1 not downloaded"
+        echo "$distro not downloaded"
         exit 1
     fi
 
-    distro_path="$chroot_distro_path/$1"
+    distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
-        echo "$1 already installed"
+        echo "$distro already installed"
         exit 1
     fi
 
-    rootdir="$( chroot_distro_find_archive_rootdir "$archive_path" )"
-    if [ "." = "$rootdir" ]; then
+    common_path="$( chroot_distro_find_archive_common_path "$archive_path" )"
+    if [ "" == "$common_path" ]; then
+        common_path="."
+    fi
+    rootdir="$( echo "$common_path" | cut -f1 -d/ )"
+    if [ "$rootdir" != "$common_path" ]; then
+        echo "Unsupported archive. rootfs archive is expected to have only at most one subdirectory before the actual content."
+        exit 1
+    elif [ "." = "$rootdir" ]; then
         mkdir "$distro_path"
         tar -xf "$archive_path" -C "$distro_path/"
     else
@@ -685,7 +762,7 @@ chroot_distro_install() {
         mv "$chroot_distro_path/$rootdir" "$distro_path"
     fi
 
-    chroot_distro_mount_system_points "$distro_path"
+    chroot_distro_mount_system_points "$distro_path" "$use_data"
 
     echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
     echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
@@ -708,7 +785,7 @@ chroot_distro_uninstall() {
 
     distro_path="$chroot_distro_path/$1"
     if [ -d "$distro_path" ]; then
-        chroot_distro_unmount_system_points "$distro_path"
+        chroot_distro_unmount_system_points "$distro_path" no
         # ensure that there is no symbolic links before nuking the rootfs, symbolic links may point outside of rootfs when outside of the chroot
         find "$distro_path" -type l -exec unlink {} \;
         rm -rf "$distro_path"
@@ -719,24 +796,60 @@ chroot_distro_uninstall() {
 }
 
 chroot_distro_backup() {
+    distro=$1
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
-        echo "unavailable distro $1"
+    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+        echo "unavailable distro $distro"
         exit 1
     fi
 
     distro_path="$chroot_distro_path/$1"
+    if [ ! -d "$distro_path" ]; then
+        echo "distro not installed, no need to backup"
+        exit
+    fi
+
+    # Check system mount points, to ensure that we are not backing up a running system.
+    # If system mount points are mounted then those will be backed up as well but in most
+    # cases those are not wanted, as the restore will not work properly (mounts will shadow
+    # the content). If data/sdcard etc. are needed to backup then it is better to do it
+    # with different tool (for example twrp) and/or from inside the chroot
+    if chroot_distro_check_if_system_points_mounted "$distro_path"; then
+        echo "distro is potentially running - if needed shutdown the distro, and unmount system mount points ($0 unmount $1) before proceeding"
+        exit
+    fi
+
     if [ "$2" = "" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
         if [ ! -f "$backup_path" ]; then
-            tar -cvf "$backup_path" "$distro_path"
+            (cd "$chroot_distro_path" || exit; tar -cvf "$backup_path" "$distro")
         else
             echo "backup already exist, unbackup and try agin"
             exit 1
         fi
     else
-        tar -cvf "$2" "$distro_path"
+        (cd "$chroot_distro_path" || exit; tar -cvf "$2" "$distro")
     fi
+}
+
+chroot_distro_find_archive_common_path() {
+    archive_path=$1
+    paths_to_check="$(tar -tf "$1" 2>/dev/null)"
+
+    i=1
+    prev_path=
+
+    while [ $i -lt 100 ]
+    do
+        path=$(echo "$paths_to_check" | cut -f1-"$i" -d/ | uniq -u)
+        if [ -z "$path" ]; then
+            prev_path=$(echo "$paths_to_check" | cut -f1-"$i" -d/ | uniq)
+        else
+            echo "$prev_path"
+            break
+        fi
+        i=$((i+1))
+    done
 }
 
 chroot_distro_unbackup() {
@@ -756,22 +869,26 @@ chroot_distro_unbackup() {
 }
 
 chroot_distro_restore() {
+    distro="$1"
+    custom_backup_path="$2"
+    restore_defaults="$3"
+    force="$4"
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
-        echo "unavailable distro $1"
+    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+        echo "unavailable distro $distro"
         exit 1
     fi
 
-    distro_path="$chroot_distro_path/$1"
+    distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
         echo "distro already installed , uninstall and try again"
         exit 1
     fi
 
-    if [ "$2" = "" ]; then
+    if [ "" = "$custom_backup_path" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
     else
-        backup_path="$2"
+        backup_path="$custom_backup_path"
     fi
 
     if [ ! -f "$backup_path" ]; then
@@ -779,27 +896,71 @@ chroot_distro_restore() {
         exit 1
     fi
 
-    rootdir="$( chroot_distro_find_archive_rootdir "$backup_path" )"
+    common_path="$(chroot_distro_find_archive_common_path "$backup_path")"
+    if [ "" == "$common_path" ]; then
+        common_path="."
+    fi
+    rootdir="$( echo "$common_path" | cut -f1 -d/ )"
+
     if [ "." = "$rootdir" ]; then
+        # backup has relative path, restoring is not a problem
         mkdir "$distro_path"
         tar -xf "$backup_path" -C "$distro_path/"
+    elif [ "data" = "$rootdir" ] && [ "yes" = "$force" ]; then
+        # Uses old format of backups. Accept only if user has reviewed the content as the backup needs to be
+        # applied from root directory, potentially rendering the system unstable and/or be compromised.
+        # Also, backup may contain files which will not be visible from running system and will potentially
+        # fill the internal storage. There is also possibility of using wrong backup.
+        (cd /; tar -xf "$backup_path")
+    elif [ "data" = "$rootdir" ]; then
+        echo "Will restore from root directory, review the contents and use --force."
+        echo "Warning: Old style backup. May contain file backups from sdcard and other system mount points."
+        echo "Restore may fail if not enough space on internal storage, and restored files from system mount"
+        echo "points will be shadowed by system mounts."
+        if [ "/$common_path" != "$distro_path" ]; then
+            echo "Warning: Backup may be for different distro:"
+            echo "- expected common denominator path: $distro_path"
+            echo "- archive had following common denominator path: /$common_path"
+        fi
+        exit 4
+    elif [ "$distro" = "$rootdir" ]; then
+        # new format backups
+        (cd "$chroot_distro_path" || exit; tar -xf "$backup_path")
     else
-        tar -xf "$backup_path" -C "$chroot_distro_path/"
-        mv "$chroot_distro_path/$rootdir" "$distro_path"
+        echo "Backup may be for wrong distro (root directory $rootdir), review the backup before proceeding"
+        exit 4
     fi
 
-    chroot_distro_mount_system_points "$distro_path"
+    chroot_distro_mount_system_points "$distro_path" no
 
-    echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
-    echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
-    chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null
-    chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
-    chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
-    chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-    chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
-    chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
-    chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
+    if [ "yes" = "$restore_defaults" ]; then
+        echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
+        echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
+        chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null
+        chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
+        chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
+        chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
+        chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
+        chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+        chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
+    fi
     chroot "$distro_path" /bin/su - root
+}
+
+chroot_distro_unmount() {
+    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+    if ! chroot_distro_check_if_supported "$supported" "$1"; then
+        echo "unavailable distro $1"
+        exit 1
+    fi
+
+    distro_path="$chroot_distro_path/$1"
+    if [ ! -d "$distro_path" ]; then
+        echo "$1 not installed"
+        exit 1
+    fi
+
+    chroot_distro_unmount_system_points "$distro_path" yes
 }
 
 chroot_distro_command() {
@@ -815,14 +976,13 @@ chroot_distro_command() {
         exit 1
     fi
 
-    chroot_distro_mount_system_points "$distro_path"
+    chroot_distro_mount_system_points "$distro_path" no
 
-    command="/bin/$2"
-
-    if [ "$2" = "--as-is" ]; then
-        command="$3"
-    elif [ "$3" = "--as-is" ]; then
+    as_is=$3
+    if [ "yes" = "$as_is" ]; then
         command="$2"
+    else
+        command="/bin/$2"
     fi
 
     # shellcheck disable=SC2086
@@ -843,42 +1003,218 @@ chroot_distro_login() {
         exit 1
     fi
 
-    chroot_distro_mount_system_points "$distro_path"
+    chroot_distro_mount_system_points "$distro_path" no
 
     chroot "$distro_path/" /bin/su - root
 }
 
-if [ "$1" = "help" ]; then
+chroot_distro_invalid_parameters() {
+    echo "$0 - $1"
+    echo "try '$0 help' for more information"
+    exit 2
+}
+
+chroot_distro_user_check_parameters() {
+    chroot_distro_invalid_parameters "unknonwn parameters"
+}
+
+chroot_distro_missing_distro() {
+    chroot_distro_invalid_parameters "misssing distro"
+}
+
+if [ $# -eq 0 ]; then
     chroot_distro_help
-elif [ "$1" = "list" ]; then
+fi
+
+command=$1
+shift
+
+if [ "$command" = "help" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    chroot_distro_help
+elif [ "$command" = "list" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -ne 0 ]; then
+        chroot_distro_user_check_parameters
+    fi
     chroot_distro_list
-elif [ "$1" = "download" ]; then
-    chroot_distro_download "$2"
-elif [ "$1" = "redownload" ]; then
-    chroot_distro_delete "$2"
-    chroot_distro_download "$2"
-elif [ "$1" = "delete" ]; then
-    chroot_distro_delete "$2"
-elif [ "$1" = "install" ]; then
-    chroot_distro_install "$2"
-elif [ "$1" = "uninstall" ]; then
-    chroot_distro_uninstall "$2"
-elif [ "$1" = "reinstall" ]; then
-    chroot_distro_uninstall "$2"
-    chroot_distro_install "$2"
-elif [ "$1" = "backup" ]; then
-    chroot_distro_backup "$2" "$3"
-elif [ "$1" = "unbackup" ]; then
-    chroot_distro_unbackup "$2"
-elif [ "$1" = "restore" ]; then
-    chroot_distro_restore "$2" "$3"
-elif [ "$1" = "command" ]; then
-    chroot_distro_command "$2" "$3" "$4"
-elif [ "$1" = "login" ]; then
-    chroot_distro_login "$2"
-elif [ "$1" != "" ]; then
-    echo "chroot-distro invalid option $1"
-    echo "try 'chroot-distro help' for more information"
+elif [ "$command" = "download" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_download "$1"
+elif [ "$command" = "redownload" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_download "$1"
+elif [ "$command" = "delete" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_delete "$1"
+elif [ "$command" = "install" ]; then
+    PARSED=$(getopt --options=d --longoptions=data --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    data=no
+    while true; do
+        case "$1" in
+            -d|--data)
+                data=yes
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_install "$1" "$data"
+elif [ "$command" = "uninstall" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_uninstall "$1"
+elif [ "$command" = "reinstall" ]; then
+    PARSED=$(getopt --options=d --longoptions=data --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    data=no
+    while true; do
+        case "$1" in
+            -d|--data)
+                data=yes
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_uninstall "$1"
+    chroot_distro_install "$1" "$data"
+elif [ "$command" = "backup" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -gt 2 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_backup "$1" "$2"
+elif [ "$command" = "unbackup" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_unbackup "$1"
+elif [ "$command" = "restore" ]; then
+    OPTS=df LONGOPTS=default,force
+    PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    restore_defaults=no
+    force=no
+    while true; do
+        case "$1" in
+            -d|--default)
+                restore_defaults=yes
+                shift
+                ;;
+            -f|--force)
+                force=yes
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -gt 2 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_restore "$1" "$2" "$restore_defaults" "$force"
+elif [ "$command" = "command" ]; then
+    PARSED=$(getopt --options= --longoptions=as-is --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    as_is=no
+    while true; do
+        case "$1" in
+            --as-is)
+                as_is=yes
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -eq 1 ]; then
+        chroot_distro_invalid_parameters "program missing"
+    elif [ $# -ne 2 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_command "$1" "$2" "$as_is"
+elif [ "$command" = "login" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_login "$1"
+elif [ "$command" = "unmount" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_unmount "$1"
 else
-    chroot_distro_help
+    chroot_distro_invalid_parameters "invalid command $command"
 fi
