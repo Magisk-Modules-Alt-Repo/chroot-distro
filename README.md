@@ -117,7 +117,7 @@ Note: left side is used as distro identifier, and it needs to be lowercase for i
 
 ### best features :
 you can use chroot-distro on any terminal
-like mt manger , termux , twrp , Android terminal emulator...
+like mt manager , termux , twrp , Android terminal emulator...
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/debian.png)
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/kali-linux.png)
 ### vnc
