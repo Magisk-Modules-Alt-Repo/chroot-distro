@@ -94,27 +94,30 @@ chroot-distro login ubuntu
 ```
 
 ### supported distributions
-+ kali : Kali Linux
-+ parrot : Parrot OS
-+ alpine : Alpine Linux
-+ archlinux : Arch Linux
+
+Note: right side is used as distro identifier, and it needs to be lowercase for it to be properly identified.
+
++ Kali Linux : kali
++ Parrot OS : parrot
++ Alpine Linux : alpine
++ Arch Linux : archlinux
 + BackBox : backbox
 + Centos : centos
 + Centos Stream : centos_stream
-+ artix : Artix Linux
-+ debian : Debian
-+ deepin : Deepin
-+ fedora : Fedora 39
-+ manjaro : Manjaro 
-+ openkylin : OpenKylin 
-+ opensuse : OpenSUSE
-+ pardus : Pardus 
-+ ubuntu : Ubuntu
-+ void : Void Linux
++ Artix Linux : artix
++ Debian : debian
++ Deepin : deepin
++ Fedora 39 : fedora
++ Manjaro : manjaro
++ OpenKylin : openkylin
++ OpenSUSE : opensuse
++ Pardus : pardus
++ Ubuntu : ubuntu
++ Void Linux : void
 
 ### best features :
 you can use chroot-distro on any terminal
-like mt manger , termux , twrp , Android terminal emulator...
+like mt manager , termux , twrp , Android terminal emulator...
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/debian.png)
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/kali-linux.png)
 ### vnc
