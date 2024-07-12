@@ -4,6 +4,10 @@ chroot-distro :
 
 + chroot-distro path : /data/local/chroot-distro/
 
+### Installation requirements
+
+Reasonably new Busybox-ndk magisk module version installed (1.36.1 is known to work, 1.32.1 is known to not work). If new enough version is not installed it may lead to problems with downloading rootfs.
+
 ### Android paths on distributions :
 + /dev 
 + /sys
