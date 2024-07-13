@@ -1,5 +1,9 @@
 #!/system/bin/sh
-#Credit : @YasserNull
+#
+# Copyright 2024 Yasser Null
+#
+# Code is licensed under terms of GNU GPL v3, see LICENSE file
+# for the full terms.
 
 chroot_distro_path="/data/local/chroot-distro"
 

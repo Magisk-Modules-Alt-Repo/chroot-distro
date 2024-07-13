@@ -144,3 +144,7 @@ vncserver -kill :1
 ### Install chroot-distro
 
 + [module](https://github.com/YasserNull/chroot-distro/releases/tag/module)
+
+### License
+
+[GNU GPL v3](LICENSE)
