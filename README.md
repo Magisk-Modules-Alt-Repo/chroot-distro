@@ -47,12 +47,14 @@ chroot-distro delete <distro>
 ```
 
 + install distro
+  + By default does not mount `/data` folder, use -d or --data to mount it
 ```
-chroot-distro install <distro>
+chroot-distro install [-d|--data] <distro>
 ```
 + reinstall distro
+  + By default does not mount `/data` folder, use -d or --data to mount it
 ```
-chroot-distro reinstall <distro>
+chroot-distro reinstall [-d|--data] <distro>
 ```
 + uninstall distro
 ```
@@ -60,29 +62,31 @@ chroot-distro uninstall <distro>
 ```
 
 + backup distro
+  + If path given, then backup saved at that path
 ```
-chroot-distro backup <distro>
+chroot-distro backup <distro> [<path>]
 ```
-+ backup distro with custom path
-```
-chroot-distro backup <distro> <path>
-```
-+ delete backup
++ delete default backup
 ```
 chroot-distro unbackup <distro>
 ```
 + restore distro
+  + By default restores as is, use -d or --default to reset to default settings (note: only those set during install)
+  + If path given, then backup restored from that path
 ```
-chroot-distro restore <distro>
+chroot-distro restore [-d|--default] <distro> [<path>]
 ```
-+ restore distro with custom path
+
++ unmount system mount points
 ```
-chroot-distro restore <distro> <path>
+chroot-distro unmount <distro>
 ```
 
 + run command
+  + By default runs command from under `/bin`, use --as-is to run any command but then path needs to be supplied
+  + If command is quoted then can pass parameters to command, for example `"ping 127.0.0.1"`
 ```
-chroot-distro command <distro>
+chroot-distro command <distro> [--as-is] <command>
 ```
 + login to distro
 ```
