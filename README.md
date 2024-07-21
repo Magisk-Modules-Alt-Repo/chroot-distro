@@ -4,6 +4,8 @@ chroot-distro :
 
 + chroot-distro path : /data/local/chroot-distro/
 
+## Installing
+
 ### Installation requirements
 
 Reasonably new Busybox-ndk magisk module version installed (1.36.1 is known to work, 1.32.1 is known to not work). If new enough version is not installed it may lead to problems with downloading rootfs.
@@ -18,8 +20,9 @@ Reasonably new Busybox-ndk magisk module version installed (1.36.1 is known to w
 + /storage
 + /data
 
-### usage
-![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/help.png)
+## Using
+
+### Available commands
 
 + help
 ```
@@ -118,11 +121,19 @@ Note: right side is used as distro identifier, and it needs to be lowercase for 
 ### best features :
 you can use chroot-distro on any terminal
 like mt manager , termux , twrp , Android terminal emulator...
-![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/debian.png)
-![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/kali-linux.png)
+
+![Debian console](screenshot/debian.png)
+
+![Kali Linux console](screenshot/kali-linux.png)
+
+## How to enable ...
+
 ### vnc
-![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/debian_vnc.png)
-![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://github.com/YasserNull/chroot-distro/blob/main/screenshot/ubuntu.png)
+
+![Debian GUI over VNC](screenshot/debian_vnc.png)
+
+![Ubuntu GUI over VNC](screenshot/ubuntu.png)
+
 your can use any vnc app , tutorial (tested on ubuntu and debian)
 ```
 apt update
@@ -141,10 +152,34 @@ stop server :
 ```
 vncserver -kill :1
 ```
-### Install chroot-distro
+
+### sudo
+
+Be default Android prevents suid usage under `/data` folder. This will prevent using `sudo` inside the rootfs. There is a few alternatives how this can be solved:
+
++ remount `/data` for the current process with needed capabilities (needs to be run once for every session)
+```sh
+su -c mount -o remount,dev,suid /data
+```
++ create an image to be mounted at `/data/local/chroot-distro`
+```sh
+# use whatever size you want
+su -c truncate -S 15G /data/local/distros.img
+su -c mke2fs -t ext4 /data/local/distros.img
+# following command needs to be run every time device is rebooted
+su -c mount /data/local/distros.img /data/local/chroot-distro
+```
++ Format SD card with ext4
+  + Follow the instructions on [how to mount ext4 SD card](https://xdaforums.com/t/mount-ext4-formatted-sd-card.3769344/)
+  + Mount point should be `/data/local/chroot-distro` instead of `/storage/sdcard1` mentioned in the post
+  + Mounting will need to be done every time device is rebooted
+
+From security perspective the second and third one are the better as there is less of chance to accidentally running something which you did not intend. The third one (and second one if the image is created to SD card) helps preventing the internal storage from running out and also helps lessen the amount of writes done to internal storage (thus prolonging the use of the device). Note that when using third alternative you can't use it for android stuff (at least by default).
+
+## Install chroot-distro
 
 + [module](https://github.com/YasserNull/chroot-distro/releases/tag/module)
 
-### License
+## License
 
 [GNU GPL v3](LICENSE)
