@@ -6,6 +6,7 @@
 # for the full terms.
 
 chroot_distro_path="/data/local/chroot-distro"
+script=$(basename "$0")
 
 if [ "$(whoami)" != "root" ]; then
     echo "Root access required."
@@ -50,35 +51,35 @@ fi
 
 
 chroot_distro_help() {
-    echo "$0 : install linux distributions
+    echo "$script : install linux distributions
 
 usage :
 
-$0 help - for more information
-$0 list - list of available linux distributions
+$script help - for more information
+$script list - list of available linux distributions
 
-$0 download <distro> - download rootfs
-$0 redownload <distro> - redownload rootfs
-$0 delete <distro> - delete rootfs
+$script download <distro> - download rootfs
+$script redownload <distro> - redownload rootfs
+$script delete <distro> - delete rootfs
 
-$0 install <distro> [-d|--data] - install distro
+$script install <distro> [-d|--data] - install distro
     '-d|--data' Installs also /data folder, by default not installed
-$0 reinstall <distro> [-d|--data] - reinstall distro
+$script reinstall <distro> [-d|--data] - reinstall distro
     '-d|--data' Installs also /data folder, by default not installed
-$0 uninstall <distro> - uninstall distro
+$script uninstall <distro> - uninstall distro
 
-$0 unmount <distro> - unmount system mount points from distro
+$script unmount <distro> - unmount system mount points from distro
 
-$0 backup <distro> [<path>] - backup distro
+$script backup <distro> [<path>] - backup distro
     <path>          Custom path for backup location
-$0 restore <distro> [-d|--default] [<path>] - restore distro
+$script restore <distro> [-d|--default] [<path>] - restore distro
     <path>          Custom path for backup location
     '-d|--default'  restore default settings (note: only those set during install)
-$0 unbackup <distro> - delete backup from default location
+$script unbackup <distro> - delete backup from default location
 
-$0 command <distro> [--as-is] <command> - run command
+$script command <distro> [--as-is] <command> - run command
     '--as-is' full path needs to be specified for the command
-$0 login <distro> - login to distro
+$script login <distro> - login to distro
 "
 }
 
@@ -819,7 +820,7 @@ chroot_distro_backup() {
     # the content). If data/sdcard etc. are needed to backup then it is better to do it
     # with different tool (for example twrp) and/or from inside the chroot
     if chroot_distro_check_if_system_points_mounted "$distro_path"; then
-        echo "distro is potentially running - if needed shutdown the distro, and unmount system mount points ($0 unmount $1) before proceeding"
+        echo "distro is potentially running - if needed shutdown the distro, and unmount system mount points ($script unmount $1) before proceeding"
         exit
     fi
 
@@ -1013,8 +1014,8 @@ chroot_distro_login() {
 }
 
 chroot_distro_invalid_parameters() {
-    echo "$0 - $1"
-    echo "try '$0 help' for more information"
+    echo "$script - $1"
+    echo "try '$script help' for more information"
     exit 2
 }
 
