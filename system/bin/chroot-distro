@@ -1000,9 +1000,10 @@ chroot_distro_command() {
         command="/bin/$2"
     fi
 
-    # shellcheck disable=SC2086
-    # intentionally left out quotes to make it possible to provide arguments
-    chroot "$distro_path/" $command
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root -c "$command"
 }
 
 chroot_distro_login() {
@@ -1020,7 +1021,10 @@ chroot_distro_login() {
 
     chroot_distro_mount_system_points "$distro_path" no
 
-    chroot "$distro_path/" /bin/su - root
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
 }
 
 chroot_distro_invalid_parameters() {
