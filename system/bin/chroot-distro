@@ -612,6 +612,10 @@ chroot_distro_mount_system_point() {
             exit 1
         fi
     fi
+    if mountpoint -q "$mount_point"; then
+        # nothing to do, already mounted
+        return
+    fi
     if ! mount --bind "$path_to_mount" "$mount_point"; then
         echo "could not mount $path_to_mount to $mount_point"
         exit 1
