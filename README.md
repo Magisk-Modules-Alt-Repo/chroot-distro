@@ -16,11 +16,17 @@ Reasonably new Busybox-ndk magisk module version installed (1.36.1 is known to w
 + /proc
 + /dev/pts
 + /sdcard 
-+ /system
++ /system *(NOTE: not used by default)*
 + /storage
-+ /data
++ /data *(NOTE: not used by default)*
 
 ## Using
+
+### Root usage
+
+Be aware that as the chroot-distro needs to be running as a root to function there is a possibility that some corner case may have been missed where it is possible to accidentally removed more files than intended. The developers strive to ensure that this will not happen but before using the software you should backup your files/firmware just in case. Please also note that this is not specific to only this software but should be used as a general caution when ever using a rooted device.
+
+As they say: *With great power comes great responsibility.*
 
 ### Available commands
 
@@ -47,14 +53,14 @@ chroot-distro delete <distro>
 ```
 
 + install distro
-  + By default does not mount `/data` folder, use -d or --data to mount it
+  + By default does not mount `/data` or `/system` folder, use `-a` or `--android` to mount it
 ```
-chroot-distro install [-d|--data] <distro>
+chroot-distro install [-a|--android] <distro>
 ```
 + reinstall distro
-  + By default does not mount `/data` folder, use -d or --data to mount it
+  + By default does not mount `/data` or `/system` folder, use `-a` or `--android` to mount it
 ```
-chroot-distro reinstall [-d|--data] <distro>
+chroot-distro reinstall [-a|--android] <distro>
 ```
 + uninstall distro
 ```
@@ -71,10 +77,11 @@ chroot-distro backup <distro> [<path>]
 chroot-distro unbackup <distro>
 ```
 + restore distro
-  + By default restores as is, use -d or --default to reset to default settings (note: only those set during install)
+  + By default restores as is, use `-d` or `--default` to reset to default settings (note: only those set during install)
   + If path given, then backup restored from that path
+  + If using old format backups you may need to use `--force` to restore the backup but please be aware that you should review the backup before restoring said backup as there may be more files than there should be, or there could be uninteded side effects (for example system mounts shadowing restored files)
 ```
-chroot-distro restore [-d|--default] <distro> [<path>]
+chroot-distro restore [-d|--default] [--force] <distro> [<path>]
 ```
 
 + unmount system mount points
@@ -83,7 +90,7 @@ chroot-distro unmount <distro>
 ```
 
 + run command
-  + By default runs command from under `/bin`, use --as-is to run any command but then path needs to be supplied
+  + By default runs command from under `/bin`, use `--as-is` to run any command but then path needs to be supplied
   + If command is quoted then can pass parameters to command, for example `"ping 127.0.0.1"`
 ```
 chroot-distro command <distro> [--as-is] <command>
@@ -122,9 +129,12 @@ Note: right side is used as distro identifier, and it needs to be lowercase for 
 + Ubuntu : ubuntu
 + Void Linux : void
 
-### best features :
+### Supported environments
+
 you can use chroot-distro on any terminal
 like mt manager , termux , twrp , Android terminal emulator...
+
+### Sample screenshots
 
 ![Debian console](screenshot/debian.png)
 

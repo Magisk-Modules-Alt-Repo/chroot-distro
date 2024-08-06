@@ -624,14 +624,16 @@ chroot_distro_mount_system_point() {
 
 chroot_distro_mount_system_points() {
     distro_path="$1"
-    use_data="$2"
+    use_android="$2"
     chroot_distro_mount_system_point /dev "$distro_path/dev"
     chroot_distro_mount_system_point /sys "$distro_path/sys"
     chroot_distro_mount_system_point /proc "$distro_path/proc"
     chroot_distro_mount_system_point /dev/pts "$distro_path/dev/pts"
     chroot_distro_mount_system_point /sdcard "$distro_path/sdcard"
-    chroot_distro_mount_system_point /system "$distro_path/system"
-    if [ "yes" = "$use_data" ] || [ -d "$distro_path/data" ]; then
+    if [ "yes" = "$use_android" ] || [ -d "$distro_path/system" ]; then
+        chroot_distro_mount_system_point /system "$distro_path/system"
+    fi
+    if [ "yes" = "$use_android" ] || [ -d "$distro_path/data" ]; then
         chroot_distro_mount_system_point /data "$distro_path/data"
     fi
     for file in "/storage"/*; do
@@ -742,7 +744,7 @@ chroot_distro_check_if_system_points_mounted() {
 
 chroot_distro_install() {
     distro=$1
-    use_data=$2
+    use_android=$2
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
     if ! chroot_distro_check_if_supported "$supported" "$distro"; then
         echo "unavailable distro $distro"
@@ -777,7 +779,7 @@ chroot_distro_install() {
         mv "$chroot_distro_path/$rootdir" "$distro_path"
     fi
 
-    chroot_distro_mount_system_points "$distro_path" "$use_data"
+    chroot_distro_mount_system_points "$distro_path" "$use_android"
 
     echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
     echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
@@ -1082,13 +1084,13 @@ elif [ "$command" = "delete" ]; then
     fi
     chroot_distro_delete "$1"
 elif [ "$command" = "install" ]; then
-    PARSED=$(getopt --options=d --longoptions=data --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
-    data=no
+    android=no
     while true; do
         case "$1" in
-            -d|--data)
-                data=yes
+            -a|--android)
+                android=yes
                 shift
                 ;;
             --)
@@ -1106,7 +1108,7 @@ elif [ "$command" = "install" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_install "$1" "$data"
+    chroot_distro_install "$1" "$android"
 elif [ "$command" = "uninstall" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     if [ $# -eq 0 ]; then
@@ -1116,13 +1118,13 @@ elif [ "$command" = "uninstall" ]; then
     fi
     chroot_distro_uninstall "$1"
 elif [ "$command" = "reinstall" ]; then
-    PARSED=$(getopt --options=d --longoptions=data --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
-    data=no
+    android=no
     while true; do
         case "$1" in
-            -d|--data)
-                data=yes
+            -a|--android)
+                android=yes
                 shift
                 ;;
             --)
@@ -1141,7 +1143,7 @@ elif [ "$command" = "reinstall" ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_uninstall "$1"
-    chroot_distro_install "$1" "$data"
+    chroot_distro_install "$1" "$android"
 elif [ "$command" = "backup" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     if [ $# -eq 0 ]; then
@@ -1159,7 +1161,7 @@ elif [ "$command" = "unbackup" ]; then
     fi
     chroot_distro_unbackup "$1"
 elif [ "$command" = "restore" ]; then
-    OPTS=df LONGOPTS=default,force
+    OPTS=d LONGOPTS=default,force
     PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     restore_defaults=no
@@ -1170,7 +1172,7 @@ elif [ "$command" = "restore" ]; then
                 restore_defaults=yes
                 shift
                 ;;
-            -f|--force)
+            --force)
                 force=yes
                 shift
                 ;;
