@@ -131,8 +131,7 @@ Note: right side is used as distro identifier, and it needs to be lowercase for 
 
 ### Supported environments
 
-you can use chroot-distro on any terminal
-like mt manager , termux , twrp , Android terminal emulator...
+You can use chroot-distro on any terminal, for example mt manager, termux, twrp or Android terminal emulator...
 
 ### Sample screenshots
 
