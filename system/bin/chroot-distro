@@ -661,13 +661,6 @@ chroot_distro_unmount_system_point() {
 
 chroot_distro_unmount_system_points() {
     distro_path="$1"
-    force="$2"
-    if [ "yes" = "$force" ]; then
-        : # do not check if data has been mounted, try to unmount it if possible
-    elif mountpoint -q "$distro_path/data" 2>/dev/null; then
-        echo "$distro_path/data is circular reference! unmount manually, or reboot before proceeding"
-        exit 1
-    fi
     for file in "/storage"/*; do
         # no need for separator as separator already comes from file variable itself
         chroot_distro_unmount_system_point "$distro_path$file"
@@ -803,7 +796,7 @@ chroot_distro_uninstall() {
 
     distro_path="$chroot_distro_path/$1"
     if [ -d "$distro_path" ]; then
-        chroot_distro_unmount_system_points "$distro_path" no
+        chroot_distro_unmount_system_points "$distro_path"
         mount_count=$(mount | grep -c "$distro_path")
         if [ "0" != "$mount_count" ]; then
             # note: if there is still system mount points mounted, please create a bug report so that it can be investigated
@@ -995,7 +988,7 @@ chroot_distro_unmount() {
         exit 1
     fi
 
-    chroot_distro_unmount_system_points "$distro_path" yes
+    chroot_distro_unmount_system_points "$distro_path"
 }
 
 chroot_distro_command() {
