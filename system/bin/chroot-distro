@@ -804,6 +804,15 @@ chroot_distro_uninstall() {
     distro_path="$chroot_distro_path/$1"
     if [ -d "$distro_path" ]; then
         chroot_distro_unmount_system_points "$distro_path" no
+        mount_count=$(mount | grep -c "$distro_path")
+        if [ "0" != "$mount_count" ]; then
+            # note: if there is still system mount points mounted, please create a bug report so that it can be investigated
+            echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
+            exit 1
+        fi
+
+        # when reaching this point it is assumed that uninstalling the distro is ok, no irreversible changes to distro before this line
+
         # ensure that there is no symbolic links before nuking the rootfs, symbolic links may point outside of rootfs when outside of the chroot
         find "$distro_path" -type l -exec unlink {} \;
         rm -rf "$distro_path"
@@ -835,6 +844,14 @@ chroot_distro_backup() {
     if chroot_distro_check_if_system_points_mounted "$distro_path"; then
         echo "distro is potentially running - if needed shutdown the distro, and unmount system mount points ($script unmount $1) before proceeding"
         exit
+    fi
+
+    # mounted volumes should be backed up outside of this script as it may not work as intended
+    # (same reasons as system mount points)
+    mount_count=$(mount | grep -c "$distro_path")
+    if [ "0" != "$mount_count" ]; then
+        echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
+        exit 1
     fi
 
     if [ "$2" = "" ]; then
