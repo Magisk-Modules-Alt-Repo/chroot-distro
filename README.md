@@ -79,7 +79,7 @@ chroot-distro unbackup <distro>
 + restore distro
   + By default restores as is, use `-d` or `--default` to reset to default settings (note: only those set during install)
   + If path given, then backup restored from that path
-  + If using old format backups you may need to use `--force` to restore the backup but please be aware that you should review the backup before restoring said backup as there may be more files than there should be, or there could be uninteded side effects (for example system mounts shadowing restored files)
+  + If using old format backups you may need to use `--force` to restore the backup but please be aware that you should review the backup before restoring said backup as there could be uninteded side effects (for example system mounts shadowing restored files or internal storage running out)
 ```
 chroot-distro restore [-d|--default] [--force] <distro> [<path>]
 ```

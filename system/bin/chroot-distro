@@ -62,19 +62,20 @@ $script download <distro> - download rootfs
 $script redownload <distro> - redownload rootfs
 $script delete <distro> - delete rootfs
 
-$script install <distro> [-d|--data] - install distro
-    '-d|--data' Installs also /data folder, by default not installed
-$script reinstall <distro> [-d|--data] - reinstall distro
-    '-d|--data' Installs also /data folder, by default not installed
+$script install <distro> [-a|--android] - install distro
+    '-a|--android' Installs also /data and /system folders, by default not installed
+$script reinstall <distro> [-a|--android] - reinstall distro
+    '-a|--android' Installs also /data and /system folders, by default not installed
 $script uninstall <distro> - uninstall distro
 
 $script unmount <distro> - unmount system mount points from distro
 
 $script backup <distro> [<path>] - backup distro
     <path>          Custom path for backup location
-$script restore <distro> [-d|--default] [<path>] - restore distro
+$script restore <distro> [-d|--default] [--force] [<path>] - restore distro
     <path>          Custom path for backup location
     '-d|--default'  restore default settings (note: only those set during install)
+    '--force'       Force restore even if may cause unintended side-effects
 $script unbackup <distro> - delete backup from default location
 
 $script command <distro> [--as-is] <command> - run command
