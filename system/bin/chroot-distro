@@ -784,7 +784,10 @@ chroot_distro_install() {
     chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
     chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
     chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
-    chroot "$distro_path" /bin/su - root
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
 }
 
 chroot_distro_uninstall() {
@@ -972,7 +975,10 @@ chroot_distro_restore() {
         chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
         chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
     fi
-    chroot "$distro_path" /bin/su - root
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
 }
 
 chroot_distro_unmount() {
