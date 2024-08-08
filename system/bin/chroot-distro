@@ -736,6 +736,23 @@ chroot_distro_check_if_system_points_mounted() {
     return 1
 }
 
+chroot_distro_jail() {
+    distro_path=$1
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
+}
+
+chroot_distro_jail_command() {
+    distro_path=$1
+    command=$2
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root -c "$command"
+}
+
 chroot_distro_install() {
     distro=$1
     use_android=$2
@@ -784,10 +801,7 @@ chroot_distro_install() {
     chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
     chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
     chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
-    # shellcheck disable=SC1007
-    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
-    # to prevent leaking host stuff to chroot to ensure consistent environment
-    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
+    chroot_distro_jail "$distro_path"
 }
 
 chroot_distro_uninstall() {
@@ -975,10 +989,7 @@ chroot_distro_restore() {
         chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
         chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
     fi
-    # shellcheck disable=SC1007
-    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
-    # to prevent leaking host stuff to chroot to ensure consistent environment
-    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
+    chroot_distro_jail "$distro_path"
 }
 
 chroot_distro_unmount() {
@@ -1019,10 +1030,7 @@ chroot_distro_command() {
         command="/bin/$2"
     fi
 
-    # shellcheck disable=SC1007
-    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
-    # to prevent leaking host stuff to chroot to ensure consistent environment
-    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root -c "$command"
+    chroot_distro_jail_command "$distro_path" "$command"
 }
 
 chroot_distro_login() {
@@ -1040,10 +1048,7 @@ chroot_distro_login() {
 
     chroot_distro_mount_system_points "$distro_path" no
 
-    # shellcheck disable=SC1007
-    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
-    # to prevent leaking host stuff to chroot to ensure consistent environment
-    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
+    chroot_distro_jail "$distro_path"
 }
 
 chroot_distro_invalid_parameters() {
