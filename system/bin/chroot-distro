@@ -6,6 +6,7 @@
 # for the full terms.
 
 chroot_distro_path="/data/local/chroot-distro"
+script=$(basename "$0")
 
 if [ "$(whoami)" != "root" ]; then
     echo "Root access required."
@@ -50,35 +51,36 @@ fi
 
 
 chroot_distro_help() {
-    echo "$0 : install linux distributions
+    echo "$script : install linux distributions
 
 usage :
 
-$0 help - for more information
-$0 list - list of available linux distributions
+$script help - for more information
+$script list - list of available linux distributions
 
-$0 download <distro> - download rootfs
-$0 redownload <distro> - redownload rootfs
-$0 delete <distro> - delete rootfs
+$script download <distro> - download rootfs
+$script redownload <distro> - redownload rootfs
+$script delete <distro> - delete rootfs
 
-$0 install <distro> [-d|--data] - install distro
-    '-d|--data' Installs also /data folder, by default not installed
-$0 reinstall <distro> [-d|--data] - reinstall distro
-    '-d|--data' Installs also /data folder, by default not installed
-$0 uninstall <distro> - uninstall distro
+$script install <distro> [-a|--android] - install distro
+    '-a|--android' Installs also /data and /system folders, by default not installed
+$script reinstall <distro> [-a|--android] - reinstall distro
+    '-a|--android' Installs also /data and /system folders, by default not installed
+$script uninstall <distro> - uninstall distro
 
-$0 unmount <distro> - unmount system mount points from distro
+$script unmount <distro> - unmount system mount points from distro
 
-$0 backup <distro> [<path>] - backup distro
+$script backup <distro> [<path>] - backup distro
     <path>          Custom path for backup location
-$0 restore <distro> [-d|--default] [<path>] - restore distro
+$script restore <distro> [-d|--default] [--force] [<path>] - restore distro
     <path>          Custom path for backup location
     '-d|--default'  restore default settings (note: only those set during install)
-$0 unbackup <distro> - delete backup from default location
+    '--force'       Force restore even if may cause unintended side-effects
+$script unbackup <distro> - delete backup from default location
 
-$0 command <distro> [--as-is] <command> - run command
+$script command <distro> [--as-is] <command> - run command
     '--as-is' full path needs to be specified for the command
-$0 login <distro> - login to distro
+$script login <distro> - login to distro
 "
 }
 
@@ -611,6 +613,10 @@ chroot_distro_mount_system_point() {
             exit 1
         fi
     fi
+    if mountpoint -q "$mount_point"; then
+        # nothing to do, already mounted
+        return
+    fi
     if ! mount --bind "$path_to_mount" "$mount_point"; then
         echo "could not mount $path_to_mount to $mount_point"
         exit 1
@@ -619,14 +625,16 @@ chroot_distro_mount_system_point() {
 
 chroot_distro_mount_system_points() {
     distro_path="$1"
-    use_data="$2"
+    use_android="$2"
     chroot_distro_mount_system_point /dev "$distro_path/dev"
     chroot_distro_mount_system_point /sys "$distro_path/sys"
     chroot_distro_mount_system_point /proc "$distro_path/proc"
     chroot_distro_mount_system_point /dev/pts "$distro_path/dev/pts"
     chroot_distro_mount_system_point /sdcard "$distro_path/sdcard"
-    chroot_distro_mount_system_point /system "$distro_path/system"
-    if [ "yes" = "$use_data" ] || [ -d "$distro_path/data" ]; then
+    if [ "yes" = "$use_android" ] || [ -d "$distro_path/system" ]; then
+        chroot_distro_mount_system_point /system "$distro_path/system"
+    fi
+    if [ "yes" = "$use_android" ] || [ -d "$distro_path/data" ]; then
         chroot_distro_mount_system_point /data "$distro_path/data"
     fi
     for file in "/storage"/*; do
@@ -653,13 +661,6 @@ chroot_distro_unmount_system_point() {
 
 chroot_distro_unmount_system_points() {
     distro_path="$1"
-    force="$2"
-    if [ "yes" = "$force" ]; then
-        : # do not check if data has been mounted, try to unmount it if possible
-    elif mountpoint -q "$distro_path/data" 2>/dev/null; then
-        echo "$distro_path/data is circular reference! unmount manually, or reboot before proceeding"
-        exit 1
-    fi
     for file in "/storage"/*; do
         # no need for separator as separator already comes from file variable itself
         chroot_distro_unmount_system_point "$distro_path$file"
@@ -687,12 +688,18 @@ chroot_distro_check_if_system_point_mounted() {
 
 chroot_distro_check_if_system_points_mounted() {
     distro_path="$1"
+    # shellcheck disable=SC2089
+    # quotes are intentionally added
     # dev/pts is not checked as it is assumed that if dev is mounted then also pts is mounted and if dev is not mounted then pts is not mounted
     system_paths="'$distro_path/dev' '$distro_path/sys' '$distro_path/proc' '$distro_path/sdcard' '$distro_path/system' '$distro_path/data'"
     for file in "/storage"/*; do
         # no need for separator as separator already comes from file variable itself
         system_paths="$system_paths '$distro_path$file'"
     done
+
+    # shellcheck disable=SC2090
+    # shellcheck disable=SC2086
+    # double quotes are intentionally omitted
     set -- $system_paths
     partial=
     quote="'"
@@ -731,7 +738,7 @@ chroot_distro_check_if_system_points_mounted() {
 
 chroot_distro_install() {
     distro=$1
-    use_data=$2
+    use_android=$2
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
     if ! chroot_distro_check_if_supported "$supported" "$distro"; then
         echo "unavailable distro $distro"
@@ -751,7 +758,7 @@ chroot_distro_install() {
     fi
 
     common_path="$( chroot_distro_find_archive_common_path "$archive_path" )"
-    if [ "" == "$common_path" ]; then
+    if [ "" = "$common_path" ]; then
         common_path="."
     fi
     rootdir="$( echo "$common_path" | cut -f1 -d/ )"
@@ -766,7 +773,7 @@ chroot_distro_install() {
         mv "$chroot_distro_path/$rootdir" "$distro_path"
     fi
 
-    chroot_distro_mount_system_points "$distro_path" "$use_data"
+    chroot_distro_mount_system_points "$distro_path" "$use_android"
 
     echo "nameserver 8.8.8.8" > "$distro_path"/etc/resolv.conf
     echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
@@ -777,7 +784,10 @@ chroot_distro_install() {
     chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
     chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
     chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
-    chroot "$distro_path" /bin/su - root
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
 }
 
 chroot_distro_uninstall() {
@@ -789,7 +799,16 @@ chroot_distro_uninstall() {
 
     distro_path="$chroot_distro_path/$1"
     if [ -d "$distro_path" ]; then
-        chroot_distro_unmount_system_points "$distro_path" no
+        chroot_distro_unmount_system_points "$distro_path"
+        mount_count=$(mount | grep -c "$distro_path")
+        if [ "0" != "$mount_count" ]; then
+            # note: if there is still system mount points mounted, please create a bug report so that it can be investigated
+            echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
+            exit 1
+        fi
+
+        # when reaching this point it is assumed that uninstalling the distro is ok, no irreversible changes to distro before this line
+
         # ensure that there is no symbolic links before nuking the rootfs, symbolic links may point outside of rootfs when outside of the chroot
         find "$distro_path" -type l -exec unlink {} \;
         rm -rf "$distro_path"
@@ -819,8 +838,16 @@ chroot_distro_backup() {
     # the content). If data/sdcard etc. are needed to backup then it is better to do it
     # with different tool (for example twrp) and/or from inside the chroot
     if chroot_distro_check_if_system_points_mounted "$distro_path"; then
-        echo "distro is potentially running - if needed shutdown the distro, and unmount system mount points ($0 unmount $1) before proceeding"
+        echo "distro is potentially running - if needed shutdown the distro, and unmount system mount points ($script unmount $1) before proceeding"
         exit
+    fi
+
+    # mounted volumes should be backed up outside of this script as it may not work as intended
+    # (same reasons as system mount points)
+    mount_count=$(mount | grep -c "$distro_path")
+    if [ "0" != "$mount_count" ]; then
+        echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
+        exit 1
     fi
 
     if [ "$2" = "" ]; then
@@ -901,7 +928,7 @@ chroot_distro_restore() {
     fi
 
     common_path="$(chroot_distro_find_archive_common_path "$backup_path")"
-    if [ "" == "$common_path" ]; then
+    if [ "" = "$common_path" ]; then
         common_path="."
     fi
     rootdir="$( echo "$common_path" | cut -f1 -d/ )"
@@ -948,7 +975,10 @@ chroot_distro_restore() {
         chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
         chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
     fi
-    chroot "$distro_path" /bin/su - root
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
 }
 
 chroot_distro_unmount() {
@@ -964,7 +994,7 @@ chroot_distro_unmount() {
         exit 1
     fi
 
-    chroot_distro_unmount_system_points "$distro_path" yes
+    chroot_distro_unmount_system_points "$distro_path"
 }
 
 chroot_distro_command() {
@@ -989,9 +1019,10 @@ chroot_distro_command() {
         command="/bin/$2"
     fi
 
-    # shellcheck disable=SC2086
-    # intentionally left out quotes to make it possible to provide arguments
-    chroot "$distro_path/" $command
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root -c "$command"
 }
 
 chroot_distro_login() {
@@ -1009,12 +1040,15 @@ chroot_distro_login() {
 
     chroot_distro_mount_system_points "$distro_path" no
 
-    chroot "$distro_path/" /bin/su - root
+    # shellcheck disable=SC1007
+    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+    # to prevent leaking host stuff to chroot to ensure consistent environment
+    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
 }
 
 chroot_distro_invalid_parameters() {
-    echo "$0 - $1"
-    echo "try '$0 help' for more information"
+    echo "$script - $1"
+    echo "try '$script help' for more information"
     exit 2
 }
 
@@ -1067,13 +1101,13 @@ elif [ "$command" = "delete" ]; then
     fi
     chroot_distro_delete "$1"
 elif [ "$command" = "install" ]; then
-    PARSED=$(getopt --options=d --longoptions=data --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
-    data=no
+    android=no
     while true; do
         case "$1" in
-            -d|--data)
-                data=yes
+            -a|--android)
+                android=yes
                 shift
                 ;;
             --)
@@ -1091,7 +1125,7 @@ elif [ "$command" = "install" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_install "$1" "$data"
+    chroot_distro_install "$1" "$android"
 elif [ "$command" = "uninstall" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     if [ $# -eq 0 ]; then
@@ -1101,13 +1135,13 @@ elif [ "$command" = "uninstall" ]; then
     fi
     chroot_distro_uninstall "$1"
 elif [ "$command" = "reinstall" ]; then
-    PARSED=$(getopt --options=d --longoptions=data --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
-    data=no
+    android=no
     while true; do
         case "$1" in
-            -d|--data)
-                data=yes
+            -a|--android)
+                android=yes
                 shift
                 ;;
             --)
@@ -1126,7 +1160,7 @@ elif [ "$command" = "reinstall" ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_uninstall "$1"
-    chroot_distro_install "$1" "$data"
+    chroot_distro_install "$1" "$android"
 elif [ "$command" = "backup" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     if [ $# -eq 0 ]; then
@@ -1144,7 +1178,7 @@ elif [ "$command" = "unbackup" ]; then
     fi
     chroot_distro_unbackup "$1"
 elif [ "$command" = "restore" ]; then
-    OPTS=df LONGOPTS=default,force
+    OPTS=d LONGOPTS=default,force
     PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     restore_defaults=no
@@ -1155,7 +1189,7 @@ elif [ "$command" = "restore" ]; then
                 restore_defaults=yes
                 shift
                 ;;
-            -f|--force)
+            --force)
                 force=yes
                 shift
                 ;;
