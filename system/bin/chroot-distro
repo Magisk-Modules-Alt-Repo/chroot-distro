@@ -780,6 +780,9 @@ chroot_distro_jail() {
     unset HISTFILE;
     unset TMPDIR;
     unset PREFIX;
+    unset BOOTCLASSPATH;
+    unset SYSTEMSERVERCLASSPATH;
+    unset LD_LIBRARY_PATH;
     SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -l
     )
 }
@@ -815,6 +818,9 @@ chroot_distro_jail_command() {
     unset HISTFILE;
     unset TMPDIR;
     unset PREFIX;
+    unset BOOTCLASSPATH;
+    unset SYSTEMSERVERCLASSPATH;
+    unset LD_LIBRARY_PATH;
     SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -lc "$command"
     )
 }
