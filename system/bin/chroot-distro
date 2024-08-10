@@ -736,21 +736,87 @@ chroot_distro_check_if_system_points_mounted() {
     return 1
 }
 
+chroot_distro_find_su() {
+    root=$1
+    su_command=""
+    if [ -f "$root/bin/su" ] || [ -L "$root/bin/su" ]; then
+        su_command=/bin/su
+    elif [ -f "$root/usr/bin/su" ] || [ -L "$root/usr/bin/su" ]; then
+        su_command=/usr/bin/su
+    elif [ -f "$root/usr/local/bin/su" ] || [ -L "$root/usr/local/bin/su" ]; then
+        su_command=/usr/local/bin/su
+    fi
+    echo "$su_command"
+}
+
 chroot_distro_jail() {
     distro_path=$1
-    # shellcheck disable=SC1007
-    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
-    # to prevent leaking host stuff to chroot to ensure consistent environment
-    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root
+    su_command=$(chroot_distro_find_su "$distro_path")
+
+    if [ "" != "$su_command" ]; then
+        (
+        unset PREFIX;
+        # shellcheck disable=SC1007
+        # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
+        # to prevent leaking host stuff to chroot to ensure consistent environment
+        PATH= /system/bin/chroot "$distro_path/" "$su_command" - root
+        )
+        return
+    fi
+
+    echo "Warning: Missing 'su' command, can't do a proper login. Please, install 'su'"
+    echo "as soon as possible to ensure consistent login environment."
+
+    # ensure a sane PATH contents for the shell
+    JAIL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+    JAIL_HOME=/
+    if [ -d "$distro_path/root" ]; then
+        JAIL_HOME=/root
+    fi
+
+    (
+    # try to ensure consistent environment
+    unset HISTFILE;
+    unset TMPDIR;
+    unset PREFIX;
+    SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -l
+    )
 }
 
 chroot_distro_jail_command() {
     distro_path=$1
     command=$2
-    # shellcheck disable=SC1007
-    # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
-    # to prevent leaking host stuff to chroot to ensure consistent environment
-    PREFIX= PATH= /system/bin/chroot "$distro_path/" /bin/su - root -c "$command"
+    su_command=$(chroot_distro_find_su "$distro_path")
+
+    if [ "" != "$su_command" ]; then
+        (
+        unset PREFIX;
+        # shellcheck disable=SC1007
+        # try to ensure that su will do as proper login as possible to ensure consistent environment
+        PATH= /system/bin/chroot "$distro_path/" "$su_command" - root -c "$command"
+        )
+        return
+    fi
+
+    echo "Warning: Missing 'su' command, can't do a proper login to run the command."
+    echo "Please, install 'su' as soon as possible to ensure consistent login environment."
+
+    # ensure sane PATH contents for the shell
+    JAIL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+    JAIL_HOME=/
+    if [ -d "$distro_path/root" ]; then
+        JAIL_HOME=/root
+    fi
+
+    (
+    # try to ensure consistent environment
+    unset HISTFILE;
+    unset TMPDIR;
+    unset PREFIX;
+    SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -lc "$command"
+    )
 }
 
 chroot_distro_install() {
