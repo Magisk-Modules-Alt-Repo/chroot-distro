@@ -1139,6 +1139,7 @@ chroot_distro_missing_distro() {
 
 if [ $# -eq 0 ]; then
     chroot_distro_help
+    exit
 fi
 
 command=$1
