@@ -13,16 +13,28 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
-if ! command -v busybox &> /dev/null; then
+if ! command -v busybox 1> /dev/null 2>&1; then
     echo "busybox not found, install busybox for Android NDK and try again"
     exit 1
 fi
 
 getopt --test > /dev/null && true
 if [ $? -ne 4 ]; then
-    echo 'I’m sorry, `getopt --test` failed in this environment.'
+    # shellcheck disable=SC2016
+    echo 'I'\''m sorry, `getopt --test` failed in this environment.'
     exit 1
 fi
+
+# get a unique name
+non_existent_file=$(mktemp -u)
+
+tar_supports_xz=true
+tar -t -J -f "$non_existent_file.tar.xz" 1>/dev/null 2>&1
+if [ $? -eq 1 ]; then
+    tar_supports_xz=""
+fi
+
+unset non_existent_file
 
 if [ ! -d "$chroot_distro_path/" ]; then
     mkdir -p $chroot_distro_path/
@@ -96,10 +108,11 @@ chroot_distro_list_item() {
         echo "Installed: No"
     fi
     if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
-        echo "Backup : Yes\n"
+        echo "Backup : Yes"
     else
-        echo "Backup : No\n"
+        echo "Backup : No"
     fi
+    echo
 }
 
 chroot_distro_list() {
@@ -736,6 +749,21 @@ chroot_distro_check_if_system_points_mounted() {
     return 1
 }
 
+chroot_distro_check_archive_file_type() {
+    archive_path="$1"
+
+    # -l option would be more efficient but unfortunately busybox implementation may not support it
+    if gunzip -t "$archive_path" 1>/dev/null 2>&1 ; then
+        echo "gzip"
+        return
+    fi
+    # -l option would be more efficient but unfortunately busybox implementation may not support it
+    if xz -t "$archive_path" 1>/dev/null 2>&1 ; then
+        echo "xz"
+        return
+    fi
+}
+
 chroot_distro_find_su() {
     root=$1
     su_command=""
@@ -854,12 +882,42 @@ chroot_distro_install() {
     if [ "$rootdir" != "$common_path" ]; then
         echo "Unsupported archive. rootfs archive is expected to have only at most one subdirectory before the actual content."
         exit 1
-    elif [ "." = "$rootdir" ]; then
+    fi
+    archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$archive_path")}
+    if [ "" = "$archive_type" ]; then
+        echo "Error: unsupported or corrupt archive"
+        exit 5
+    fi
+    if [ "." = "$rootdir" ]; then
         mkdir "$distro_path"
-        tar -xf "$archive_path" -C "$distro_path/"
+        if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
+            xz -cd "$archive_path" | tar -x -C "$distro_path/"
+        else
+            tar -xf "$archive_path" -C "$distro_path/"
+        fi
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     else
-        tar -xf "$archive_path" -C "$chroot_distro_path/"
+        if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
+            xz -cd "$archive_path" | tar -x -C "$chroot_distro_path/"
+        else
+            tar -xf "$archive_path" -C "$chroot_distro_path/"
+        fi
+        tar_status=$?
+        if [ $tar_status -ne 0 ] && [ ! -e "$chroot_distro_path/$rootdir" ]; then
+            # can bail out early as no files were unpacked
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
         mv "$chroot_distro_path/$rootdir" "$distro_path"
+        if [ $tar_status -ne 0 ]; then
+            # can bail out only when the environment is in semi consistent state
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     fi
 
     chroot_distro_mount_system_points "$distro_path" "$use_android"
@@ -938,20 +996,61 @@ chroot_distro_backup() {
 
     if [ "$2" = "" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
-        if [ ! -f "$backup_path" ]; then
-            (cd "$chroot_distro_path" || exit; tar -cvf "$backup_path" "$distro")
-        else
+        if [ -f "$backup_path" ]; then
             echo "backup already exist, unbackup and try agin"
             exit 1
         fi
+        (
+            cd "$chroot_distro_path" || exit 1;
+            if [ "" = "$tar_supports_xz" ]; then
+                # use gzip compression as xz is not supported
+                tar -czvf "$backup_path" "$distro"
+            else
+                tar -cvf "$backup_path" "$distro"
+            fi
+        )
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: creating the backup failed"
+            exit 5
+        fi
     else
-        (cd "$chroot_distro_path" || exit; tar -cvf "$2" "$distro")
+        (
+            cd "$chroot_distro_path" || exit 1;
+            case "$2" in
+                *.tar.xz) {
+                    if [ "" = "$tar_supports_xz" ]; then
+                        # use gzip compression as xz is not supported
+                        tar -czvf "$2" "$distro"
+                    else
+                        tar -cJvf "$2" "$distro"
+                    fi
+                } ;;
+                # rely on compression autodetection
+                *) tar -cvf "$2" "$distro" ;;
+            esac;
+        )
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: creating the backup failed"
+            exit 5
+        fi
     fi
 }
 
 chroot_distro_find_archive_common_path() {
     archive_path=$1
-    paths_to_check="$(tar -tf "$1" 2>/dev/null)"
+    archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$archive_path")}
+    if [ "" = "$archive_type" ]; then
+        echo "Error: unsupported or corrupt archive"
+        exit 5
+    fi
+    if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
+        # archive uses xz but tar does not support it natively
+        paths_to_check="$(xz -cd "$archive_path" | tar -t 2>/dev/null)"
+    else
+        paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
+    fi
 
     i=1
     prev_path=
@@ -1019,16 +1118,43 @@ chroot_distro_restore() {
     fi
     rootdir="$( echo "$common_path" | cut -f1 -d/ )"
 
+    archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$backup_path")}
+    if [ "" = "$archive_type" ]; then
+        echo "Error: unsupported or corrupt archive"
+        exit 5
+    fi
+
     if [ "." = "$rootdir" ]; then
         # backup has relative path, restoring is not a problem
         mkdir "$distro_path"
-        tar -xf "$backup_path" -C "$distro_path/"
+        if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
+            xz -cd "$backup_path" | tar -x -C "$distro_path/"
+        else
+            tar -xf "$backup_path" -C "$distro_path/"
+        fi
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     elif [ "data" = "$rootdir" ] && [ "yes" = "$force" ]; then
         # Uses old format of backups. Accept only if user has reviewed the content as the backup needs to be
         # applied from root directory, potentially rendering the system unstable and/or be compromised.
         # Also, backup may contain files which will not be visible from running system and will potentially
         # fill the internal storage. There is also possibility of using wrong backup.
-        (cd /; tar -xf "$backup_path")
+        (
+            cd /
+            if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
+                xz -cd "$backup_path" | tar -x
+            else
+                tar -xf "$backup_path"
+            fi
+        )
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     elif [ "data" = "$rootdir" ]; then
         echo "Will restore from root directory, review the contents and use --force."
         echo "Warning: Old style backup. May contain file backups from sdcard and other system mount points."
@@ -1042,7 +1168,19 @@ chroot_distro_restore() {
         exit 4
     elif [ "$distro" = "$rootdir" ]; then
         # new format backups
-        (cd "$chroot_distro_path" || exit; tar -xf "$backup_path")
+        (
+            cd "$chroot_distro_path" || exit 1;
+            if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
+                xz -cd "$backup_path" | tar -x
+            else
+                tar -xf "$backup_path"
+            fi
+        )
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     else
         echo "Backup may be for wrong distro (root directory $rootdir), review the backup before proceeding"
         exit 4
@@ -1139,6 +1277,7 @@ chroot_distro_missing_distro() {
 
 if [ $# -eq 0 ]; then
     chroot_distro_help
+    exit
 fi
 
 command=$1
