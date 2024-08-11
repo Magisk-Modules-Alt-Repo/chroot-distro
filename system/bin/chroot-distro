@@ -13,14 +13,15 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
-if ! command -v busybox &> /dev/null; then
+if ! command -v busybox 1> /dev/null 2>&1; then
     echo "busybox not found, install busybox for Android NDK and try again"
     exit 1
 fi
 
 getopt --test > /dev/null && true
 if [ $? -ne 4 ]; then
-    echo 'I’m sorry, `getopt --test` failed in this environment.'
+    # shellcheck disable=SC2016
+    echo 'I'\''m sorry, `getopt --test` failed in this environment.'
     exit 1
 fi
 
@@ -96,10 +97,11 @@ chroot_distro_list_item() {
         echo "Installed: No"
     fi
     if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
-        echo "Backup : Yes\n"
+        echo "Backup : Yes"
     else
-        echo "Backup : No\n"
+        echo "Backup : No"
     fi
+    echo
 }
 
 chroot_distro_list() {
