@@ -895,13 +895,29 @@ chroot_distro_install() {
         else
             tar -xf "$archive_path" -C "$distro_path/"
         fi
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     else
         if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
             xz -cd "$archive_path" | tar -x -C "$chroot_distro_path/"
         else
             tar -xf "$archive_path" -C "$chroot_distro_path/"
         fi
+        tar_status=$?
+        if [ $tar_status -ne 0 ] && [ ! -e "$chroot_distro_path/$rootdir" ]; then
+            # can bail out early as no files were unpacked
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
         mv "$chroot_distro_path/$rootdir" "$distro_path"
+        if [ $tar_status -ne 0 ]; then
+            # can bail out only when the environment is in semi consistent state
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     fi
 
     chroot_distro_mount_system_points "$distro_path" "$use_android"
@@ -993,6 +1009,11 @@ chroot_distro_backup() {
                 tar -cvf "$backup_path" "$distro"
             fi
         )
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: creating the backup failed"
+            exit 5
+        fi
     else
         (
             cd "$chroot_distro_path" || exit 1;
@@ -1009,6 +1030,11 @@ chroot_distro_backup() {
                 *) tar -cvf "$2" "$distro" ;;
             esac;
         )
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: creating the backup failed"
+            exit 5
+        fi
     fi
 }
 
@@ -1106,6 +1132,11 @@ chroot_distro_restore() {
         else
             tar -xf "$backup_path" -C "$distro_path/"
         fi
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     elif [ "data" = "$rootdir" ] && [ "yes" = "$force" ]; then
         # Uses old format of backups. Accept only if user has reviewed the content as the backup needs to be
         # applied from root directory, potentially rendering the system unstable and/or be compromised.
@@ -1119,6 +1150,11 @@ chroot_distro_restore() {
                 tar -xf "$backup_path"
             fi
         )
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     elif [ "data" = "$rootdir" ]; then
         echo "Will restore from root directory, review the contents and use --force."
         echo "Warning: Old style backup. May contain file backups from sdcard and other system mount points."
@@ -1140,6 +1176,11 @@ chroot_distro_restore() {
                 tar -xf "$backup_path"
             fi
         )
+        # shellcheck disable=SC2181
+        if [ $? -ne 0 ]; then
+            echo "Error: Unpacking the archive failed"
+            exit 5
+        fi
     else
         echo "Backup may be for wrong distro (root directory $rootdir), review the backup before proceeding"
         exit 4
