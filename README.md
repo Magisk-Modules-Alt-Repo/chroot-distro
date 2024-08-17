@@ -43,7 +43,7 @@ chroot-distro list
 ```
 chroot-distro download <distro>
 ```
-+ redownload rootfs
++ re-download rootfs
 ```
 chroot-distro redownload <distro>
 ```
@@ -79,7 +79,7 @@ chroot-distro unbackup <distro>
 + restore distro
   + By default restores as is, use `-d` or `--default` to reset to default settings (note: only those set during install)
   + If path given, then backup restored from that path
-  + If using old format backups you may need to use `--force` to restore the backup but please be aware that you should review the backup before restoring said backup as there could be uninteded side effects (for example system mounts shadowing restored files or internal storage running out)
+  + If using old format backups you may need to use `--force` to restore the backup but please be aware that you should review the backup before restoring said backup as there could be unintended side effects (for example system mounts shadowing restored files or internal storage running out)
 ```
 chroot-distro restore [-d|--default] [--force] <distro> [<path>]
 ```
@@ -130,7 +130,7 @@ Note: right side is used as distro identifier, and it needs to be lowercase for 
 
 ### Supported environments
 
-You can use chroot-distro on any terminal, for example mt manager, termux, twrp or Android terminal emulator...
+You can use chroot-distro on any terminal, for example MT Manager, Termux, TWRP or Android terminal emulator (ADB Shell)...
 
 ### Sample screenshots
 
@@ -191,6 +191,24 @@ From security perspective the second and third one are the better as there is le
 ## Install chroot-distro
 
 + [module](https://github.com/YasserNull/chroot-distro/releases/tag/module)
+
+## Hacking
+
+If you want to help with development, or if developers have requested you to check a bug report against latest development version, you can create development version with the help of this command:
+
+```sh
+zip chroot-distro.zip config.sh module.prop META-INF/com/google/android/* system/bin/chroot-distro
+```
+
+Alternative way to do the development is to enable ssh with one of the distros and then remotely update the script to a separate location, and then invoke the development script against some other distro. This way there is no need to reboot the device, thus making the development quicker. Or even, doing the development directly on the device (either physically, or by remote connection), if that is your preferred way.
+
+For any non-trivial change, you should verify that the change works, not only from Termux (or some other on-device terminals) but also with Android terminal emulator (ADB Shell). This is because ADB Shell will only have Busybox and Android Toybox commands available, and they may not behave the same way as the more full blown counterparts available for example in Termux.
+
+During the development you should use `shellcheck` to ensure that the changes you make to the script will be POSIX compliant, and that they do not introduce new `shellcheck` warnings (either fix the code or document why the warning is ok with `# shellcheck disable=SCXXXX` and accompanied comment). And if you are not familiar with shell scripts (or even if you are familiar), you should peruse [tutorial](https://www.grymoire.com/Unix/Sh.html) made by Grymoire as he explains the POSIX shell basics (and some not so basic stuff) very well.
+
+## Versioning
+
+`chroot-distro` uses semantic versioning for version numbers. Versioning uses three levels: major, minor and patch. Major version will change if there is breaking changes in API. Minor version will change for new features (or otherwise significant changes which does not break backwards compatibility). Patch version is reserved only for bug fixes, or really small changes (note: no breaking changes).
 
 ## License
 
