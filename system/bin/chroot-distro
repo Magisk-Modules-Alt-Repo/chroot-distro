@@ -788,16 +788,15 @@ chroot_distro_jail() {
 
     if [ "" != "$su_command" ]; then
         (
-        unset PREFIX;
-        if [ "" != "$command" ]; then
-            # shellcheck disable=SC1007
             # try to ensure that su will do as proper login as possible to ensure consistent environment
-            PATH= /system/bin/chroot "$distro_path/" "$su_command" - root -c "$command"
-        else
-            # shellcheck disable=SC1007
-            # try to ensure that su will do as proper login as possible to ensure consistent environment
-            PATH= /system/bin/chroot "$distro_path/" "$su_command" - root
-        fi
+            unset PREFIX;
+            if [ "" != "$command" ]; then
+                # shellcheck disable=SC1007
+                PATH= /system/bin/chroot "$distro_path/" "$su_command" - root -c "$command"
+            else
+                # shellcheck disable=SC1007
+                PATH= /system/bin/chroot "$distro_path/" "$su_command" - root
+            fi
         )
         return
     fi
@@ -814,18 +813,18 @@ chroot_distro_jail() {
     fi
 
     (
-    # try to ensure consistent environment
-    unset HISTFILE;
-    unset TMPDIR;
-    unset PREFIX;
-    unset BOOTCLASSPATH;
-    unset SYSTEMSERVERCLASSPATH;
-    unset LD_LIBRARY_PATH;
-    if [ "" != "$command" ]; then
-        SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -lc "$command"
-    else
-        SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -l
-    fi
+        # try to ensure consistent environment
+        unset HISTFILE;
+        unset TMPDIR;
+        unset PREFIX;
+        unset BOOTCLASSPATH;
+        unset SYSTEMSERVERCLASSPATH;
+        unset LD_LIBRARY_PATH;
+        if [ "" != "$command" ]; then
+            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -lc "$command"
+        else
+            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -l
+        fi
     )
 }
 
