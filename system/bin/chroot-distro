@@ -90,8 +90,7 @@ $script restore <distro> [-d|--default] [--force] [<path>] - restore distro
     '--force'       Force restore even if may cause unintended side-effects
 $script unbackup <distro> - delete backup from default location
 
-$script command <distro> [--as-is] <command> - run command
-    '--as-is' full path needs to be specified for the command
+$script command <distro> <command> - run command
 $script login <distro> - login to distro
 "
 }
@@ -783,15 +782,20 @@ chroot_distro_find_su() {
 
 chroot_distro_jail() {
     distro_path=$1
+    command=$2
     su_command=$(chroot_distro_find_su "$distro_path")
 
     if [ "" != "$su_command" ]; then
         (
-        unset PREFIX;
-        # shellcheck disable=SC1007
-        # Termux adds its own stuff to PATH and many others, ensure that those are out of picture
-        # to prevent leaking host stuff to chroot to ensure consistent environment
-        PATH= /system/bin/chroot "$distro_path/" "$su_command" - root
+            # try to ensure that su will do as proper login as possible to ensure consistent environment
+            unset PREFIX;
+            if [ "" != "$command" ]; then
+                # shellcheck disable=SC1007
+                PATH= /system/bin/chroot "$distro_path/" "$su_command" - root -c "$command"
+            else
+                # shellcheck disable=SC1007
+                PATH= /system/bin/chroot "$distro_path/" "$su_command" - root
+            fi
         )
         return
     fi
@@ -808,52 +812,18 @@ chroot_distro_jail() {
     fi
 
     (
-    # try to ensure consistent environment
-    unset HISTFILE;
-    unset TMPDIR;
-    unset PREFIX;
-    unset BOOTCLASSPATH;
-    unset SYSTEMSERVERCLASSPATH;
-    unset LD_LIBRARY_PATH;
-    SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -l
-    )
-}
-
-chroot_distro_jail_command() {
-    distro_path=$1
-    command=$2
-    su_command=$(chroot_distro_find_su "$distro_path")
-
-    if [ "" != "$su_command" ]; then
-        (
+        # try to ensure consistent environment
+        unset HISTFILE;
+        unset TMPDIR;
         unset PREFIX;
-        # shellcheck disable=SC1007
-        # try to ensure that su will do as proper login as possible to ensure consistent environment
-        PATH= /system/bin/chroot "$distro_path/" "$su_command" - root -c "$command"
-        )
-        return
-    fi
-
-    echo "Warning: Missing 'su' command, can't do a proper login to run the command."
-    echo "Please, install 'su' as soon as possible to ensure consistent login environment."
-
-    # ensure sane PATH contents for the shell
-    JAIL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-    JAIL_HOME=/
-    if [ -d "$distro_path/root" ]; then
-        JAIL_HOME=/root
-    fi
-
-    (
-    # try to ensure consistent environment
-    unset HISTFILE;
-    unset TMPDIR;
-    unset PREFIX;
-    unset BOOTCLASSPATH;
-    unset SYSTEMSERVERCLASSPATH;
-    unset LD_LIBRARY_PATH;
-    SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -lc "$command"
+        unset BOOTCLASSPATH;
+        unset SYSTEMSERVERCLASSPATH;
+        unset LD_LIBRARY_PATH;
+        if [ "" != "$command" ]; then
+            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -lc "$command"
+        else
+            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -l
+        fi
     )
 }
 
@@ -1229,6 +1199,8 @@ chroot_distro_command() {
         exit 1
     fi
 
+    command="$2"
+
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
         echo "$1 not installed"
@@ -1237,14 +1209,7 @@ chroot_distro_command() {
 
     chroot_distro_mount_system_points "$distro_path" no
 
-    as_is=$3
-    if [ "yes" = "$as_is" ]; then
-        command="$2"
-    else
-        command="/bin/$2"
-    fi
-
-    chroot_distro_jail_command "$distro_path" "$command"
+    chroot_distro_jail "$distro_path" "$command"
 }
 
 chroot_distro_login() {
@@ -1430,25 +1395,8 @@ elif [ "$command" = "restore" ]; then
     fi
     chroot_distro_restore "$1" "$2" "$restore_defaults" "$force"
 elif [ "$command" = "command" ]; then
-    PARSED=$(getopt --options= --longoptions=as-is --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
-    as_is=no
-    while true; do
-        case "$1" in
-            --as-is)
-                as_is=yes
-                shift
-                ;;
-            --)
-                shift
-                break
-                ;;
-            *)
-                echo "Programming error"
-                exit 3
-                ;;
-        esac
-    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -eq 1 ]; then
@@ -1456,9 +1404,10 @@ elif [ "$command" = "command" ]; then
     elif [ $# -ne 2 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_command "$1" "$2" "$as_is"
+    chroot_distro_command "$1" "$2"
 elif [ "$command" = "login" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
@@ -1467,6 +1416,7 @@ elif [ "$command" = "login" ]; then
     chroot_distro_login "$1"
 elif [ "$command" = "unmount" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then

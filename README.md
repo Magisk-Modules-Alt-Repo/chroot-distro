@@ -90,10 +90,9 @@ chroot-distro unmount <distro>
 ```
 
 + run command
-  + By default runs command from under `/bin`, use `--as-is` to run any command but then path needs to be supplied
   + If command is quoted then can pass parameters to command, for example `"ping 127.0.0.1"`
 ```
-chroot-distro command <distro> [--as-is] <command>
+chroot-distro command <distro> <command>
 ```
 + login to distro
 ```
