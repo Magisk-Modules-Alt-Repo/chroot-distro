@@ -201,6 +201,10 @@ If you want to help with development, or if developers have requested you to che
 zip chroot-distro.zip config.sh module.prop META-INF/com/google/android/* system/bin/chroot-distro
 ```
 
+## Versioning
+
+`chroot-distro` uses semantic versioning for version numbers. Versioning uses three levels: major, minor and patch. Major version will change if there is breaking changes in API. Minor version will change for new features (or otherwise significant changes which does not break backwards compatibility). Patch version is reserved only for bug fixes, or really small changes (note: no breaking changes).
+
 ## License
 
 [GNU GPL v3](LICENSE)
