@@ -193,6 +193,14 @@ From security perspective the second and third one are the better as there is le
 
 + [module](https://github.com/YasserNull/chroot-distro/releases/tag/module)
 
+## Hacking
+
+If you want to help with development, or if developers have requested you to check a bug report against latest development version, you can create development version with the help of this command:
+
+```sh
+zip chroot-distro.zip config.sh module.prop META-INF/com/google/android/* system/bin/chroot-distro
+```
+
 ## License
 
 [GNU GPL v3](LICENSE)
