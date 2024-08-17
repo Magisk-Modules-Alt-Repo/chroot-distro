@@ -205,7 +205,7 @@ Alternative way to do the development is to enable ssh with one of the distros a
 
 For any non-trivial change, you should verify that the change works, not only from Termux (or some other on-device terminals) but also with Android terminal emulator (ADB Shell). This is because ADB Shell will only have Busybox and Android Toybox commands available, and they may not behave the same way as the more full blown counterparts available for example in Termux.
 
-During the development you should use `shellcheck` to ensure that the changes you make to the script will be POSIX compliant. And if you are not familiar with shell scripts (or even if you are familiar), you should peruse [tutorial](https://www.grymoire.com/Unix/Sh.html) made by Grymoire as he explains the POSIX shell basics (and some not so basic stuff) very well.
+During the development you should use `shellcheck` to ensure that the changes you make to the script will be POSIX compliant, and that they do not introduce new `shellcheck` warnings (either fix the code or document why the warning is ok with `# shellcheck disable=SCXXXX` and accompanied comment). And if you are not familiar with shell scripts (or even if you are familiar), you should peruse [tutorial](https://www.grymoire.com/Unix/Sh.html) made by Grymoire as he explains the POSIX shell basics (and some not so basic stuff) very well.
 
 ## Versioning
 
