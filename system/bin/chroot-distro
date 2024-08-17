@@ -1430,6 +1430,7 @@ elif [ "$command" = "command" ]; then
     chroot_distro_command "$1" "$2" "$as_is"
 elif [ "$command" = "login" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
@@ -1438,6 +1439,7 @@ elif [ "$command" = "login" ]; then
     chroot_distro_login "$1"
 elif [ "$command" = "unmount" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
