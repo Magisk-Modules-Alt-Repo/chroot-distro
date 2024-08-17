@@ -90,8 +90,7 @@ $script restore <distro> [-d|--default] [--force] [<path>] - restore distro
     '--force'       Force restore even if may cause unintended side-effects
 $script unbackup <distro> - delete backup from default location
 
-$script command <distro> [--as-is] <command> - run command
-    '--as-is' full path needs to be specified for the command
+$script command <distro> <command> - run command
 $script login <distro> - login to distro
 "
 }
@@ -1200,6 +1199,8 @@ chroot_distro_command() {
         exit 1
     fi
 
+    command="$2"
+
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
         echo "$1 not installed"
@@ -1207,13 +1208,6 @@ chroot_distro_command() {
     fi
 
     chroot_distro_mount_system_points "$distro_path" no
-
-    as_is=$3
-    if [ "yes" = "$as_is" ]; then
-        command="$2"
-    else
-        command="/bin/$2"
-    fi
 
     chroot_distro_jail "$distro_path" "$command"
 }
@@ -1401,25 +1395,8 @@ elif [ "$command" = "restore" ]; then
     fi
     chroot_distro_restore "$1" "$2" "$restore_defaults" "$force"
 elif [ "$command" = "command" ]; then
-    PARSED=$(getopt --options= --longoptions=as-is --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
-    as_is=no
-    while true; do
-        case "$1" in
-            --as-is)
-                as_is=yes
-                shift
-                ;;
-            --)
-                shift
-                break
-                ;;
-            *)
-                echo "Programming error"
-                exit 3
-                ;;
-        esac
-    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -eq 1 ]; then
@@ -1427,7 +1404,7 @@ elif [ "$command" = "command" ]; then
     elif [ $# -ne 2 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_command "$1" "$2" "$as_is"
+    chroot_distro_command "$1" "$2"
 elif [ "$command" = "login" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
