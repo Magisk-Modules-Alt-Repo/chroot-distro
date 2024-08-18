@@ -190,7 +190,7 @@ From security perspective the second and third one are the better as there is le
 
 ## Install chroot-distro
 
-+ [chroot-distro v1.1.0](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/tag/v1.1.0)
++ [chroot-distro v1.1.1](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/tag/v1.1.1)
 
 ## Hacking
 
