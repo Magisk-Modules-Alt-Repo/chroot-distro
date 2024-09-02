@@ -1257,12 +1257,38 @@ if [ "$command" = "help" ]; then
     chroot_distro_help
 elif [ "$command" = "list" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -ne 0 ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_list
 elif [ "$command" = "download" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
@@ -1271,6 +1297,19 @@ elif [ "$command" = "download" ]; then
     chroot_distro_download "$1"
 elif [ "$command" = "redownload" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
@@ -1279,6 +1318,19 @@ elif [ "$command" = "redownload" ]; then
     chroot_distro_download "$1"
 elif [ "$command" = "delete" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
@@ -1313,6 +1365,19 @@ elif [ "$command" = "install" ]; then
     chroot_distro_install "$1" "$android"
 elif [ "$command" = "uninstall" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
@@ -1348,6 +1413,19 @@ elif [ "$command" = "reinstall" ]; then
     chroot_distro_install "$1" "$android"
 elif [ "$command" = "backup" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -gt 2 ]; then
@@ -1356,6 +1434,19 @@ elif [ "$command" = "backup" ]; then
     chroot_distro_backup "$1" "$2"
 elif [ "$command" = "unbackup" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
@@ -1397,6 +1488,18 @@ elif [ "$command" = "restore" ]; then
 elif [ "$command" = "command" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -eq 1 ]; then
@@ -1408,6 +1511,18 @@ elif [ "$command" = "command" ]; then
 elif [ "$command" = "login" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
@@ -1417,6 +1532,18 @@ elif [ "$command" = "login" ]; then
 elif [ "$command" = "unmount" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
     if [ $# -eq 0 ]; then
         chroot_distro_missing_distro
     elif [ $# -ne 1 ]; then
