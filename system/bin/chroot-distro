@@ -661,12 +661,12 @@ chroot_distro_unmount_system_point() {
         # nothing to do, mount point missing
         return
     fi
-    if ! mountpoint -q "$mount_point" 2>/dev/null; then
+    if ! mountpoint -q "$mount_point"; then
         # nothing to do, already unmounted
         return
     fi
-    if ! umount -lf "$mount_point"; then
-        echo "could not unmount $mount_point, uninstall may need manual intervention, proceed with care"
+    if ! umount "$mount_point"; then
+        echo "could not unmount $mount_point, distro is potentially running - if needed shutdown the distro, and try again"
         exit 1
     fi
 }
