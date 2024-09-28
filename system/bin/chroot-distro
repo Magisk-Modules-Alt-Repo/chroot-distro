@@ -13,10 +13,22 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
-if ! command -v busybox 1> /dev/null 2>&1; then
+busyboxpath="$(command -v busybox 2> /dev/null)"
+# shellcheck disable=SC2181
+# need both ouput and error code thus needs indirect error checking
+if [ $? -ne 0 ]; then
     echo "busybox not found, install busybox for Android NDK and try again"
     exit 1
 fi
+case "$busyboxpath" in
+    /bin/*) ;; # assume that it is ok (either old android, or linux), nothing to do
+    /system/*) ;; # busybox in system partition, nothing to do
+    /usr/bin/*) ;; # running linux, assume that all is ok, nothing to do
+    *)
+        echo "busybox not found from the expected path, ensure that busybox for Android NDK has been installed and try again"
+        exit 1
+    ;;
+esac
 
 getopt --test > /dev/null && true
 if [ $? -ne 4 ]; then
