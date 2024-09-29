@@ -1148,7 +1148,7 @@ chroot_distro_uninstall() {
     distro_path="$chroot_distro_path/$1"
     if [ -d "$distro_path" ]; then
         chroot_distro_unmount_system_points "$distro_path"
-        mount_count=$(mount | grep -c "$distro_path")
+        mount_count=$(mount | grep -Fc "$distro_path")
         if [ "0" != "$mount_count" ]; then
             # note: if there is still system mount points mounted, please create a bug report so that it can be investigated
             echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
@@ -1193,7 +1193,7 @@ chroot_distro_backup() {
 
     # mounted volumes should be backed up outside of this script as it may not work as intended
     # (same reasons as system mount points)
-    mount_count=$(mount | grep -c "$distro_path")
+    mount_count=$(mount | grep -Fc "$distro_path")
     if [ "0" != "$mount_count" ]; then
         echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
         exit 1
