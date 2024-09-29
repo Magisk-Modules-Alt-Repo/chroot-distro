@@ -902,6 +902,21 @@ chroot_distro_unmount_system_point() {
     fi
     if ! umount "$mount_point"; then
         echo "could not unmount $mount_point, distro is potentially running - if needed shutdown the distro, and try again"
+        echo
+        echo "open files under $mount_point:"
+        # always use busybox version, to ensure consistent output
+        /system/xbin/lsof | grep -F "$mount_point"
+        echo "end of open files"
+        echo
+        echo "mount points under $mount_point:"
+        mount | grep -F "$mount_point"
+        echo "end of mount points"
+        echo
+        echo "loopback devices under $mount_point:"
+        losetup | grep -F "$mount_point"
+        echo "end of loopback devices"
+        echo
+        echo "If there is no open files, mount points or loopback devices, then check for anonymous inodes and inotify watches"
         exit 1
     fi
 }
@@ -1152,6 +1167,10 @@ chroot_distro_uninstall() {
         if [ "0" != "$mount_count" ]; then
             # note: if there is still system mount points mounted, please create a bug report so that it can be investigated
             echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
+            echo
+            echo "mount points under $distro_path:"
+            mount | grep -F "$distro_path"
+            echo "end of mount points"
             exit 1
         fi
 
@@ -1196,6 +1215,10 @@ chroot_distro_backup() {
     mount_count=$(mount | grep -Fc "$distro_path")
     if [ "0" != "$mount_count" ]; then
         echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
+        echo
+        echo "mount points under $distro_path:"
+        mount | grep -F "$distro_path"
+        echo "end of mount points"
         exit 1
     fi
 
