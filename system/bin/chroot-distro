@@ -905,15 +905,15 @@ chroot_distro_unmount_system_point() {
         echo
         echo "open files under $mount_point:"
         # always use busybox version, to ensure consistent output
-        /system/xbin/lsof | grep -F "$mount_point"
+        /system/xbin/lsof | grep -F "$mount_point/"
         echo "end of open files"
         echo
         echo "mount points under $mount_point:"
-        mount | grep -F "$mount_point"
+        mount | grep -F "$mount_point/"
         echo "end of mount points"
         echo
         echo "loopback devices under $mount_point:"
-        losetup | grep -F "$mount_point"
+        losetup | grep -F "$mount_point/"
         echo "end of loopback devices"
         echo
         echo "If there is no open files, mount points or loopback devices, then check for anonymous inodes and inotify watches"
@@ -1170,11 +1170,11 @@ chroot_distro_uninstall() {
             echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
             echo
             echo "mount points under $distro_path:"
-            mount | grep -F "$distro_path"
+            mount | grep -F "$distro_path/"
             echo "end of mount points"
             echo
             echo "loopback devices under $distro_path:"
-            losetup | grep -F "$distro_path"
+            losetup | grep -F "$distro_path/"
             echo "end of loopback devices"
             exit 1
         fi
@@ -1223,11 +1223,11 @@ chroot_distro_backup() {
         echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
         echo
         echo "mount points under $distro_path:"
-        mount | grep -F "$distro_path"
+        mount | grep -F "$distro_path/"
         echo "end of mount points"
         echo
         echo "loopback devices under $distro_path:"
-        losetup | grep -F "$distro_path"
+        losetup | grep -F "$distro_path/"
         echo "end of loopback devices"
         exit 1
     fi
