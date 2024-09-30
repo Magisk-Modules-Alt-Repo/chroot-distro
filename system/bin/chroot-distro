@@ -1215,6 +1215,11 @@ chroot_distro_backup() {
         exit
     fi
 
+    open_file_count=$(lsof | grep -Fc "$distro_path")
+    if [ "0" != "$open_file_count" ]; then
+        echo "Warning: Open files detected, backup may fail (at least partially)"
+    fi
+
     # mounted volumes should be backed up outside of this script as it may not work as intended
     # (same reasons as system mount points)
     mount_count=$(mount | grep -Fc "$distro_path")
