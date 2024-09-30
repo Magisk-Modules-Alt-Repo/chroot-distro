@@ -1245,7 +1245,7 @@ chroot_distro_backup() {
         fi
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -cavf "$backup_path" "$distro"
+            tar -caf "$backup_path" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1255,7 +1255,7 @@ chroot_distro_backup() {
     else
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -cavf "$custom_path" "$distro"
+            tar -caf "$custom_path" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
