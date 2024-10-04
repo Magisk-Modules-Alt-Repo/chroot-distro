@@ -46,6 +46,13 @@ if [ $? -eq 1 ]; then
     tar_supports_xz=""
 fi
 
+#check tar variant (Is GNU tar?).
+#TODO: Add multiple architecture tar ndk builds.
+if ! tar --help | grep -q "GNU tar";then
+    echo "I am sorry, GNU tar check failed!"
+    exit 1
+fi
+
 unset non_existent_file
 
 if [ ! -d "$chroot_distro_path/" ]; then
