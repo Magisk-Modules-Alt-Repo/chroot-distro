@@ -13,6 +13,47 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
+if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+    hardware_machine="arm64"
+elif [ "$(uname -m)" = "arm" ] || [ "$(uname -m)" = "armel" ] || [ "$(uname -m)" = "armhf" ] || [ "$(uname -m)" = "armhfp" ] || [ "$(uname -m)" = "armv7" ] || [ "$(uname -m)" = "armv7l" ] || [ "$(uname -m)" = "armv7a" ] || [ "$(uname -m)" = "armv8l" ]; then
+    hardware_machine="armhf"
+elif [ "$(uname -m)" = "386" ] || [ "$(uname -m)" = "i386" ] || [ "$(uname -m)" = "i686" ] || [ "$(uname -m)" = "x86" ]; then
+    hardware_machine="i386"
+elif [ "$(uname -m)" = "amd64" ] || [ "$(uname -m)" = "x86_64" ]; then
+    hardware_machine="amd64"
+else
+    echo "Unsupported machine hardware: $(uname -m)"
+    exit 1
+fi
+
+check_env=''
+if [ $# -ge 1 ] && [ "env" = "$1" ]; then
+    check_env=true
+fi
+
+if [ "" = "$check_env" ]; then
+    : # do nothing
+elif [ -e /data/adb/modules/chroot-distro ]; then
+    echo "Script: $0"
+    hash=$(md5sum "$0" | cut -d " " -f1)
+    if cmp --silent "$0" /data/adb/modules/chroot-distro/system/bin/chroot-distro; then
+        (
+            # shellcheck disable=SC1091
+            . /data/adb/modules/chroot-distro/module.prop && true
+            echo "Version: ${version:-'Unknown'} (${versionCode:-'??'}), md5 hash: $hash"
+        )
+    else
+        echo "Not matching installed version, md5 hash: $hash"
+    fi
+else
+    echo "Script: $0"
+    echo "Unknown version, md5 hash: $(md5sum "$0" | cut -d " " -f1)"
+fi
+
+if [ "" != "$check_env" ]; then
+    echo "Toybox version: $(toybox --version)"
+fi
+
 busyboxpath="$(command -v busybox 2> /dev/null)"
 # shellcheck disable=SC2181
 # need both ouput and error code thus needs indirect error checking
@@ -20,6 +61,9 @@ if [ $? -ne 0 ]; then
     busyboxpath=''
     if [ -e /data/adb ]; then
         # try harder... thanks @osm0osis
+        if [ "" != "$check_env" ]; then
+            echo 'Checking for hidden Busyboxes'
+        fi
         for possiblepath in /data/adb/modules/busybox-ndk/system/*/busybox /data/adb/magisk/busybox /data/adb/ksu/bin/busybox /data/adb/ap/bin/busybox; do
             if [ "" = "$busyboxpath" ] && [ -f "$possiblepath" ]; then
                 busyboxpath="$possiblepath"
@@ -31,6 +75,12 @@ if [ $? -ne 0 ]; then
         exit 1
     fi
 fi
+
+if [ "" != "$check_env" ]; then
+    echo "Busybox => '$busyboxpath'"
+    echo "Busybox version: $($busyboxpath | head -n1)"
+fi
+
 unsupported_busybox=''
 case "$busyboxpath" in
     /bin/*) ;; # assume that it is ok (either old android, or linux), nothing to do
@@ -38,6 +88,10 @@ case "$busyboxpath" in
         ndk_path=/system/xbin/busybox
         if [ "$busyboxpath" != "$ndk_path" ] && [ -e "$ndk_path" ]; then
             # force use of Busybox for Android NDK in the case there is conflicting versions
+            if [ "" != "$check_env" ]; then
+                echo "Forcing Busybox path from '$busyboxpath' to '$ndk_path'"
+                echo "Forced Busybox version: $($ndk_path | head -n1)"
+            fi
             busyboxpath="$ndk_path"
         fi
     ;;
@@ -52,6 +106,47 @@ case "$busyboxpath" in
     ;;
 esac
 
+if [ "" != "$check_env" ]; then
+    if [ ! -e /data/adb ]; then
+        echo 'Could not determine the type of root solution installed'
+    elif [ -e /data/adb/magisk ]; then
+        case "$hardware_machine" in
+            *64) magisk_version=$(/data/adb/magisk/magisk64 -v) ;;
+            *) magisk_version=$(/data/adb/magisk/magisk32 -v) ;;
+        esac
+        echo "Magisk installed ($magisk_version)"
+    elif [ -e /data/adb/ksu ]; then
+        # would be nice if the version information could be provided, patches welcome
+        echo 'KernelSU installed (version not known)'
+    elif [ -e /data/adb/ap ]; then
+        # would be nice if the version information could be provided, patches welcome
+        echo 'APatch installed (version not known)'
+    else
+        echo 'Unknown root solution, possible candidates:'
+        for candidate in /data/adb/*; do
+            if [ -d "$candidate" ]; then
+                dirname=$(basename "$candidate")
+                case "$dirname" in
+                    modules) ;; # not interested
+                    post-fs-data.d) ;; # not interested
+                    service.d) ;; # not interested
+                    *) echo "$dirname" ;;
+                esac
+            fi
+        done
+        echo 'list end'
+    fi
+    # don't want machine name, otherwise -a would be easiest
+    if [ "unknown" != "$(uname -p)" ]; then
+        uname -s -r -v -m -p -i -o
+    else
+        uname -s -r -v -m -o
+    fi
+    echo "PATH=$PATH"
+    # check run successfully, bail out
+    exit 0
+fi
+
 # ensure that the expected version of busybox is used
 busybox() { "$busyboxpath" "$@"; }
 
@@ -62,6 +157,7 @@ getopt --test > /dev/null && true
 if [ $? -ne 4 ]; then
     # shellcheck disable=SC2016
     echo 'I'\''m sorry, `getopt --test` failed in this environment.'
+    echo "Run '$script env' for extra information"
     exit 1
 fi
 
@@ -74,6 +170,7 @@ tar() { busybox tar "$@"; }
 tar -t -J -f "$non_existent_file.tar.xz" 1>/dev/null 2>&1
 if [ $? -eq 1 ]; then
     echo 'Your Busybox tar does not support xz compression. Update your busybox!'
+    echo "Run '$script env' for extra information"
     exit 1
 fi
 
@@ -90,19 +187,6 @@ if [ ! -d "$chroot_distro_path/.backup/" ]; then
     mkdir -p $chroot_distro_path/.backup/
 fi
 
-if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
-    hardware_machine="arm64"
-elif [ "$(uname -m)" = "arm" ] || [ "$(uname -m)" = "armel" ] || [ "$(uname -m)" = "armhf" ] || [ "$(uname -m)" = "armhfp" ] || [ "$(uname -m)" = "armv7" ] || [ "$(uname -m)" = "armv7l" ] || [ "$(uname -m)" = "armv7a" ] || [ "$(uname -m)" = "armv8l" ]; then
-    hardware_machine="armhf"
-elif [ "$(uname -m)" = "386" ] || [ "$(uname -m)" = "i386" ] || [ "$(uname -m)" = "i686" ] || [ "$(uname -m)" = "x86" ]; then
-    hardware_machine="i386"
-elif [ "$(uname -m)" = "amd64" ] || [ "$(uname -m)" = "x86_64" ]; then
-    hardware_machine="amd64"
-else
-    echo "Unsupported machine hardware: $(uname -m)"
-    exit 1
-fi
-
 chroot_distro_warn_if_unsupported_busybox() {
     if [ "" != "$unsupported_busybox" ]; then
         echo "Warning: You are using Magisk/KernelSU/APatch without Busybox Android NDK installed."
@@ -116,6 +200,7 @@ chroot_distro_help() {
 usage :
 
 $script help - for more information
+$script env - output debug information about environment
 $script list - list of available linux distributions
 
 $script download <distro> - download rootfs
