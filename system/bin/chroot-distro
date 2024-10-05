@@ -23,7 +23,13 @@ fi
 unsupported_busybox=''
 case "$busyboxpath" in
     /bin/*) ;; # assume that it is ok (either old android, or linux), nothing to do
-    /system/*) ;; # busybox in system partition, nothing to do
+    /system/*)
+        ndk_path=/system/xbin/busybox
+        if [ "$busyboxpath" != "$ndk_path" ] && [ -e "$ndk_path" ]; then
+            # force use of Busybox for Android NDK in the case there is conflicting versions
+            busyboxpath="$ndk_path"
+        fi
+    ;;
     /usr/bin/*) ;; # running linux, assume that all is ok, nothing to do
     /data/adb/ksu/bin/*) unsupported_busybox=true ;; # KernelSU without Busybox Android NDK installed
     /data/adb/ap/bin/*) unsupported_busybox=true ;; # APatch without Busybox Android NDK installed
@@ -32,6 +38,9 @@ case "$busyboxpath" in
         exit 1
     ;;
 esac
+
+# ensure that the expected version of busybox is used
+busybox() { "$busyboxpath" "$@"; }
 
 # ensure that busybox version of getopt is used
 getopt() { busybox getopt "$@"; }
