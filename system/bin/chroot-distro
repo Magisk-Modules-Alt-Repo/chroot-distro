@@ -33,7 +33,10 @@ case "$busyboxpath" in
     ;;
 esac
 
-busybox getopt --test > /dev/null && true
+# ensure that busybox version of getopt is used
+getopt() { busybox getopt "$@"; }
+
+getopt --test > /dev/null && true
 if [ $? -ne 4 ]; then
     # shellcheck disable=SC2016
     echo 'I'\''m sorry, `getopt --test` failed in this environment.'
@@ -43,8 +46,11 @@ fi
 # get a unique name
 non_existent_file=$(mktemp -u)
 
+# ensure that busybox version of tar is used
+tar() { busybox tar "$@"; }
+
 tar_supports_xz=true
-busybox tar -t -J -f "$non_existent_file.tar.xz" 1>/dev/null 2>&1
+tar -t -J -f "$non_existent_file.tar.xz" 1>/dev/null 2>&1
 if [ $? -eq 1 ]; then
     tar_supports_xz=''
 fi
@@ -883,9 +889,9 @@ chroot_distro_install() {
     if [ "." = "$rootdir" ]; then
         mkdir "$distro_path"
         if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-            xz -cd "$archive_path" | busybox tar -x -C "$distro_path/"
+            xz -cd "$archive_path" | tar -x -C "$distro_path/"
         else
-            busybox tar -xf "$archive_path" -C "$distro_path/"
+            tar -xf "$archive_path" -C "$distro_path/"
         fi
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -894,9 +900,9 @@ chroot_distro_install() {
         fi
     else
         if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-            xz -cd "$archive_path" | busybox tar -x -C "$chroot_distro_path/"
+            xz -cd "$archive_path" | tar -x -C "$chroot_distro_path/"
         else
-            busybox tar -xf "$archive_path" -C "$chroot_distro_path/"
+            tar -xf "$archive_path" -C "$chroot_distro_path/"
         fi
         tar_status=$?
         if [ $tar_status -ne 0 ] && [ ! -e "$chroot_distro_path/$rootdir" ]; then
@@ -996,9 +1002,9 @@ chroot_distro_backup() {
             cd "$chroot_distro_path" || exit 1;
             if [ "" = "$tar_supports_xz" ]; then
                 # use gzip compression as xz is not supported
-                busybox tar -czvf "$backup_path" "$distro"
+                tar -czvf "$backup_path" "$distro"
             else
-                busybox tar -cvf "$backup_path" "$distro"
+                tar -cvf "$backup_path" "$distro"
             fi
         )
         # shellcheck disable=SC2181
@@ -1013,13 +1019,13 @@ chroot_distro_backup() {
                 *.tar.xz) {
                     if [ "" = "$tar_supports_xz" ]; then
                         # use gzip compression as xz is not supported
-                        busybox tar -czvf "$2" "$distro"
+                        tar -czvf "$2" "$distro"
                     else
-                        busybox tar -cJvf "$2" "$distro"
+                        tar -cJvf "$2" "$distro"
                     fi
                 } ;;
                 # rely on compression autodetection
-                *) busybox tar -cvf "$2" "$distro" ;;
+                *) tar -cvf "$2" "$distro" ;;
             esac;
         )
         # shellcheck disable=SC2181
@@ -1039,9 +1045,9 @@ chroot_distro_find_archive_common_path() {
     fi
     if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
         # archive uses xz but tar does not support it natively
-        paths_to_check="$(xz -cd "$archive_path" | busybox tar -t 2>/dev/null)"
+        paths_to_check="$(xz -cd "$archive_path" | tar -t 2>/dev/null)"
     else
-        paths_to_check="$(busybox tar -tf "$archive_path" 2>/dev/null)"
+        paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
     fi
 
     i=1
@@ -1120,9 +1126,9 @@ chroot_distro_restore() {
         # backup has relative path, restoring is not a problem
         mkdir "$distro_path"
         if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-            xz -cd "$backup_path" | busybox tar -x -C "$distro_path/"
+            xz -cd "$backup_path" | tar -x -C "$distro_path/"
         else
-            busybox tar -xf "$backup_path" -C "$distro_path/"
+            tar -xf "$backup_path" -C "$distro_path/"
         fi
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1137,9 +1143,9 @@ chroot_distro_restore() {
         (
             cd /
             if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-                xz -cd "$backup_path" | busybox tar -x
+                xz -cd "$backup_path" | tar -x
             else
-                busybox tar -xf "$backup_path"
+                tar -xf "$backup_path"
             fi
         )
         # shellcheck disable=SC2181
@@ -1163,9 +1169,9 @@ chroot_distro_restore() {
         (
             cd "$chroot_distro_path" || exit 1;
             if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-                xz -cd "$backup_path" | busybox tar -x
+                xz -cd "$backup_path" | tar -x
             else
-                busybox tar -xf "$backup_path"
+                tar -xf "$backup_path"
             fi
         )
         # shellcheck disable=SC2181
@@ -1271,10 +1277,10 @@ command=$1
 shift
 
 if [ "$command" = "help" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     chroot_distro_help
 elif [ "$command" = "list" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1293,7 +1299,7 @@ elif [ "$command" = "list" ]; then
     fi
     chroot_distro_list
 elif [ "$command" = "download" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1315,7 +1321,7 @@ elif [ "$command" = "download" ]; then
     chroot_distro_warn_if_unsupported_busybox
     chroot_distro_download "$1"
 elif [ "$command" = "redownload" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1336,7 +1342,7 @@ elif [ "$command" = "redownload" ]; then
     fi
     chroot_distro_download "$1"
 elif [ "$command" = "delete" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1357,7 +1363,7 @@ elif [ "$command" = "delete" ]; then
     fi
     chroot_distro_delete "$1"
 elif [ "$command" = "install" ]; then
-    PARSED=$(busybox getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     android=no
     while true; do
@@ -1384,7 +1390,7 @@ elif [ "$command" = "install" ]; then
     chroot_distro_warn_if_unsupported_busybox
     chroot_distro_install "$1" "$android"
 elif [ "$command" = "uninstall" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1405,7 +1411,7 @@ elif [ "$command" = "uninstall" ]; then
     fi
     chroot_distro_uninstall "$1"
 elif [ "$command" = "reinstall" ]; then
-    PARSED=$(busybox getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     android=no
     while true; do
@@ -1432,7 +1438,7 @@ elif [ "$command" = "reinstall" ]; then
     chroot_distro_uninstall "$1"
     chroot_distro_install "$1" "$android"
 elif [ "$command" = "backup" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1453,7 +1459,7 @@ elif [ "$command" = "backup" ]; then
     fi
     chroot_distro_backup "$1" "$2"
 elif [ "$command" = "unbackup" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1475,7 +1481,7 @@ elif [ "$command" = "unbackup" ]; then
     chroot_distro_unbackup "$1"
 elif [ "$command" = "restore" ]; then
     OPTS=d LONGOPTS=default,force
-    PARSED=$(busybox getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     restore_defaults=no
     force=no
@@ -1506,7 +1512,7 @@ elif [ "$command" = "restore" ]; then
     fi
     chroot_distro_restore "$1" "$2" "$restore_defaults" "$force"
 elif [ "$command" = "command" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1529,7 +1535,7 @@ elif [ "$command" = "command" ]; then
     fi
     chroot_distro_command "$1" "$2"
 elif [ "$command" = "login" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1550,7 +1556,7 @@ elif [ "$command" = "login" ]; then
     fi
     chroot_distro_login "$1"
 elif [ "$command" = "unmount" ]; then
-    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
