@@ -33,7 +33,7 @@ case "$busyboxpath" in
     ;;
 esac
 
-getopt --test > /dev/null && true
+busybox getopt --test > /dev/null && true
 if [ $? -ne 4 ]; then
     # shellcheck disable=SC2016
     echo 'I'\''m sorry, `getopt --test` failed in this environment.'
@@ -1271,10 +1271,10 @@ command=$1
 shift
 
 if [ "$command" = "help" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     chroot_distro_help
 elif [ "$command" = "list" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1293,7 +1293,7 @@ elif [ "$command" = "list" ]; then
     fi
     chroot_distro_list
 elif [ "$command" = "download" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1315,7 +1315,7 @@ elif [ "$command" = "download" ]; then
     chroot_distro_warn_if_unsupported_busybox
     chroot_distro_download "$1"
 elif [ "$command" = "redownload" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1336,7 +1336,7 @@ elif [ "$command" = "redownload" ]; then
     fi
     chroot_distro_download "$1"
 elif [ "$command" = "delete" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1357,7 +1357,7 @@ elif [ "$command" = "delete" ]; then
     fi
     chroot_distro_delete "$1"
 elif [ "$command" = "install" ]; then
-    PARSED=$(getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     android=no
     while true; do
@@ -1384,7 +1384,7 @@ elif [ "$command" = "install" ]; then
     chroot_distro_warn_if_unsupported_busybox
     chroot_distro_install "$1" "$android"
 elif [ "$command" = "uninstall" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1405,7 +1405,7 @@ elif [ "$command" = "uninstall" ]; then
     fi
     chroot_distro_uninstall "$1"
 elif [ "$command" = "reinstall" ]; then
-    PARSED=$(getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     android=no
     while true; do
@@ -1432,7 +1432,7 @@ elif [ "$command" = "reinstall" ]; then
     chroot_distro_uninstall "$1"
     chroot_distro_install "$1" "$android"
 elif [ "$command" = "backup" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1453,7 +1453,7 @@ elif [ "$command" = "backup" ]; then
     fi
     chroot_distro_backup "$1" "$2"
 elif [ "$command" = "unbackup" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1475,7 +1475,7 @@ elif [ "$command" = "unbackup" ]; then
     chroot_distro_unbackup "$1"
 elif [ "$command" = "restore" ]; then
     OPTS=d LONGOPTS=default,force
-    PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     restore_defaults=no
     force=no
@@ -1506,7 +1506,7 @@ elif [ "$command" = "restore" ]; then
     fi
     chroot_distro_restore "$1" "$2" "$restore_defaults" "$force"
 elif [ "$command" = "command" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1529,7 +1529,7 @@ elif [ "$command" = "command" ]; then
     fi
     chroot_distro_command "$1" "$2"
 elif [ "$command" = "login" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1550,7 +1550,7 @@ elif [ "$command" = "login" ]; then
     fi
     chroot_distro_login "$1"
 elif [ "$command" = "unmount" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(busybox getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
