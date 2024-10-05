@@ -167,8 +167,8 @@ non_existent_file=$(mktemp -u)
 # ensure that busybox version of tar is used
 tar() { busybox tar "$@"; }
 
-tar -t -J -f "$non_existent_file.tar.xz" 1>/dev/null 2>&1
-if [ $? -eq 1 ]; then
+tar_output=$(tar -t -J -f "$non_existent_file.tar.xz" 2>&1)
+if [ "1" = $(echo "$tar_output" | grep -i -c "(invalid|unknown) option") ]; then
     echo 'Your Busybox tar does not support xz compression. Update your busybox!'
     echo "Run '$script env' for extra information"
     exit 1
