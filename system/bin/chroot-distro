@@ -17,8 +17,19 @@ busyboxpath="$(command -v busybox 2> /dev/null)"
 # shellcheck disable=SC2181
 # need both ouput and error code thus needs indirect error checking
 if [ $? -ne 0 ]; then
-    echo "busybox not found, install busybox for Android NDK and try again"
-    exit 1
+    busyboxpath=''
+    if [ -e /data/adb ]; then
+        # try harder... thanks @osm0osis
+        for possiblepath in /data/adb/modules/busybox-ndk/system/*/busybox /data/adb/magisk/busybox /data/adb/ksu/bin/busybox /data/adb/ap/bin/busybox; do
+            if [ "" = "$busyboxpath" ] && [ -f "$possiblepath" ]; then
+                busyboxpath="$possiblepath"
+            fi
+        done;
+    fi
+    if [ "" = "$busyboxpath" ]; then
+        echo "busybox not found, install busybox for Android NDK and try again"
+        exit 1
+    fi
 fi
 unsupported_busybox=''
 case "$busyboxpath" in
@@ -30,6 +41,8 @@ case "$busyboxpath" in
             busyboxpath="$ndk_path"
         fi
     ;;
+    /data/adb/modules/busybox-ndk/system/*) ;; # hidden Busybox for Android NDK, nothing to do
+    /data/adb/magisk/*) unsupported_busybox=true ;; # Magisk without Busybox Android NDK installed
     /usr/bin/*) ;; # running linux, assume that all is ok, nothing to do
     /data/adb/ksu/bin/*) unsupported_busybox=true ;; # KernelSU without Busybox Android NDK installed
     /data/adb/ap/bin/*) unsupported_busybox=true ;; # APatch without Busybox Android NDK installed
@@ -92,8 +105,8 @@ fi
 
 chroot_distro_warn_if_unsupported_busybox() {
     if [ "" != "$unsupported_busybox" ]; then
-        echo "Warning: You are using KernelSU/APatch without Busybox Android NDK installed."
-        echo "You may exprience bugs as this is community supported environment."
+        echo "Warning: You are using Magisk/KernelSU/APatch without Busybox Android NDK installed."
+        echo "You may experience bugs as this is community supported environment."
     fi
 }
 
