@@ -20,10 +20,13 @@ if [ $? -ne 0 ]; then
     echo "busybox not found, install busybox for Android NDK and try again"
     exit 1
 fi
+unsupported_busybox=''
 case "$busyboxpath" in
     /bin/*) ;; # assume that it is ok (either old android, or linux), nothing to do
     /system/*) ;; # busybox in system partition, nothing to do
     /usr/bin/*) ;; # running linux, assume that all is ok, nothing to do
+    /data/adb/ksu/bin/*) unsupported_busybox=true ;; # KernelSU without Busybox Android NDK installed
+    /data/adb/ap/bin/*) unsupported_busybox=true ;; # APatch without Busybox Android NDK installed
     *)
         echo "busybox not found from the expected path, ensure that busybox for Android NDK has been installed and try again"
         exit 1
@@ -43,7 +46,7 @@ non_existent_file=$(mktemp -u)
 tar_supports_xz=true
 tar -t -J -f "$non_existent_file.tar.xz" 1>/dev/null 2>&1
 if [ $? -eq 1 ]; then
-    tar_supports_xz=""
+    tar_supports_xz=''
 fi
 
 unset non_existent_file
@@ -72,7 +75,12 @@ else
     exit 1
 fi
 
-
+chroot_distro_warn_if_unsupported_busybox() {
+    if [ "" != "$unsupported_busybox" ]; then
+        echo "Warning: You are using KernelSU/APatch without Busybox Android NDK installed."
+        echo "You may exprience bugs as this is community supported environment."
+    fi
+}
 
 chroot_distro_help() {
     echo "$script : install linux distributions
@@ -105,6 +113,8 @@ $script unbackup <distro> - delete backup from default location
 $script command <distro> <command> - run command
 $script login <distro> - login to distro
 "
+
+    chroot_distro_warn_if_unsupported_busybox
 }
 
 chroot_distro_list_item() {
@@ -202,7 +212,7 @@ Rootfs : https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS_St
 
 chroot_distro_download() {
     if [ "$1" = "ubuntu" ]; then
-		if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
+        if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[1] ubuntu trusty 14.04.6"
         fi
         if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
@@ -1302,6 +1312,7 @@ elif [ "$command" = "download" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
+    chroot_distro_warn_if_unsupported_busybox
     chroot_distro_download "$1"
 elif [ "$command" = "redownload" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
@@ -1370,6 +1381,7 @@ elif [ "$command" = "install" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
+    chroot_distro_warn_if_unsupported_busybox
     chroot_distro_install "$1" "$android"
 elif [ "$command" = "uninstall" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
