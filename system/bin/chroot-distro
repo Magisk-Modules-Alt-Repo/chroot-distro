@@ -49,10 +49,10 @@ non_existent_file=$(mktemp -u)
 # ensure that busybox version of tar is used
 tar() { busybox tar "$@"; }
 
-tar_supports_xz=true
 tar -t -J -f "$non_existent_file.tar.xz" 1>/dev/null 2>&1
 if [ $? -eq 1 ]; then
-    tar_supports_xz=''
+    echo 'Your Busybox tar does not support xz compression. Update your busybox!'
+    exit 1
 fi
 
 unset non_existent_file
@@ -888,22 +888,12 @@ chroot_distro_install() {
     fi
     if [ "." = "$rootdir" ]; then
         mkdir "$distro_path"
-        if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-            xz -cd "$archive_path" | tar -x -C "$distro_path/"
-        else
-            tar -xf "$archive_path" -C "$distro_path/"
-        fi
-        # shellcheck disable=SC2181
-        if [ $? -ne 0 ]; then
+        if ! tar -xf "$archive_path" -C "$distro_path/"; then
             echo "Error: Unpacking the archive failed"
             exit 5
         fi
     else
-        if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-            xz -cd "$archive_path" | tar -x -C "$chroot_distro_path/"
-        else
-            tar -xf "$archive_path" -C "$chroot_distro_path/"
-        fi
+        tar -xf "$archive_path" -C "$chroot_distro_path/"
         tar_status=$?
         if [ $tar_status -ne 0 ] && [ ! -e "$chroot_distro_path/$rootdir" ]; then
             # can bail out early as no files were unpacked
@@ -1000,12 +990,7 @@ chroot_distro_backup() {
         fi
         (
             cd "$chroot_distro_path" || exit 1;
-            if [ "" = "$tar_supports_xz" ]; then
-                # use gzip compression as xz is not supported
-                tar -czvf "$backup_path" "$distro"
-            else
-                tar -cvf "$backup_path" "$distro"
-            fi
+            tar -cvf "$backup_path" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1015,18 +1000,7 @@ chroot_distro_backup() {
     else
         (
             cd "$chroot_distro_path" || exit 1;
-            case "$2" in
-                *.tar.xz) {
-                    if [ "" = "$tar_supports_xz" ]; then
-                        # use gzip compression as xz is not supported
-                        tar -czvf "$2" "$distro"
-                    else
-                        tar -cJvf "$2" "$distro"
-                    fi
-                } ;;
-                # rely on compression autodetection
-                *) tar -cvf "$2" "$distro" ;;
-            esac;
+            tar -cvf "$2" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1043,12 +1017,7 @@ chroot_distro_find_archive_common_path() {
         echo "Error: unsupported or corrupt archive"
         exit 5
     fi
-    if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-        # archive uses xz but tar does not support it natively
-        paths_to_check="$(xz -cd "$archive_path" | tar -t 2>/dev/null)"
-    else
-        paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
-    fi
+    paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
 
     i=1
     prev_path=
@@ -1125,11 +1094,7 @@ chroot_distro_restore() {
     if [ "." = "$rootdir" ]; then
         # backup has relative path, restoring is not a problem
         mkdir "$distro_path"
-        if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-            xz -cd "$backup_path" | tar -x -C "$distro_path/"
-        else
-            tar -xf "$backup_path" -C "$distro_path/"
-        fi
+        tar -xf "$backup_path" -C "$distro_path/"
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
             echo "Error: Unpacking the archive failed"
@@ -1142,11 +1107,7 @@ chroot_distro_restore() {
         # fill the internal storage. There is also possibility of using wrong backup.
         (
             cd /
-            if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-                xz -cd "$backup_path" | tar -x
-            else
-                tar -xf "$backup_path"
-            fi
+            tar -xf "$backup_path"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1168,11 +1129,7 @@ chroot_distro_restore() {
         # new format backups
         (
             cd "$chroot_distro_path" || exit 1;
-            if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-                xz -cd "$backup_path" | tar -x
-            else
-                tar -xf "$backup_path"
-            fi
+            tar -xf "$backup_path"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
