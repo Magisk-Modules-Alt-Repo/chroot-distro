@@ -38,9 +38,16 @@ elif [ -e /data/adb/modules/chroot-distro ]; then
     hash=$(md5sum "$0" | cut -d " " -f1)
     if cmp --silent "$0" /data/adb/modules/chroot-distro/system/bin/chroot-distro; then
         (
-            # shellcheck disable=SC1091
-            . /data/adb/modules/chroot-distro/module.prop && true
-            echo "Version: ${version:-'Unknown'} (${versionCode:-'??'}), md5 hash: $hash"
+            module_prop=$(cat /data/adb/modules/chroot-distro/module.prop)
+            echo "$module_prop" | while read -r row; do
+                field=$(echo "$row" | cut -d "=" -f 1 )
+                value=$(echo "$row" | cut -d "=" -f 2 )
+                case "$field" in
+                    version) echo "Version: $value" ;;
+                    versionCode) echo "Versioncode: $value" ;;
+                esac
+            done
+            echo "md5 hash: $hash"
         )
     else
         echo "Not matching installed version, md5 hash: $hash"
