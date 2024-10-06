@@ -120,7 +120,18 @@ case "$busyboxpath" in
 esac
 
 busyboxdir="$(dirname "$busyboxpath")"
-if [ "" != "$busyboxpath" ] && [ "/system/bin" != "$busyboxdir" ] && [ -e "$busyboxdir"/chroot ]; then
+can_use_busyboxdir=true
+if [ "" = "$busyboxpath" ]; then
+    # not found
+    can_use_busyboxdir=''
+elif [ "/system/bin" = "$busyboxdir" ]; then
+    # would use toybox version always, skip
+    can_use_busyboxdir=''
+elif [ "/usr/bin" = "$busyboxdir" ]; then
+    # would use full/normal chroot command, skip to ensure consistent test environment
+    can_use_busyboxdir=''
+fi
+if [ "" != "$can_use_busyboxdir" ] &&  [ -e "$busyboxdir"/chroot ]; then
     # Use chroot from the expected Busybox, but not the toybox version
     chrootpath="$(dirname "$busyboxpath")"/chroot
 elif [ -e /system/xbin/chroot ]; then
@@ -133,6 +144,7 @@ else
     # don't want to use a random chroot to ensure it doesn't affect the jail
     chrootpath=''
 fi
+unset can_use_busyboxdir
 unset busyboxdir
 
 if [ "" = "$check_env" ] && [ "" = "$chrootpath" ]; then
