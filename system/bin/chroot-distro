@@ -77,15 +77,18 @@ if [ $? -ne 0 ]; then
             fi
         done;
     fi
-    if [ "" = "$busyboxpath" ]; then
+    if [ "" = "$check_env" ] && [ "" = "$busyboxpath" ]; then
         echo "busybox not found, install busybox for Android NDK and try again"
+        echo "Run '$script env' for extra information"
         exit 1
     fi
 fi
 
 if [ "" != "$check_env" ]; then
     echo "busybox => '$busyboxpath'"
-    echo "Busybox version: $($busyboxpath | head -n1)"
+    if [ "" != "$busyboxpath" ]; then
+        echo "Busybox version: $($busyboxpath | head -n1)"
+    fi
 fi
 
 unsupported_busybox=''
@@ -110,13 +113,14 @@ case "$busyboxpath" in
     *)
         if [ "" = "$check_env" ]; then
             echo "busybox not found from the expected path, ensure that busybox for Android NDK has been installed and try again"
+            echo "Run '$script env' for extra information"
             exit 1
         fi
     ;;
 esac
 
 busyboxdir="$(dirname "$busyboxpath")"
-if [ "/system/bin" != "$busyboxdir" ] && [ -e "$busyboxdir"/chroot ]; then
+if [ "" != "$busyboxpath" ] && [ "/system/bin" != "$busyboxdir" ] && [ -e "$busyboxdir"/chroot ]; then
     # Use chroot from the expected Busybox, but not the toybox version
     chrootpath="$(dirname "$busyboxpath")"/chroot
 elif [ -e /system/xbin/chroot ]; then
@@ -141,7 +145,14 @@ fi
 busybox() { "$busyboxpath" "$@"; }
 
 # toybox does not support -p
-uname() { busybox uname "$@"; }
+uname() {
+    if [ "" != "$busyboxpath" ]; then
+        busybox uname "$@";
+    else
+        # fall back to defaults to ensure at least some output
+        uname -a
+    fi
+}
 
 # ensure that busybox version of getopt is used
 getopt() { busybox getopt "$@"; }
