@@ -212,6 +212,13 @@ if [ "" != "$check_env" ]; then
         done
         echo 'list end'
     fi
+    if [ ! -e /data/adb ]; then
+        echo 'Could not determine if Busybox for Android NDK Magisk module is installed'
+    elif [ -e /data/adb/modules/busybox-ndk ]; then
+        echo 'Busybox for Android NDK Magisk module installed'
+    else
+        echo 'Busybox for Android NDK Magisk module not installed'
+    fi
     # don't want machine name, otherwise -a would be easiest
     if [ "unknown" != "$(uname -p)" ]; then
         uname -s -r -v -m -p -i -o
