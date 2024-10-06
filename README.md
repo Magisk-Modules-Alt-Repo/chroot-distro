@@ -8,7 +8,7 @@ chroot-distro :
 
 ### Installation requirements
 
-Reasonably new Busybox-ndk magisk module version installed (1.36.1 is known to work, 1.32.1 is known to not work). If new enough version is not installed it may lead to problems, for example with downloading rootfs. Using Busybox provided by Magisk/KernelSU/APatch (ie. without Busybox-ndk magisk module) is community supported, and may lead to bugs during usage.
+Reasonably new Busybox for Android NDK Magisk module version installed (1.36.1 is known to work, 1.32.1 is known to not work). If new enough version is not installed it may lead to problems, for example with downloading rootfs. Using Busybox provided by Magisk/KernelSU/APatch (ie. without Busybox for Android NDK Magisk module) is community supported, and may lead to bugs during usage.
 
 ### Android paths on distributions :
 + /dev 
