@@ -67,7 +67,7 @@ busyboxpath="$(command -v busybox 2> /dev/null)"
 if [ $? -ne 0 ]; then
     busyboxpath=''
     if [ -e /data/adb ]; then
-        # try harder... -- thanks for the pointer, @osm0osis
+        # try harder... -- thanks for the pointer, @osm0sis
         if [ "" != "$check_env" ]; then
             echo 'Checking for hidden Busyboxes'
         fi
