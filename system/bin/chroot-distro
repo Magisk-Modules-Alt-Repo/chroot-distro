@@ -132,7 +132,7 @@ elif [ "/usr/bin" = "$busyboxdir" ]; then
     can_use_busyboxdir=''
 fi
 if [ "" != "$can_use_busyboxdir" ] &&  [ -e "$busyboxdir"/chroot ]; then
-    # Use chroot from the expected Busybox, but not the toybox version
+    # Use chroot from the expected Busybox
     chrootpath="$(dirname "$busyboxpath")"/chroot
 elif [ -e /system/xbin/chroot ]; then
     # Use a Busybox version
@@ -156,7 +156,7 @@ fi
 # ensure that the expected version of busybox is used
 busybox() { "$busyboxpath" "$@"; }
 
-# Toybox does not support -p
+# Toybox uname does not support -p
 uname() {
     if [ "" != "$busyboxpath" ]; then
         busybox uname "$@";
