@@ -115,6 +115,28 @@ case "$busyboxpath" in
     ;;
 esac
 
+busyboxdir="$(dirname "$busyboxpath")"
+if [ "/system/bin" != "$busyboxdir" ] && [ -e "$busyboxdir"/chroot ]; then
+    # Use chroot from the expected Busybox, but not the toybox version
+    chrootpath="$(dirname "$busyboxpath")"/chroot
+elif [ -e /system/xbin/chroot ]; then
+    # Use a busybox version
+    chrootpath=/system/xbin/chroot
+elif [ -e /system/bin/chroot ]; then
+    # Fall back to toybox version
+    chrootpath=/system/bin/chroot
+else
+    # don't want to use a random chroot to ensure it doesn't affect the jail
+    chrootpath=''
+fi
+unset busyboxdir
+
+if [ "" = "$check_env" ] && [ "" = "$chrootpath" ]; then
+    echo "chroot not found from the expected path, ensure that busybox for Android NDK has been installed and try again"
+    echo "Run '$script env' for extra information"
+    exit 1
+fi
+
 # ensure that the expected version of busybox is used
 busybox() { "$busyboxpath" "$@"; }
 
@@ -130,7 +152,14 @@ tar() { busybox tar "$@"; }
 # ensure that busybox version of wget is used
 wget() { busybox wget "$@"; }
 
+# ensure that correct version of chroot is used
+chroot() { "$chrootpath" "$@"; }
+
 if [ "" != "$check_env" ]; then
+    echo "chroot => '$chrootpath'"
+    if [ "" = "$chrootpath" ]; then
+        echo "chroot found in PATH (but not used) => '$(command -v chroot 2> /dev/null)'"
+    fi
     if [ ! -e /data/adb ]; then
         echo 'Could not determine the type of root solution installed'
     elif [ -e /data/adb/magisk ]; then
@@ -937,10 +966,10 @@ chroot_distro_jail() {
             unset PREFIX;
             if [ "" != "$command" ]; then
                 # shellcheck disable=SC1007
-                PATH= /system/bin/chroot "$distro_path/" "$su_command" - root -c "$command"
+                PATH= chroot "$distro_path/" "$su_command" - root -c "$command"
             else
                 # shellcheck disable=SC1007
-                PATH= /system/bin/chroot "$distro_path/" "$su_command" - root
+                PATH= chroot "$distro_path/" "$su_command" - root
             fi
         )
         return
@@ -966,9 +995,9 @@ chroot_distro_jail() {
         unset SYSTEMSERVERCLASSPATH;
         unset LD_LIBRARY_PATH;
         if [ "" != "$command" ]; then
-            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -lc "$command"
+            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" chroot "$distro_path/" /bin/sh -lc "$command"
         else
-            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -l
+            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" chroot "$distro_path/" /bin/sh -l
         fi
     )
 }
