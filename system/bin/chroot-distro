@@ -78,7 +78,7 @@ if [ $? -ne 0 ]; then
         done;
     fi
     if [ "" = "$check_env" ] && [ "" = "$busyboxpath" ]; then
-        echo "busybox not found, install busybox for Android NDK and try again"
+        echo "busybox not found, install Busybox for Android NDK and try again"
         echo "Run '$script env' for extra information"
         exit 1
     fi
@@ -106,13 +106,13 @@ case "$busyboxpath" in
         fi
     ;;
     /data/adb/modules/busybox-ndk/system/*) ;; # hidden Busybox for Android NDK, nothing to do
-    /data/adb/magisk/*) unsupported_busybox=true ;; # Magisk without Busybox Android NDK installed
+    /data/adb/magisk/*) unsupported_busybox=true ;; # Magisk without Busybox for Android NDK installed
     /usr/bin/*) ;; # running linux, assume that all is ok, nothing to do
-    /data/adb/ksu/bin/*) unsupported_busybox=true ;; # KernelSU without Busybox Android NDK installed
-    /data/adb/ap/bin/*) unsupported_busybox=true ;; # APatch without Busybox Android NDK installed
+    /data/adb/ksu/bin/*) unsupported_busybox=true ;; # KernelSU without Busybox for Android NDK installed
+    /data/adb/ap/bin/*) unsupported_busybox=true ;; # APatch without Busybox for Android NDK installed
     *)
         if [ "" = "$check_env" ]; then
-            echo "busybox not found from the expected path, ensure that busybox for Android NDK has been installed and try again"
+            echo "busybox not found from the expected path, ensure that Busybox for Android NDK has been installed and try again"
             echo "Run '$script env' for extra information"
             exit 1
         fi
@@ -125,7 +125,7 @@ if [ "" = "$busyboxpath" ]; then
     # not found
     can_use_busyboxdir=''
 elif [ "/system/bin" = "$busyboxdir" ]; then
-    # would use toybox version always, skip
+    # would use Toybox version always, skip
     can_use_busyboxdir=''
 elif [ "/usr/bin" = "$busyboxdir" ]; then
     # would use full/normal chroot command, skip to ensure consistent test environment
@@ -135,10 +135,10 @@ if [ "" != "$can_use_busyboxdir" ] &&  [ -e "$busyboxdir"/chroot ]; then
     # Use chroot from the expected Busybox, but not the toybox version
     chrootpath="$(dirname "$busyboxpath")"/chroot
 elif [ -e /system/xbin/chroot ]; then
-    # Use a busybox version
+    # Use a Busybox version
     chrootpath=/system/xbin/chroot
 elif [ -e /system/bin/chroot ]; then
-    # Fall back to toybox version
+    # Fall back to Toybox version
     chrootpath=/system/bin/chroot
 else
     # don't want to use a random chroot to ensure it doesn't affect the jail
@@ -148,7 +148,7 @@ unset can_use_busyboxdir
 unset busyboxdir
 
 if [ "" = "$check_env" ] && [ "" = "$chrootpath" ]; then
-    echo "chroot not found from the expected path, ensure that busybox for Android NDK has been installed and try again"
+    echo "chroot not found from the expected path, ensure that Busybox for Android NDK has been installed and try again"
     echo "Run '$script env' for extra information"
     exit 1
 fi
@@ -156,7 +156,7 @@ fi
 # ensure that the expected version of busybox is used
 busybox() { "$busyboxpath" "$@"; }
 
-# toybox does not support -p
+# Toybox does not support -p
 uname() {
     if [ "" != "$busyboxpath" ]; then
         busybox uname "$@";
@@ -263,7 +263,7 @@ fi
 
 chroot_distro_warn_if_unsupported_busybox() {
     if [ "" != "$unsupported_busybox" ]; then
-        echo "Warning: You are using Magisk/KernelSU/APatch without Busybox Android NDK installed."
+        echo "Warning: You are using Magisk/KernelSU/APatch without Busybox for Android NDK installed."
         echo "You may experience bugs as this is community supported environment."
     fi
 }
