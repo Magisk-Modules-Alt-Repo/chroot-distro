@@ -127,6 +127,9 @@ getopt() { busybox getopt "$@"; }
 # ensure that busybox version of tar is used
 tar() { busybox tar "$@"; }
 
+# ensure that busybox version of wget is used
+wget() { busybox wget "$@"; }
+
 if [ "" != "$check_env" ]; then
     if [ ! -e /data/adb ]; then
         echo 'Could not determine the type of root solution installed'
