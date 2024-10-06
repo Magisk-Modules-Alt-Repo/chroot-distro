@@ -119,6 +119,12 @@ busybox() { "$busyboxpath" "$@"; }
 # toybox does not support -p
 uname() { busybox uname "$@"; }
 
+# ensure that busybox version of getopt is used
+getopt() { busybox getopt "$@"; }
+
+# ensure that busybox version of tar is used
+tar() { busybox tar "$@"; }
+
 if [ "" != "$check_env" ]; then
     if [ ! -e /data/adb ]; then
         echo 'Could not determine the type of root solution installed'
@@ -160,9 +166,6 @@ if [ "" != "$check_env" ]; then
     exit 0
 fi
 
-# ensure that busybox version of getopt is used
-getopt() { busybox getopt "$@"; }
-
 getopt --test > /dev/null && true
 if [ $? -ne 4 ]; then
     # shellcheck disable=SC2016
@@ -173,9 +176,6 @@ fi
 
 # get a unique name
 non_existent_file=$(mktemp -u)
-
-# ensure that busybox version of tar is used
-tar() { busybox tar "$@"; }
 
 tar_output=$(tar -t -J -f "$non_existent_file.tar.xz" 2>&1)
 if [ "1" = $(echo "$tar_output" | grep -i -c "(invalid|unknown) option") ]; then
