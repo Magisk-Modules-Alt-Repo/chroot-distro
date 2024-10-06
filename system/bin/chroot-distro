@@ -36,7 +36,7 @@ if [ "" = "$check_env" ]; then
 elif [ -e /data/adb/modules/chroot-distro ]; then
     echo "Script: $0"
     hash=$(md5sum "$0" | cut -d " " -f1)
-    if cmp --silent "$0" /data/adb/modules/chroot-distro/system/bin/chroot-distro; then
+    if cmp -s "$0" /data/adb/modules/chroot-distro/system/bin/chroot-distro; then
         (
             module_prop=$(cat /data/adb/modules/chroot-distro/module.prop)
             echo "$module_prop" | while read -r row; do
@@ -113,6 +113,12 @@ case "$busyboxpath" in
     ;;
 esac
 
+# ensure that the expected version of busybox is used
+busybox() { "$busyboxpath" "$@"; }
+
+# toybox does not support -p
+uname() { busybox uname "$@"; }
+
 if [ "" != "$check_env" ]; then
     if [ ! -e /data/adb ]; then
         echo 'Could not determine the type of root solution installed'
@@ -153,9 +159,6 @@ if [ "" != "$check_env" ]; then
     # check run successfully, bail out
     exit 0
 fi
-
-# ensure that the expected version of busybox is used
-busybox() { "$busyboxpath" "$@"; }
 
 # ensure that busybox version of getopt is used
 getopt() { busybox getopt "$@"; }
