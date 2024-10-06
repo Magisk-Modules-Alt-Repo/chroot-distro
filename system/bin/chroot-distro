@@ -108,8 +108,10 @@ case "$busyboxpath" in
     /data/adb/ksu/bin/*) unsupported_busybox=true ;; # KernelSU without Busybox Android NDK installed
     /data/adb/ap/bin/*) unsupported_busybox=true ;; # APatch without Busybox Android NDK installed
     *)
-        echo "busybox not found from the expected path, ensure that busybox for Android NDK has been installed and try again"
-        exit 1
+        if [ "" = "$check_env" ]; then
+            echo "busybox not found from the expected path, ensure that busybox for Android NDK has been installed and try again"
+            exit 1
+        fi
     ;;
 esac
 
