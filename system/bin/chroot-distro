@@ -13,37 +13,239 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
+if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+    hardware_machine="arm64"
+elif [ "$(uname -m)" = "arm" ] || [ "$(uname -m)" = "armel" ] || [ "$(uname -m)" = "armhf" ] || [ "$(uname -m)" = "armhfp" ] || [ "$(uname -m)" = "armv7" ] || [ "$(uname -m)" = "armv7l" ] || [ "$(uname -m)" = "armv7a" ] || [ "$(uname -m)" = "armv8l" ]; then
+    hardware_machine="armhf"
+elif [ "$(uname -m)" = "386" ] || [ "$(uname -m)" = "i386" ] || [ "$(uname -m)" = "i686" ] || [ "$(uname -m)" = "x86" ]; then
+    hardware_machine="i386"
+elif [ "$(uname -m)" = "amd64" ] || [ "$(uname -m)" = "x86_64" ]; then
+    hardware_machine="amd64"
+else
+    echo "Unsupported machine hardware: $(uname -m)"
+    exit 1
+fi
+
+check_env=''
+if [ $# -ge 1 ] && [ "env" = "$1" ]; then
+    check_env=true
+fi
+
+if [ "" = "$check_env" ]; then
+    : # do nothing
+elif [ -e /data/adb/modules/chroot-distro ]; then
+    echo "Script: $0"
+    hash=$(md5sum "$0" | cut -d " " -f1)
+    if cmp -s "$0" /data/adb/modules/chroot-distro/system/bin/chroot-distro; then
+        (
+            module_prop=$(cat /data/adb/modules/chroot-distro/module.prop)
+            echo "$module_prop" | while read -r row; do
+                field=$(echo "$row" | cut -d "=" -f 1 )
+                value=$(echo "$row" | cut -d "=" -f 2 )
+                case "$field" in
+                    version) echo "Version: $value" ;;
+                    versionCode) echo "Versioncode: $value" ;;
+                esac
+            done
+            echo "md5 hash: $hash"
+        )
+    else
+        echo "Not matching installed version, md5 hash: $hash"
+    fi
+else
+    echo "Script: $0"
+    echo "Unknown version, md5 hash: $(md5sum "$0" | cut -d " " -f1)"
+fi
+
+if [ "" != "$check_env" ]; then
+    echo "Toybox version: $(toybox --version)"
+fi
+
 busyboxpath="$(command -v busybox 2> /dev/null)"
 # shellcheck disable=SC2181
 # need both ouput and error code thus needs indirect error checking
 if [ $? -ne 0 ]; then
-    echo "busybox not found, install busybox for Android NDK and try again"
-    exit 1
+    busyboxpath=''
+    if [ -e /data/adb ]; then
+        # try harder... -- thanks for the pointer, @osm0sis
+        if [ "" != "$check_env" ]; then
+            echo 'Checking for hidden Busyboxes'
+        fi
+        for possiblepath in /data/adb/modules/busybox-ndk/system/*/busybox /data/adb/magisk/busybox /data/adb/ksu/bin/busybox /data/adb/ap/bin/busybox; do
+            if [ "" = "$busyboxpath" ] && [ -f "$possiblepath" ]; then
+                busyboxpath="$possiblepath"
+            fi
+        done;
+    fi
+    if [ "" = "$check_env" ] && [ "" = "$busyboxpath" ]; then
+        echo "busybox not found, install Busybox for Android NDK and try again"
+        echo "Run '$script env' for extra information"
+        exit 1
+    fi
 fi
+
+if [ "" != "$check_env" ]; then
+    echo "busybox => '$busyboxpath'"
+    if [ "" != "$busyboxpath" ]; then
+        echo "Busybox version: $($busyboxpath | head -n1)"
+    fi
+fi
+
+unsupported_busybox=''
 case "$busyboxpath" in
     /bin/*) ;; # assume that it is ok (either old android, or linux), nothing to do
-    /system/*) ;; # busybox in system partition, nothing to do
+    /system/*)
+        ndk_path=/system/xbin/busybox
+        if [ "$busyboxpath" != "$ndk_path" ] && [ -e "$ndk_path" ]; then
+            # force use of Busybox for Android NDK in the case there is conflicting versions
+            if [ "" != "$check_env" ]; then
+                echo "Forcing Busybox path from '$busyboxpath' to '$ndk_path'"
+                echo "Forced Busybox version: $($ndk_path | head -n1)"
+            fi
+            busyboxpath="$ndk_path"
+        fi
+    ;;
+    /data/adb/modules/busybox-ndk/system/*) ;; # hidden Busybox for Android NDK, nothing to do
+    /data/adb/magisk/*) unsupported_busybox=true ;; # Magisk without Busybox for Android NDK installed
     /usr/bin/*) ;; # running linux, assume that all is ok, nothing to do
+    /data/adb/ksu/bin/*) unsupported_busybox=true ;; # KernelSU without Busybox for Android NDK installed
+    /data/adb/ap/bin/*) unsupported_busybox=true ;; # APatch without Busybox for Android NDK installed
     *)
-        echo "busybox not found from the expected path, ensure that busybox for Android NDK has been installed and try again"
-        exit 1
+        if [ "" = "$check_env" ]; then
+            echo "busybox not found from the expected path, ensure that Busybox for Android NDK has been installed and try again"
+            echo "Run '$script env' for extra information"
+            exit 1
+        fi
     ;;
 esac
+
+busyboxdir="$(dirname "$busyboxpath")"
+can_use_busyboxdir=true
+if [ "" = "$busyboxpath" ]; then
+    # not found
+    can_use_busyboxdir=''
+elif [ "/system/bin" = "$busyboxdir" ]; then
+    # would use Toybox version always, skip
+    can_use_busyboxdir=''
+elif [ "/usr/bin" = "$busyboxdir" ]; then
+    # would use full/normal chroot command, skip to ensure consistent test environment
+    can_use_busyboxdir=''
+fi
+if [ "" != "$can_use_busyboxdir" ] &&  [ -e "$busyboxdir"/chroot ]; then
+    # Use chroot from the expected Busybox
+    chrootpath="$(dirname "$busyboxpath")"/chroot
+elif [ -e /system/xbin/chroot ]; then
+    # Use a Busybox version
+    chrootpath=/system/xbin/chroot
+elif [ -e /system/bin/chroot ]; then
+    # Fall back to Toybox version
+    chrootpath=/system/bin/chroot
+else
+    # don't want to use a random chroot to ensure it doesn't affect the jail
+    chrootpath=''
+fi
+unset can_use_busyboxdir
+unset busyboxdir
+
+if [ "" = "$check_env" ] && [ "" = "$chrootpath" ]; then
+    echo "chroot not found from the expected path, ensure that Busybox for Android NDK has been installed and try again"
+    echo "Run '$script env' for extra information"
+    exit 1
+fi
+
+# ensure that the expected version of busybox is used
+busybox() { "$busyboxpath" "$@"; }
+
+# Toybox uname does not support -p
+uname() {
+    if [ "" != "$busyboxpath" ]; then
+        busybox uname "$@";
+    else
+        # fall back to defaults to ensure at least some output
+        uname -a
+    fi
+}
+
+# ensure that busybox version of getopt is used
+getopt() { busybox getopt "$@"; }
+
+# ensure that busybox version of tar is used
+tar() { busybox tar "$@"; }
+
+# ensure that busybox version of wget is used
+wget() { busybox wget "$@"; }
+
+# ensure that correct version of chroot is used
+chroot() { "$chrootpath" "$@"; }
+
+if [ "" != "$check_env" ]; then
+    echo "chroot => '$chrootpath'"
+    if [ "" = "$chrootpath" ]; then
+        echo "chroot found in PATH (but not used) => '$(command -v chroot 2> /dev/null)'"
+    fi
+    if [ ! -e /data/adb ]; then
+        echo 'Could not determine the type of root solution installed'
+    elif [ -e /data/adb/magisk ]; then
+        case "$hardware_machine" in
+            *64) magisk_version=$(/data/adb/magisk/magisk64 -v) ;;
+            *) magisk_version=$(/data/adb/magisk/magisk32 -v) ;;
+        esac
+        echo "Magisk installed ($magisk_version)"
+    elif [ -e /data/adb/ksu ]; then
+        # would be nice if the version information could be provided, patches welcome
+        echo 'KernelSU installed (version not known)'
+    elif [ -e /data/adb/ap ]; then
+        # would be nice if the version information could be provided, patches welcome
+        echo 'APatch installed (version not known)'
+    else
+        echo 'Unknown root solution, possible candidates:'
+        for candidate in /data/adb/*; do
+            if [ -d "$candidate" ]; then
+                dirname=$(basename "$candidate")
+                case "$dirname" in
+                    modules) ;; # not interested
+                    post-fs-data.d) ;; # not interested
+                    service.d) ;; # not interested
+                    *) echo "$dirname" ;;
+                esac
+            fi
+        done
+        echo 'list end'
+    fi
+    if [ ! -e /data/adb ]; then
+        echo 'Could not determine if Busybox for Android NDK Magisk module is installed'
+    elif [ -e /data/adb/modules/busybox-ndk ]; then
+        echo 'Busybox for Android NDK Magisk module installed'
+    else
+        echo 'Busybox for Android NDK Magisk module not installed'
+    fi
+    # don't want machine name, otherwise -a would be easiest
+    if [ "unknown" != "$(uname -p)" ]; then
+        uname -s -r -v -m -p -i -o
+    else
+        uname -s -r -v -m -o
+    fi
+    echo "PATH=$PATH"
+    # check run successfully, bail out
+    exit 0
+fi
 
 getopt --test > /dev/null && true
 if [ $? -ne 4 ]; then
     # shellcheck disable=SC2016
     echo 'I'\''m sorry, `getopt --test` failed in this environment.'
+    echo "Run '$script env' for extra information"
     exit 1
 fi
 
 # get a unique name
 non_existent_file=$(mktemp -u)
 
-tar_supports_xz=true
-tar -t -J -f "$non_existent_file.tar.xz" 1>/dev/null 2>&1
-if [ $? -eq 1 ]; then
-    tar_supports_xz=""
+tar_output=$(tar -t -J -f "$non_existent_file.tar.xz" 2>&1)
+if [ "1" = "$(echo "$tar_output" | grep -i -c "(invalid|unknown) option")" ]; then
+    echo 'Your Busybox tar does not support xz compression. Update your busybox!'
+    echo "Run '$script env' for extra information"
+    exit 1
 fi
 
 unset non_existent_file
@@ -59,20 +261,12 @@ if [ ! -d "$chroot_distro_path/.backup/" ]; then
     mkdir -p $chroot_distro_path/.backup/
 fi
 
-if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
-    hardware_machine="arm64"
-elif [ "$(uname -m)" = "arm" ] || [ "$(uname -m)" = "armel" ] || [ "$(uname -m)" = "armhf" ] || [ "$(uname -m)" = "armhfp" ] || [ "$(uname -m)" = "armv7" ] || [ "$(uname -m)" = "armv7l" ] || [ "$(uname -m)" = "armv7a" ] || [ "$(uname -m)" = "armv8l" ]; then
-    hardware_machine="armhf"
-elif [ "$(uname -m)" = "386" ] || [ "$(uname -m)" = "i386" ] || [ "$(uname -m)" = "i686" ] || [ "$(uname -m)" = "x86" ]; then
-    hardware_machine="i386"
-elif [ "$(uname -m)" = "amd64" ] || [ "$(uname -m)" = "x86_64" ]; then
-    hardware_machine="amd64"
-else
-    echo "Unsupported machine hardware: $(uname -m)"
-    exit 1
-fi
-
-
+chroot_distro_warn_if_unsupported_busybox() {
+    if [ "" != "$unsupported_busybox" ]; then
+        echo "Warning: You are using Magisk/KernelSU/APatch without Busybox for Android NDK installed."
+        echo "You may experience bugs as this is community supported environment."
+    fi
+}
 
 chroot_distro_help() {
     echo "$script : install linux distributions
@@ -80,6 +274,7 @@ chroot_distro_help() {
 usage :
 
 $script help - for more information
+$script env - output debug information about environment
 $script list - list of available linux distributions
 
 $script download <distro> - download rootfs
@@ -105,6 +300,8 @@ $script unbackup <distro> - delete backup from default location
 $script command <distro> <command> - run command
 $script login <distro> - login to distro
 "
+
+    chroot_distro_warn_if_unsupported_busybox
 }
 
 chroot_distro_list_item() {
@@ -202,7 +399,7 @@ Rootfs : https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS_St
 
 chroot_distro_download() {
     if [ "$1" = "ubuntu" ]; then
-		if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
+        if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[1] ubuntu trusty 14.04.6"
         fi
         if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
@@ -799,10 +996,10 @@ chroot_distro_jail() {
             unset PREFIX;
             if [ "" != "$command" ]; then
                 # shellcheck disable=SC1007
-                PATH= /system/bin/chroot "$distro_path/" "$su_command" - root -c "$command"
+                PATH= chroot "$distro_path/" "$su_command" - root -c "$command"
             else
                 # shellcheck disable=SC1007
-                PATH= /system/bin/chroot "$distro_path/" "$su_command" - root
+                PATH= chroot "$distro_path/" "$su_command" - root
             fi
         )
         return
@@ -828,9 +1025,9 @@ chroot_distro_jail() {
         unset SYSTEMSERVERCLASSPATH;
         unset LD_LIBRARY_PATH;
         if [ "" != "$command" ]; then
-            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -lc "$command"
+            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" chroot "$distro_path/" /bin/sh -lc "$command"
         else
-            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" /system/bin/chroot "$distro_path/" /bin/sh -l
+            SHELL=/bin/sh HOME="$JAIL_HOME" PATH="$JAIL_PATH" chroot "$distro_path/" /bin/sh -l
         fi
     )
 }
@@ -872,22 +1069,12 @@ chroot_distro_install() {
     fi
     if [ "." = "$rootdir" ]; then
         mkdir "$distro_path"
-        if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-            xz -cd "$archive_path" | tar -x -C "$distro_path/"
-        else
-            tar -xf "$archive_path" -C "$distro_path/"
-        fi
-        # shellcheck disable=SC2181
-        if [ $? -ne 0 ]; then
+        if ! tar -xf "$archive_path" -C "$distro_path/"; then
             echo "Error: Unpacking the archive failed"
             exit 5
         fi
     else
-        if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-            xz -cd "$archive_path" | tar -x -C "$chroot_distro_path/"
-        else
-            tar -xf "$archive_path" -C "$chroot_distro_path/"
-        fi
+        tar -xf "$archive_path" -C "$chroot_distro_path/"
         tar_status=$?
         if [ $tar_status -ne 0 ] && [ ! -e "$chroot_distro_path/$rootdir" ]; then
             # can bail out early as no files were unpacked
@@ -984,12 +1171,7 @@ chroot_distro_backup() {
         fi
         (
             cd "$chroot_distro_path" || exit 1;
-            if [ "" = "$tar_supports_xz" ]; then
-                # use gzip compression as xz is not supported
-                tar -czvf "$backup_path" "$distro"
-            else
-                tar -cvf "$backup_path" "$distro"
-            fi
+            tar -cvf "$backup_path" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -999,18 +1181,7 @@ chroot_distro_backup() {
     else
         (
             cd "$chroot_distro_path" || exit 1;
-            case "$2" in
-                *.tar.xz) {
-                    if [ "" = "$tar_supports_xz" ]; then
-                        # use gzip compression as xz is not supported
-                        tar -czvf "$2" "$distro"
-                    else
-                        tar -cJvf "$2" "$distro"
-                    fi
-                } ;;
-                # rely on compression autodetection
-                *) tar -cvf "$2" "$distro" ;;
-            esac;
+            tar -cvf "$2" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1027,12 +1198,7 @@ chroot_distro_find_archive_common_path() {
         echo "Error: unsupported or corrupt archive"
         exit 5
     fi
-    if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-        # archive uses xz but tar does not support it natively
-        paths_to_check="$(xz -cd "$archive_path" | tar -t 2>/dev/null)"
-    else
-        paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
-    fi
+    paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
 
     i=1
     prev_path=
@@ -1109,11 +1275,7 @@ chroot_distro_restore() {
     if [ "." = "$rootdir" ]; then
         # backup has relative path, restoring is not a problem
         mkdir "$distro_path"
-        if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-            xz -cd "$backup_path" | tar -x -C "$distro_path/"
-        else
-            tar -xf "$backup_path" -C "$distro_path/"
-        fi
+        tar -xf "$backup_path" -C "$distro_path/"
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
             echo "Error: Unpacking the archive failed"
@@ -1126,11 +1288,7 @@ chroot_distro_restore() {
         # fill the internal storage. There is also possibility of using wrong backup.
         (
             cd /
-            if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-                xz -cd "$backup_path" | tar -x
-            else
-                tar -xf "$backup_path"
-            fi
+            tar -xf "$backup_path"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1152,11 +1310,7 @@ chroot_distro_restore() {
         # new format backups
         (
             cd "$chroot_distro_path" || exit 1;
-            if [ "xz" = "$archive_type" ] && [ "" = "$tar_supports_xz" ]; then
-                xz -cd "$backup_path" | tar -x
-            else
-                tar -xf "$backup_path"
-            fi
+            tar -xf "$backup_path"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1302,6 +1456,7 @@ elif [ "$command" = "download" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
+    chroot_distro_warn_if_unsupported_busybox
     chroot_distro_download "$1"
 elif [ "$command" = "redownload" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
@@ -1370,6 +1525,7 @@ elif [ "$command" = "install" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
+    chroot_distro_warn_if_unsupported_busybox
     chroot_distro_install "$1" "$android"
 elif [ "$command" = "uninstall" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
