@@ -153,6 +153,23 @@ if [ "" = "$check_env" ] && [ "" = "$chrootpath" ]; then
     exit 1
 fi
 
+busyboxlsof=''
+if [ "" != "$busyboxpath" ] && "$busyboxpath" lsof > /dev/null 2>&1; then
+    # prefer the version provided by the found busybox binary
+    busyboxlsof=true
+    lsofpath='busybox lsof'
+elif [ -e /system/xbin/lsof ]; then
+    # busybox version
+    lsofpath=/system/xbin/lsof
+elif [ -e /system/bin/lsof ]; then
+    # toybox version
+    lsofpath=/system/bin/lsof
+else
+    # don't want to use random lsof as it may not work
+    # in this case user has to manually run the command
+    lsofpath=''
+fi
+
 # ensure that the expected version of busybox is used
 busybox() { "$busyboxpath" "$@"; }
 
@@ -178,10 +195,25 @@ wget() { busybox wget "$@"; }
 # ensure that correct version of chroot is used
 chroot() { "$chrootpath" "$@"; }
 
+lsof() {
+    if [ "" != "$busyboxlsof" ]; then
+        busybox lsof
+    elif [ "" = "$lsofpath" ]; then
+        # lsof is optional, no output
+        :
+    else
+        "$lsofpath";
+    fi
+}
+
 if [ "" != "$check_env" ]; then
     echo "chroot => '$chrootpath'"
     if [ "" = "$chrootpath" ]; then
         echo "chroot found in PATH (but not used) => '$(command -v chroot 2> /dev/null)'"
+    fi
+    echo "lsof => '$lsofpath'"
+    if [ "" = "$lsofpath" ]; then
+        echo "lsof found in PATH (but not used) => '$(command -v lsof 2> /dev/null)'"
     fi
     if [ ! -e /data/adb ]; then
         echo 'Could not determine the type of root solution installed'
@@ -904,8 +936,11 @@ chroot_distro_unmount_system_point() {
         echo "could not unmount $mount_point, distro is potentially running - if needed shutdown the distro, and try again"
         echo
         echo "open files under $mount_point:"
-        # always use busybox version, to ensure consistent output
-        /system/xbin/lsof | grep -F "$mount_point/"
+        if [ "" != "$lsofpath" ]; then
+            lsof | grep -F "$mount_point/"
+        else
+            echo "Warning: supported lsof not found, run \`lsof | grep -F '$mount_point/'\` manually"
+        fi
         echo "end of open files"
         echo
         echo "mount points under $mount_point:"
@@ -1171,8 +1206,11 @@ chroot_distro_uninstall() {
             echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
             echo
             echo "open files under $distro_path:"
-            # always use busybox version, to ensure consistent output
-            /system/xbin/lsof | grep -F "$distro_path/"
+            if [ "" != "$lsofpath" ]; then
+                lsof | grep -F "$distro_path/"
+            else
+                echo "Warning: supported lsof not found, run \`lsof | grep -F '$distro_path/'\` manually"
+            fi
             echo "end of open files"
             echo
             echo "mount points under $distro_path:"
@@ -1222,7 +1260,10 @@ chroot_distro_backup() {
     fi
 
     open_file_count=$(lsof | grep -Fc "$distro_path")
-    if [ "0" != "$open_file_count" ]; then
+    if [ "" = "$lsofpath" ]; then
+        echo "Warning: supported lsof not found, open files and/or programs currently running in jail will not be found."
+        echo "In the case of errors run \`lsof | grep -F '$distro_path/'\` manually"
+    elif [ "0" != "$open_file_count" ]; then
         echo "Warning: Open files detected, backup may fail (at least partially)"
     fi
 
