@@ -948,7 +948,7 @@ chroot_distro_unmount_system_point() {
         echo "end of mount points"
         echo
         echo "loopback devices under $mount_point:"
-        losetup | grep -F "$mount_point/"
+        losetup -a | grep -F "$mount_point/"
         echo "end of loopback devices"
         echo
         echo "If there is no open files, mount points or loopback devices, then check for anonymous inodes and inotify watches"
@@ -1199,7 +1199,7 @@ chroot_distro_uninstall() {
     if [ -d "$distro_path" ]; then
         chroot_distro_unmount_system_points "$distro_path"
         mount_count=$(mount | grep -Fc "$distro_path")
-        loopback_count=$(losetup | grep -Fc "$distro_path")
+        loopback_count=$(losetup -a | grep -Fc "$distro_path")
         open_file_count=$(lsof | grep -Fc "$distro_path")
         if [ "0" != "$mount_count" ] || [ "0" != "$loopback_count" ] || [ "0" != "$open_file_count" ]; then
             # note: if there is still system mount points mounted, please create a bug report so that it can be investigated
@@ -1218,7 +1218,7 @@ chroot_distro_uninstall() {
             echo "end of mount points"
             echo
             echo "loopback devices under $distro_path:"
-            losetup | grep -F "$distro_path/"
+            losetup -a | grep -F "$distro_path/"
             echo "end of loopback devices"
             exit 1
         fi
@@ -1270,7 +1270,7 @@ chroot_distro_backup() {
     # mounted volumes should be backed up outside of this script as it may not work as intended
     # (same reasons as system mount points)
     mount_count=$(mount | grep -Fc "$distro_path")
-    loopback_count=$(losetup | grep -Fc "$distro_path")
+    loopback_count=$(losetup -a | grep -Fc "$distro_path")
     if [ "0" != "$mount_count" ] || [ "0" != "$loopback_count" ]; then
         echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
         echo
@@ -1279,7 +1279,7 @@ chroot_distro_backup() {
         echo "end of mount points"
         echo
         echo "loopback devices under $distro_path:"
-        losetup | grep -F "$distro_path/"
+        losetup -a | grep -F "$distro_path/"
         echo "end of loopback devices"
         exit 1
     fi
