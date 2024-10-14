@@ -63,12 +63,14 @@ chroot-distro install [-a|--android] <distro>
 ```
 + reinstall distro
   + By default does not mount `/data` or `/system` folder, use `-a` or `--android` to mount it
+  + By default stops reinstall if there is open files and/or active mounts within the distro. By using `-f` or `--force` will try closing any process trying to access distro rootfs, and unmount any active mount points. You should prefer running the command first without `force` option to review the processes and mounts before forcefully closing them.
 ```
-chroot-distro reinstall [-a|--android] <distro>
+chroot-distro reinstall [-a|--android] [-f|--force] <distro>
 ```
 + uninstall distro
+  + By default stops uninstall if there is open files and/or active mounts within the distro. By using `-f` or `--force` will try closing any process trying to access distro rootfs, and unmount any active mount points. You should prefer running the command first without `force` option to review the processes and mounts before forcefully closing them.
 ```
-chroot-distro uninstall <distro>
+chroot-distro uninstall [-f|--force] <distro>
 ```
 
 + backup distro
