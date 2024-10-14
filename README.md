@@ -91,8 +91,9 @@ chroot-distro restore [-d|--default] [--force] <distro> [<path>]
 ```
 
 + unmount system mount points
+  + By default stops if unmounting fails. By using `-f` or `--force` will try closing any process trying to access system mount point, and unmount any active mount points which prevent system mount points from unmounting. You should prefer running the command first without `force` option to review the processes and mounts before forcefully closing them.
 ```
-chroot-distro unmount <distro>
+chroot-distro unmount [-f|--force] <distro>
 ```
 
 + run command

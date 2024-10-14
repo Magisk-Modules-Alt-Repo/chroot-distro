@@ -348,7 +348,10 @@ $script uninstall <distro> [-f|--force] - uninstall distro
     '-f|--force'    Force closing open files (closes the process accessing them)
                     and/or unmounting active mounts. Use with care.
 
-$script unmount <distro> - unmount system mount points from distro
+$script unmount <distro> [-f|--force] - unmount system mount points from distro
+    '-f|--force'    Force closing open files (closes the process accessing them)
+                    and/or unmounting active mounts which prevents system mount points
+                    from unmounting. Use with care.
 
 $script backup <distro> [<path>] - backup distro
     <path>          Custom path for backup location
@@ -951,6 +954,7 @@ chroot_distro_mount_system_points() {
 
 chroot_distro_unmount_system_point() {
     mount_point="$1"
+    force="$2"
     if [ ! -e "$mount_point" ]; then
         # nothing to do, mount point missing
         return
@@ -958,6 +962,18 @@ chroot_distro_unmount_system_point() {
     if ! mountpoint -q "$mount_point"; then
         # nothing to do, already unmounted
         return
+    fi
+    if [ "yes" = "$force" ]; then
+        # first try to kill all processes before trying to unmount anything
+        # note: close from earlier to later processes to ensure that no new worker processes are created during killing
+        chroot_distro_find_processes_with_open_files "$mount_point/" | xargs -I {} kill {} > /dev/null 2>&1
+        # before normal unmounts, go through all loopback devices
+        # note: in reverse order in case there is loopback mount from inside the loopback mount (quite contrived case but just in case...)
+        chroot_distro_find_all_loopback_mount_points "$mount_point/" | sort -r | xargs -I {} umount {} > /dev/null 2>&1
+        # try to unmount everything found
+        # note: using reverse sort to ensure that mounts residing deeper in the file system will be unmmounted first
+        chroot_distro_find_all_mount_points "$mount_point/" | sort -r | xargs -I {} umount {} > /dev/null 2>&1
+        # then hope for the best...
     fi
     if ! umount "$mount_point"; then
         echo "could not unmount $mount_point, distro is potentially running - if needed shutdown the distro, and try again"
@@ -985,17 +1001,18 @@ chroot_distro_unmount_system_point() {
 
 chroot_distro_unmount_system_points() {
     distro_path="$1"
+    force="$2"
     for file in "/storage"/*; do
         # no need for separator as separator already comes from file variable itself
-        chroot_distro_unmount_system_point "$distro_path$file"
+        chroot_distro_unmount_system_point "$distro_path$file" "$force"
     done
-    chroot_distro_unmount_system_point "$distro_path/data"
-    chroot_distro_unmount_system_point "$distro_path/system"
-    chroot_distro_unmount_system_point "$distro_path/sdcard"
-    chroot_distro_unmount_system_point "$distro_path/dev/pts"
-    chroot_distro_unmount_system_point "$distro_path/proc"
-    chroot_distro_unmount_system_point "$distro_path/sys"
-    chroot_distro_unmount_system_point "$distro_path/dev"
+    chroot_distro_unmount_system_point "$distro_path/data" "$force"
+    chroot_distro_unmount_system_point "$distro_path/system" "$force"
+    chroot_distro_unmount_system_point "$distro_path/sdcard" "$force"
+    chroot_distro_unmount_system_point "$distro_path/dev/pts" "$force"
+    chroot_distro_unmount_system_point "$distro_path/proc" "$force"
+    chroot_distro_unmount_system_point "$distro_path/sys" "$force"
+    chroot_distro_unmount_system_point "$distro_path/dev" "$force"
 }
 
 chroot_distro_check_if_system_point_mounted() {
@@ -1238,7 +1255,7 @@ chroot_distro_uninstall() {
             chroot_distro_find_all_mount_points "$distro_path/" | sort -r | xargs -I {} umount {} > /dev/null 2>&1
             # then hope for the best...
         fi
-        chroot_distro_unmount_system_points "$distro_path"
+        chroot_distro_unmount_system_points "$distro_path" no
         mount_count=$(mount | grep -Fc "$distro_path")
         loopback_count=$(losetup -a | grep -Fc "$distro_path")
         open_file_count=$(lsof | grep -Fc "$distro_path")
@@ -1511,19 +1528,21 @@ chroot_distro_restore() {
 }
 
 chroot_distro_unmount() {
+    distro="$1"
+    force="$2"
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
-        echo "unavailable distro $1"
+    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+        echo "unavailable distro $distro"
         exit 1
     fi
 
-    distro_path="$chroot_distro_path/$1"
+    distro_path="$chroot_distro_path/$distro"
     if [ ! -d "$distro_path" ]; then
-        echo "$1 not installed"
+        echo "$distro not installed"
         exit 1
     fi
 
-    chroot_distro_unmount_system_points "$distro_path"
+    chroot_distro_unmount_system_points "$distro_path" "$force"
 }
 
 chroot_distro_command() {
@@ -1877,10 +1896,15 @@ elif [ "$command" = "login" ]; then
     fi
     chroot_distro_login "$1"
 elif [ "$command" = "unmount" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=f --longoptions=force --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
+    force=no
     while true; do
         case "$1" in
+            -f|--force)
+                force=yes
+                shift
+                ;;
             --)
                 shift
                 break
@@ -1896,7 +1920,7 @@ elif [ "$command" = "unmount" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_unmount "$1"
+    chroot_distro_unmount "$1" "$force"
 else
     chroot_distro_invalid_parameters "invalid command $command"
 fi
