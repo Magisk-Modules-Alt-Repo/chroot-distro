@@ -889,9 +889,7 @@ chroot_distro_unmount_system_points() {
     chroot_distro_unmount_system_point "$distro_path/data"
     chroot_distro_unmount_system_point "$distro_path/system"
     chroot_distro_unmount_system_point "$distro_path/sdcard"
-    if [ -f "$distro_path/dev/pts" ]; then
-        chroot_distro_unmount_system_point "$distro_path/dev/pts"
-    fi
+    chroot_distro_unmount_system_point "$distro_path/dev/pts"
     chroot_distro_unmount_system_point "$distro_path/proc"
     chroot_distro_unmount_system_point "$distro_path/sys"
     chroot_distro_unmount_system_point "$distro_path/dev"
