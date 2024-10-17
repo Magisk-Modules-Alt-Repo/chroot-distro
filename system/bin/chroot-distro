@@ -187,8 +187,30 @@ if [ "" != "$check_env" ]; then
         echo 'Could not determine the type of root solution installed'
     elif [ -e /data/adb/magisk ]; then
         case "$hardware_machine" in
-            *64) magisk_version=$(/data/adb/magisk/magisk64 -v) ;;
-            *) magisk_version=$(/data/adb/magisk/magisk32 -v) ;;
+            *64)
+                if [ -e /data/adb/magisk/magisk64 ]; then
+                    magiskbin=/data/adb/magisk/magisk64
+                elif [ -e /data/adb/magisk/magisk ]; then
+                    magiskbin=/data/adb/magisk/magisk
+                fi
+                if [ "" != "$magiskbin" ]; then
+                    magisk_version=$($magiskbin -v)
+                else
+                    magisk_version=Unknown
+                fi
+            ;;
+            *)
+                if [ -e /data/adb/magisk/magisk32 ]; then
+                    magiskbin=/data/adb/magisk/magisk32
+                elif [ -e /data/adb/magisk/magisk ]; then
+                    magiskbin=/data/adb/magisk/magisk
+                fi
+                if [ "" != "$magiskbin" ]; then
+                    magisk_version=$($magiskbin -v)
+                else
+                    magisk_version=Unknown
+                fi
+            ;;
         esac
         echo "Magisk installed ($magisk_version)"
     elif [ -e /data/adb/ksu ]; then
