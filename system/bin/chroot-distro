@@ -1078,6 +1078,12 @@ chroot_distro_install() {
     fi
 
     common_path="$( chroot_distro_find_archive_common_path "$archive_path" )"
+    # shellcheck disable=SC2181
+    # we want both the output and error code, so need indirection
+    if [ $? -ne 0 ]; then
+        # Something went wrong with finding the archive common path
+        return $?
+    fi
     if [ "" = "$common_path" ]; then
         common_path="."
     fi
@@ -1246,7 +1252,7 @@ chroot_distro_find_archive_common_path() {
     archive_path=$1
     archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$archive_path")}
     if [ "" = "$archive_type" ]; then
-        echo "Error: unsupported or corrupt archive"
+        echo "Error: unsupported or corrupt archive" >&2
         exit 5
     fi
     paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
@@ -1312,6 +1318,12 @@ chroot_distro_restore() {
     fi
 
     common_path="$(chroot_distro_find_archive_common_path "$backup_path")"
+    # shellcheck disable=SC2181
+    # we want both the output and error code, so need indirection
+    if [ $? -ne 0 ]; then
+        # Something went wrong with finding the archive common path
+        return $?
+    fi
     if [ "" = "$common_path" ]; then
         common_path="."
     fi
