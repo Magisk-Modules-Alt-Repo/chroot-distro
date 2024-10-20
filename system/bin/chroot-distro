@@ -1157,6 +1157,7 @@ chroot_distro_uninstall() {
 
 chroot_distro_backup() {
     distro=$1
+    custom_path=$2
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
     if ! chroot_distro_check_if_supported "$supported" "$distro"; then
         echo "unavailable distro $distro"
@@ -1187,7 +1188,7 @@ chroot_distro_backup() {
         exit 1
     fi
 
-    if [ "$2" = "" ]; then
+    if [ "" = "$custom_path" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
         if [ -f "$backup_path" ]; then
             echo "backup already exist, unbackup and try agin"
@@ -1195,7 +1196,7 @@ chroot_distro_backup() {
         fi
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -cvf "$backup_path" "$distro"
+            tar -cvJf "$backup_path" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1205,7 +1206,33 @@ chroot_distro_backup() {
     else
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -cvf "$2" "$distro"
+            case "$custom_path" in
+                *.gz) format=gz ;;
+                *.tgz) format=gz ;;
+                *.xz) format=xz ;;
+                *.txz) format=xz ;;
+                *.bz2) format=bz2 ;;
+                *.tbz2) format=bz2 ;;
+                *.tar) format=tar ;;
+                *)
+                    echo 'Warning: Could not detect archive format, will rely on tar autodetetion'
+                    echo 'This might cause the archive being left uncompressed.'
+                    format=tar
+                ;;
+            esac
+            if [ "tar" = "$format" ]; then
+                tar -cvf "$custom_path" "$distro"
+            elif [ "gz" = "$format" ]; then
+                tar -cvzf "$custom_path" "$distro"
+            elif [ "xz" = "$format" ]; then
+                tar -cvJf "$custom_path" "$distro"
+            elif [ "bz2" = "$format" ]; then
+                tar -cvjf "$custom_path" "$distro"
+            else
+                # should hit this branch only if above switch case was updated but the branches here were forgotten to update
+                echo "Error: Unknown format!"
+                exit 5
+            fi
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
