@@ -821,10 +821,14 @@ chroot_distro_download() {
 chroot_distro_check_if_supported() {
     echo "$1" | tr ' ' '\n' | while read -r distro; do
         if [ "$distro" = "$2" ]; then
-            return 1
+            return 99;
         fi
     done
-    return 0
+    if [ $? -eq 99 ]; then
+        return 0;
+    else
+        return 1;
+    fi
 }
 
 chroot_distro_delete() {
@@ -990,6 +994,11 @@ chroot_distro_check_archive_file_type() {
         echo "xz"
         return
     fi
+    if tar -tf "$archive_path" 1>/dev/null 2>&1 ; then
+        # either it is real tar file, or something else which isn't gunzip or xz
+        echo "tar"
+        return
+    fi
 }
 
 chroot_distro_find_su() {
@@ -1074,6 +1083,12 @@ chroot_distro_install() {
     fi
 
     common_path="$( chroot_distro_find_archive_common_path "$archive_path" )"
+    # shellcheck disable=SC2181
+    # we want both the output and error code, so need indirection
+    if [ $? -ne 0 ]; then
+        # Something went wrong with finding the archive common path
+        return $?
+    fi
     if [ "" = "$common_path" ]; then
         common_path="."
     fi
@@ -1153,6 +1168,7 @@ chroot_distro_uninstall() {
 
 chroot_distro_backup() {
     distro=$1
+    custom_path=$2
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
     if ! chroot_distro_check_if_supported "$supported" "$distro"; then
         echo "unavailable distro $distro"
@@ -1183,7 +1199,7 @@ chroot_distro_backup() {
         exit 1
     fi
 
-    if [ "$2" = "" ]; then
+    if [ "" = "$custom_path" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
         if [ -f "$backup_path" ]; then
             echo "backup already exist, unbackup and try agin"
@@ -1191,7 +1207,7 @@ chroot_distro_backup() {
         fi
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -cvf "$backup_path" "$distro"
+            tar -cavf "$backup_path" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1201,7 +1217,7 @@ chroot_distro_backup() {
     else
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -cvf "$2" "$distro"
+            tar -cavf "$custom_path" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1215,7 +1231,7 @@ chroot_distro_find_archive_common_path() {
     archive_path=$1
     archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$archive_path")}
     if [ "" = "$archive_type" ]; then
-        echo "Error: unsupported or corrupt archive"
+        echo "Error: unsupported or corrupt archive" >&2
         exit 5
     fi
     paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
@@ -1281,6 +1297,12 @@ chroot_distro_restore() {
     fi
 
     common_path="$(chroot_distro_find_archive_common_path "$backup_path")"
+    # shellcheck disable=SC2181
+    # we want both the output and error code, so need indirection
+    if [ $? -ne 0 ]; then
+        # Something went wrong with finding the archive common path
+        return $?
+    fi
     if [ "" = "$common_path" ]; then
         common_path="."
     fi
