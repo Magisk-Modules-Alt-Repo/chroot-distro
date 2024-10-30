@@ -1256,32 +1256,40 @@ chroot_distro_uninstall() {
             # then hope for the best...
         fi
         chroot_distro_unmount_system_points "$distro_path" no
-        mount_count=$(mount | grep -Fc "$distro_path")
-        loopback_count=$(losetup -a | grep -Fc "$distro_path")
-        open_file_count=$(lsof | grep -Fc "$distro_path")
-        if [ "0" != "$mount_count" ] || [ "0" != "$loopback_count" ] || [ "0" != "$open_file_count" ]; then
-            # note: if there is still system mount points mounted, please create a bug report so that it can be investigated
+        mounts=$(mount | grep -F "$distro_path")
+        loopbacks=$(losetup -a | grep -F "$distro_path")
+        open_files=$(lsof | grep -F "$distro_path")
+        if [ "" != "$mounts" ] || [ "" != "$loopbacks" ] || [ "" != "$open_files" ]; then
+            # note: if there is still system mount points mounted without a valid reason, please create a bug report so that it can be investigated
             echo 'distro is potentially running - if needed shutdown the distro, and unmount mounted folders'
+            echo
             if [ "yes" != "$force" ]; then
                 echo 'You can try running uninstall/reinstall again with -f(--force) option to automatically close/unmount files/folders mentioned below.'
                 echo 'Please note, that using --force option may close more programs than intended, so use it with care.'
             fi
             echo
             echo "open files under $distro_path:"
-            if [ "" != "$lsofpath" ]; then
-                lsof | grep -F "$distro_path/"
-            else
+            if [ "" = "$lsofpath" ]; then
                 echo "Warning: supported lsof not found, run \`lsof | grep -F '$distro_path/'\` manually"
+            elif [ "" != "$open_files" ]; then
+                echo "$open_files"
             fi
             echo "end of open files"
             echo
             echo "mount points under $distro_path:"
-            mount | grep -F "$distro_path/"
+            if [ "" != "$mounts" ]; then
+                echo "$mounts"
+            fi
             echo "end of mount points"
             echo
             echo "loopback devices under $distro_path:"
-            losetup -a | grep -F "$distro_path/"
+            if [ "" != "$loopbacks" ]; then
+                echo "$loopbacks"
+            fi
             echo "end of loopback devices"
+            echo
+            echo "If there is no open files, mount points (outside of system mount points) or loopback devices,"
+            echo "then check for anonymous inodes and inotify watches"
             exit 1
         fi
 
