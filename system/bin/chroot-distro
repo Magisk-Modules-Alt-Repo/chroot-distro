@@ -1363,17 +1363,19 @@ chroot_distro_backup() {
 
     # mounted volumes should be backed up outside of this script as it may not work as intended
     # (same reasons as system mount points)
-    mount_count=$(mount | grep -Fc "$distro_path")
-    loopback_count=$(losetup -a | grep -Fc "$distro_path")
-    if [ "0" != "$mount_count" ] || [ "0" != "$loopback_count" ]; then
+    mounts=$(mount | grep -F "$distro_path")
+    loopbacks=$(losetup -a | grep -F "$distro_path")
+    if [ "0" != "$mounts" ] || [ "0" != "$loopbacks" ]; then
         echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
         echo
+        echo "To automatically unmount mount points mentioned below, run \`$script unmount -a $1\`"
+        echo
         echo "mount points under $distro_path:"
-        mount | grep -F "$distro_path/"
+        echo "${mounts:-Not found}"
         echo "end of mount points"
         echo
         echo "loopback devices under $distro_path:"
-        losetup -a | grep -F "$distro_path/"
+        echo "${loopbacks:-Not found}"
         echo "end of loopback devices"
         exit 1
     fi
