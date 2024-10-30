@@ -1242,6 +1242,46 @@ chroot_distro_install() {
     chroot_distro_jail "$distro_path"
 }
 
+chroot_distro_list_unmount_issues() {
+    distro_path=$1
+    command=$2
+    mode=$3
+    force=$4
+    mounts=$5
+    loopbacks=$6
+    open_files=$7
+
+    unset maybe_more
+    if [ "all" != "$mode" ]; then
+        maybe_more=true
+    fi
+    # note: if there is still system mount points mounted without a valid reason, please create a bug report so that it can be investigated
+    echo 'distro is potentially running - if needed shutdown the distro, and unmount mounted folders'
+    echo
+    if [ "yes" != "$force" ]; then
+        echo "You can try running $command again with -f(--force) option to automatically close/unmount files/folders mentioned below."
+        echo 'Please note, that using --force option may close more programs than intended, so use it with care.'
+    fi
+    echo
+    echo "open files under $distro_path${maybe_more+ (which affects unmounting, there may be more)}:"
+    if [ "" = "$lsofpath" ]; then
+        echo "Warning: supported lsof not found, run \`lsof | grep -F '$distro_path/'\` manually"
+    fi
+    echo "${open_files:-Not found}"
+    echo "end of open files"
+    echo
+    echo "mount points under $distro_path${maybe_more+ (which affects unmounting, there may be more)}:"
+    echo "${mounts:-Not found}"
+    echo "end of mount points"
+    echo
+    echo "loopback devices under $distro_path${maybe_more+ (which affects unmounting, there may be more)}:"
+    echo "${loopbacks:-Not found}"
+    echo "end of loopback devices"
+    echo
+    echo "If there is no open files, mount points ${maybe_more-(outside of system mount points) }or loopback devices,"
+    echo "then check for anonymous inodes and inotify watches"
+}
+
 chroot_distro_uninstall() {
     supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
     if ! chroot_distro_check_if_supported "$supported" "$1"; then
@@ -1251,6 +1291,7 @@ chroot_distro_uninstall() {
 
     distro_path="$chroot_distro_path/$1"
     force=$2
+    command=$3
 
     if [ -d "$distro_path" ]; then
         if [ "yes" = "$force" ]; then
@@ -1270,36 +1311,7 @@ chroot_distro_uninstall() {
         loopbacks=$(losetup -a | grep -F "$distro_path")
         open_files=$(lsof | grep -F "$distro_path")
         if [ "" != "$mounts" ] || [ "" != "$loopbacks" ] || [ "" != "$open_files" ]; then
-            # note: if there is still system mount points mounted without a valid reason, please create a bug report so that it can be investigated
-            echo 'distro is potentially running - if needed shutdown the distro, and unmount mounted folders'
-            echo
-            if [ "yes" != "$force" ]; then
-                echo 'You can try running uninstall/reinstall again with -f(--force) option to automatically close/unmount files/folders mentioned below.'
-                echo 'Please note, that using --force option may close more programs than intended, so use it with care.'
-            fi
-            echo
-            echo "open files under $distro_path:"
-            if [ "" = "$lsofpath" ]; then
-                echo "Warning: supported lsof not found, run \`lsof | grep -F '$distro_path/'\` manually"
-            elif [ "" != "$open_files" ]; then
-                echo "$open_files"
-            fi
-            echo "end of open files"
-            echo
-            echo "mount points under $distro_path:"
-            if [ "" != "$mounts" ]; then
-                echo "$mounts"
-            fi
-            echo "end of mount points"
-            echo
-            echo "loopback devices under $distro_path:"
-            if [ "" != "$loopbacks" ]; then
-                echo "$loopbacks"
-            fi
-            echo "end of loopback devices"
-            echo
-            echo "If there is no open files, mount points (outside of system mount points) or loopback devices,"
-            echo "then check for anonymous inodes and inotify watches"
+            chroot_distro_list_unmount_issues "$distro_path" "$command" 'all' "$force" "$mounts" "$loopbacks" "$open_files"
             exit 1
         fi
 
@@ -1565,35 +1577,7 @@ chroot_distro_unmount() {
     loopbacks=$(losetup -a | chroot_distro_output_system_mount_point_paths "$distro_path")
     open_files=$(lsof | chroot_distro_output_system_mount_point_paths "$distro_path")
     if [ "" != "$mounts" ] || [ "" != "$loopbacks" ] || [ "" != "$open_files" ] || chroot_distro_check_if_system_points_mounted "$distro_path"; then
-        # note: if there is still system mount points mounted without a valid reason, please create a bug report so that it can be investigated
-        echo 'distro is potentially running - if needed shutdown the distro, and unmount mounted folders'
-        echo
-        if [ "yes" != "$force" ]; then
-            echo 'You can try running unmount again with -f(--force) option to automatically close/unmount files/folders mentioned below.'
-            echo 'Please note, that using --force option may close more programs than intended, so use it with care.'
-        fi
-        echo
-        echo "open files under $distro_path (which affects unmounting, there may be more):"
-        if [ "" = "$lsofpath" ]; then
-            echo "Warning: supported lsof not found, run \`lsof | grep -F '$distro_path/'\` manually"
-        elif [ "" != "$open_files" ]; then
-            echo "$open_files"
-        fi
-        echo "end of open files"
-        echo
-        echo "mount points under $distro_path: (which affects unmounting, there may be more)"
-        if [ "" != "$mounts" ]; then
-            echo "$mounts"
-        fi
-        echo "end of mount points"
-        echo
-        echo "loopback devices under $distro_path: (which affects unmounting, there may be more)"
-        if [ "" != "$loopbacks" ]; then
-            echo "$loopbacks"
-        fi
-        echo "end of loopback devices"
-        echo
-        echo "If there is no open files, mount points or loopback devices, then check for anonymous inodes and inotify watches"
+        chroot_distro_list_unmount_issues "$distro_path" 'unmount' 'system' "$force" "$mounts" "$loopbacks" "$open_files"
         exit 1
     fi
 }
@@ -1796,7 +1780,7 @@ elif [ "$command" = "uninstall" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_uninstall "$1" "$force"
+    chroot_distro_uninstall "$1" "$force" "$command"
 elif [ "$command" = "reinstall" ]; then
     OPTS=af LONGOPTS=android,force
     PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
@@ -1828,7 +1812,7 @@ elif [ "$command" = "reinstall" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_uninstall "$1" "$force"
+    chroot_distro_uninstall "$1" "$force" "$command"
     chroot_distro_install "$1" "$android"
 elif [ "$command" = "backup" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
