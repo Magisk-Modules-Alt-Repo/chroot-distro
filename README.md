@@ -63,12 +63,14 @@ chroot-distro install [-a|--android] <distro>
 ```
 + reinstall distro
   + By default does not mount `/data` or `/system` folder, use `-a` or `--android` to mount it
+  + By default stops reinstall if there is open files and/or active mounts within the distro. By using `-f` or `--force` will try closing any process trying to access distro rootfs, and unmount any active mount points. You should prefer running the command first without `force` option to review the processes and mounts before forcefully closing them.
 ```
-chroot-distro reinstall [-a|--android] <distro>
+chroot-distro reinstall [-a|--android] [-f|--force] <distro>
 ```
 + uninstall distro
+  + By default stops uninstall if there is open files and/or active mounts within the distro. By using `-f` or `--force` will try closing any process trying to access distro rootfs, and unmount any active mount points. You should prefer running the command first without `force` option to review the processes and mounts before forcefully closing them.
 ```
-chroot-distro uninstall <distro>
+chroot-distro uninstall [-f|--force] <distro>
 ```
 
 + backup distro
@@ -88,9 +90,11 @@ chroot-distro unbackup <distro>
 chroot-distro restore [-d|--default] [--force] <distro> [<path>]
 ```
 
-+ unmount system mount points
++ unmount (system) mount points
+  + By default stops if unmounting fails. By using `-f` or `--force` will try closing any process trying to access (system) mount point, and unmount any active mount points which prevent (system) mount points from unmounting. You should prefer running the command first without `force` option to review the processes and mounts before forcefully closing them.
+  + By default unmounts only system mount points. By using `-a` or `--all` will try to unmount all found mount points be it a normal mount poit, or a loopback mount point.
 ```
-chroot-distro unmount <distro>
+chroot-distro unmount [-f|--force] [-a|--all] <distro>
 ```
 
 + run command
