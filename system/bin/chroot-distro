@@ -727,14 +727,14 @@ chroot_distro_download() {
     elif [ "$1" = "pardus" ]; then
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             if [ "$hardware_machine" != "armhf" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/termux/proot-distro/releases/download/v4.6.0/pardus-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.6.0.tar.xz"
+                pardus_download_url="https://github.com/termux/proot-distro/releases/download/v4.6.0/pardus-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.6.0.tar.xz"
             else
                 echo "Unsupported machine hardware: $(uname -m)"
                 exit
             fi
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "$pardus_download_url"; then
                 echo "Failed to download the Pardus Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
