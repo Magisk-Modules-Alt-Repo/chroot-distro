@@ -485,7 +485,7 @@ chroot_distro_download() {
         fi
         while true; do
             printf "Enter a number : "
-            read number
+            read -r number
             case "$number" in
                 1) rootfs="trusty";rootfs_version="14.04.6"; break;;
                 2) rootfs="xenial";rootfs_version="16.04.6"; break;;
@@ -497,10 +497,9 @@ chroot_distro_download() {
             esac
         done
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-            wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://cdimage.ubuntu.com/ubuntu-base/releases/$rootfs/release/ubuntu-base-$rootfs_version-base-$hardware_machine.tar.gz"
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://cdimage.ubuntu.com/ubuntu-base/releases/$rootfs/release/ubuntu-base-$rootfs_version-base-$hardware_machine.tar.gz"; then
                 echo "Failed to download the Ubuntu Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
