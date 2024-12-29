@@ -642,9 +642,9 @@ chroot_distro_download() {
     elif [ "$1" = "deepin" ]; then
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             if [ "$hardware_machine" = "arm64" ]; then
-                deepin_download_url="https://github.com/termux/proot-distro/releases/download/v4.6.0/deepin-aarch64-pd-v4.6.0.tar.xz"
+                deepin_download_url="https://github.com/termux/proot-distro/releases/download/v4.16.0/deepin-aarch64-pd-v4.16.0.tar.xz"
             elif [ "$hardware_machine" = "amd64" ]; then
-                deepin_download_url="https://github.com/termux/proot-distro/releases/download/v4.6.0/deepin-x86_64-pd-v4.6.0.tar.xz"
+                deepin_download_url="https://github.com/termux/proot-distro/releases/download/v4.16.0/deepin-x86_64-pd-v4.16.0.tar.xz"
             else
                 echo "Unsupported machine hardware: $(uname -m)"
                 exit
