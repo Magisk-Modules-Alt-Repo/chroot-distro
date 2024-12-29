@@ -539,7 +539,7 @@ chroot_distro_download() {
         echo "[3] kali linux nano current"
         while true; do
             printf "Enter a number : "
-            read number
+            read -r number
             case "$number" in
                 1) rootfs="full";rootfs_version="current"; break;;
                 2) rootfs="minimal";rootfs_version="current"; break;;
@@ -548,10 +548,9 @@ chroot_distro_download() {
             esac
         done
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-            wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://kali.download/nethunter-images/$rootfs_version/rootfs/kali-nethunter-rootfs-$rootfs-$hardware_machine.tar.xz"
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://kali.download/nethunter-images/$rootfs_version/rootfs/kali-nethunter-rootfs-$rootfs-$hardware_machine.tar.xz"; then
                 echo "Failed to download the Kali Linux Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
