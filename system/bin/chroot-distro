@@ -604,18 +604,18 @@ chroot_distro_download() {
     elif [ "$1" = "archlinux" ]; then
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             if [ "$hardware_machine" = "armhf" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://ca.us.mirror.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz"
+                archlinux_download_url="http://ca.us.mirror.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz"
             elif [ "$hardware_machine" = "arm64" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://ca.us.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"
+                archlinux_download_url="http://ca.us.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"
             elif [ "$hardware_machine" = "amd64" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/archlinux-bootstrap-x86_64.tar.gz"
+                archlinux_download_url="https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/archlinux-bootstrap-x86_64.tar.gz"
             else
                 echo "Unsupported machine hardware: $(uname -m)"
                 exit
             fi
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "$archlinux_download_url"; then
                 echo "Failed to download the Arch Linux Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
