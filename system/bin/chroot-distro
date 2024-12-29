@@ -513,7 +513,7 @@ chroot_distro_download() {
         echo "[4] alpine uboot latest"
         while true; do
             printf "Enter a number : "
-            read number
+            read -r number
             case "$number" in
                 1) rootfs="minirootfs";break;;
                 2) rootfs="netboot"; break;;
@@ -524,10 +524,9 @@ chroot_distro_download() {
         done
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             hwm_alpine=$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)
-            wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$hwm_alpine/alpine-$rootfs-$(curl -s http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$hwm_alpine/ | grep -oE 'alpine-.*[0-9]+\.[0-9]+\.[0-9]+[^"]*(.tar.gz|.tar|.img)' | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | sort -V | tail -n 1)-$hwm_alpine.tar.gz"
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$hwm_alpine/alpine-$rootfs-$(curl -s http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$hwm_alpine/ | grep -oE 'alpine-.*[0-9]+\.[0-9]+\.[0-9]+[^"]*(.tar.gz|.tar|.img)' | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | sort -V | tail -n 1)-$hwm_alpine.tar.gz"; then
                 echo "Failed to download the Alpine Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
