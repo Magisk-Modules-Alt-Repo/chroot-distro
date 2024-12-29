@@ -725,7 +725,9 @@ chroot_distro_download() {
 
     if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "$download_url"; then
         echo "Failed to download the $distro_name Rootfs."
-        rm "$chroot_distro_path/.rootfs/$1.tar.xz"
+        if [ -e "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
+            rm "$chroot_distro_path/.rootfs/$1.tar.xz"
+        fi
         exit
     fi
 }
