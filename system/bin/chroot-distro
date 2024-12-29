@@ -661,16 +661,16 @@ chroot_distro_download() {
     elif [ "$1" = "fedora" ]; then
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             if [ "$hardware_machine" = "arm64" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/termux/proot-distro/releases/download/v4.15.0/fedora-aarch64-pd-v4.15.0.tar.xz"
+                fedora_download_url="https://github.com/termux/proot-distro/releases/download/v4.15.0/fedora-aarch64-pd-v4.15.0.tar.xz"
             elif [ "$hardware_machine" = "amd64" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/termux/proot-distro/releases/download/v4.15.0/fedora-x86_64-pd-v4.15.0.tar.xz"
+                fedora_download_url="https://github.com/termux/proot-distro/releases/download/v4.15.0/fedora-x86_64-pd-v4.15.0.tar.xz"
             else
                 echo "Unsupported machine hardware: $(uname -m)"
                 exit
             fi
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "$fedora_download_url"; then
                 echo "Failed to download the Fedora Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
