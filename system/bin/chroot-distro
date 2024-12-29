@@ -743,10 +743,9 @@ chroot_distro_download() {
 
     elif [ "$1" = "backbox" ]; then
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-            wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/BackBox/$hardware_machine/backbox-rootfs-$hardware_machine.tar.xz"
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/BackBox/$hardware_machine/backbox-rootfs-$hardware_machine.tar.xz"; then
                 echo "Failed to download the BackBox Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
