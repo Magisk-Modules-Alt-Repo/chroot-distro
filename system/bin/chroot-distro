@@ -755,16 +755,16 @@ chroot_distro_download() {
     elif [ "$1" = "centos" ]; then
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             if [ "$hardware_machine" = "arm64" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/arm64/centos-rootfs-arm64.tar.xz"
+                centos_download_url="https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/arm64/centos-rootfs-arm64.tar.xz"
             elif [ "$hardware_machine" = "amd64" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/amd64/centos-rootfs-amd64.tar.xz"
+                centos_download_url="https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/amd64/centos-rootfs-amd64.tar.xz"
             else
                 echo "Unsupported machine hardware: $(uname -m)"
                 exit
             fi
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "$centos_download_url"; then
                 echo "Failed to download the CentOS Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
