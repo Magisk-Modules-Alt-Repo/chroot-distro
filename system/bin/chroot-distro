@@ -791,22 +791,24 @@ chroot_distro_download() {
         fi
 
     elif [ "$1" = "void" ]; then
-        echo "[1] void linux 20210218"
-        echo "[2] void linux 20210316"
-        echo "[3] void linux 20210930"
+        echo "[1] void linux current"
+        echo "[2] void linux 20240314"
+        echo "[3] void linux 20230628"
         echo "[4] void linux 20221001"
-        echo "[5] void linux 20230628"
-        echo "[6] void linux current"
+        echo "[5] void linux 20210930"
+        echo "[6] void linux 20210316"
+        echo "[7] void linux 20210218"
         while true; do
             printf "Enter a number : "
             read number
             case "$number" in
-                1) rootfs="20210218";break;;
-                2) rootfs="20210316"; break;;
-                3) rootfs="20210930"; break;;
+                1) rootfs="current"; break;;
+                2) rootfs="20240314"; break;;
+                3) rootfs="20230628"; break;;
                 4) rootfs="20221001";break;;
-                5) rootfs="20230628"; break;;
-                6) rootfs="current"; break;;
+                5) rootfs="20210930"; break;;
+                6) rootfs="20210316"; break;;
+                7) rootfs="20210218";break;;
                 *) echo "Unknown option : $number";;
             esac
         done
