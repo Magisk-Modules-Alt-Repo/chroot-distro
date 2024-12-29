@@ -13,18 +13,20 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
-if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+machine=$(uname -m)
+if [ "$machine" = "aarch64" ] || [ "$machine" = "arm64" ]; then
     hardware_machine="arm64"
-elif [ "$(uname -m)" = "arm" ] || [ "$(uname -m)" = "armel" ] || [ "$(uname -m)" = "armhf" ] || [ "$(uname -m)" = "armhfp" ] || [ "$(uname -m)" = "armv7" ] || [ "$(uname -m)" = "armv7l" ] || [ "$(uname -m)" = "armv7a" ] || [ "$(uname -m)" = "armv8l" ]; then
+elif [ "$machine" = "arm" ] || [ "$machine" = "armel" ] || [ "$machine" = "armhf" ] || [ "$machine" = "armhfp" ] || [ "$machine" = "armv7" ] || [ "$machine" = "armv7l" ] || [ "$machine" = "armv7a" ] || [ "$machine" = "armv8l" ]; then
     hardware_machine="armhf"
-elif [ "$(uname -m)" = "386" ] || [ "$(uname -m)" = "i386" ] || [ "$(uname -m)" = "i686" ] || [ "$(uname -m)" = "x86" ]; then
+elif [ "$machine" = "386" ] || [ "$machine" = "i386" ] || [ "$machine" = "i686" ] || [ "$machine" = "x86" ]; then
     hardware_machine="i386"
-elif [ "$(uname -m)" = "amd64" ] || [ "$(uname -m)" = "x86_64" ]; then
+elif [ "$machine" = "amd64" ] || [ "$machine" = "x86_64" ]; then
     hardware_machine="amd64"
 else
-    echo "Unsupported machine hardware: $(uname -m)"
+    echo "Unsupported machine hardware: $machine"
     exit 1
 fi
+unset machine
 
 check_env=''
 if [ $# -ge 1 ] && [ "env" = "$1" ]; then
