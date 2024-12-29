@@ -729,7 +729,7 @@ chroot_distro_download() {
         if [ -e "$chroot_distro_path/.rootfs/$distro.tar.xz" ]; then
             rm "$chroot_distro_path/.rootfs/$distro.tar.xz"
         fi
-        exit
+        exit 88
     fi
 }
 
