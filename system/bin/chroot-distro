@@ -558,9 +558,9 @@ chroot_distro_download() {
         fi
 
     elif [ "$1" = "debian" ]; then
-        echo "[1] Debian"
-        echo "[2] Debian bullseye"
-        echo "[3] Debian bookworm"
+        echo "[1] Debian (AnLinux)"
+        echo "[2] Debian bullseye (proot-distro)"
+        echo "[3] Debian bookworm (proot-distro)"
         while true; do
             printf "Enter a number : "
             read number
