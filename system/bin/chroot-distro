@@ -579,9 +579,6 @@ chroot_distro_download() {
             download_url="http://ca.us.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"
         elif [ "$hardware_machine" = "amd64" ]; then
             download_url="https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/archlinux-bootstrap-x86_64.tar.gz"
-        else
-            echo "Unsupported machine hardware: $(uname -m)"
-            exit
         fi
 
     elif [ "$distro" = "artix" ]; then
@@ -589,9 +586,6 @@ chroot_distro_download() {
 
         if [ "$hardware_machine" = "arm64" ]; then
             download_url="https://github.com/termux/proot-distro/releases/download/v4.6.0/artix-aarch64-pd-v4.6.0.tar.xz"
-        else
-            echo "Unsupported machine hardware: $(uname -m)"
-            exit
         fi
 
     elif [ "$distro" = "deepin" ]; then
@@ -601,9 +595,6 @@ chroot_distro_download() {
             download_url="https://github.com/termux/proot-distro/releases/download/v4.16.0/deepin-aarch64-pd-v4.16.0.tar.xz"
         elif [ "$hardware_machine" = "amd64" ]; then
             download_url="https://github.com/termux/proot-distro/releases/download/v4.16.0/deepin-x86_64-pd-v4.16.0.tar.xz"
-        else
-            echo "Unsupported machine hardware: $(uname -m)"
-            exit
         fi
 
     elif [ "$distro" = "fedora" ]; then
@@ -613,9 +604,6 @@ chroot_distro_download() {
             download_url="https://github.com/termux/proot-distro/releases/download/v4.15.0/fedora-aarch64-pd-v4.15.0.tar.xz"
         elif [ "$hardware_machine" = "amd64" ]; then
             download_url="https://github.com/termux/proot-distro/releases/download/v4.15.0/fedora-x86_64-pd-v4.15.0.tar.xz"
-        else
-            echo "Unsupported machine hardware: $(uname -m)"
-            exit
         fi
 
     elif [ "$distro" = "openkylin" ]; then
@@ -625,9 +613,6 @@ chroot_distro_download() {
             download_url="https://github.com/termux/proot-distro/releases/download/v4.10.0/openkylin-aarch64-pd-v4.10.0.tar.xz"
         elif [ "$hardware_machine" = "amd64" ]; then
             download_url="https://github.com/termux/proot-distro/releases/download/v4.10.0/openkylin-x86_64-pd-v4.10.0.tar.xz"
-        else
-            echo "Unsupported machine hardware: $(uname -m)"
-            exit
         fi
 
     elif [ "$distro" = "manjaro" ]; then
@@ -635,9 +620,6 @@ chroot_distro_download() {
 
         if [ "$hardware_machine" = "arm64" ]; then
             download_url="https://github.com/termux/proot-distro/releases/download/v4.14.1/manjaro-aarch64-pd-v4.14.1.tar.xz"
-        else
-            echo "Unsupported machine hardware: $(uname -m)"
-            exit
         fi
 
     elif [ "$distro" = "opensuse" ]; then
@@ -650,9 +632,6 @@ chroot_distro_download() {
 
         if [ "$hardware_machine" != "armhf" ]; then
             download_url="https://github.com/termux/proot-distro/releases/download/v4.6.0/pardus-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.6.0.tar.xz"
-        else
-            echo "Unsupported machine hardware: $(uname -m)"
-            exit
         fi
 
     elif [ "$distro" = "backbox" ]; then
@@ -667,9 +646,6 @@ chroot_distro_download() {
             download_url="https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/arm64/centos-rootfs-arm64.tar.xz"
         elif [ "$hardware_machine" = "amd64" ]; then
             download_url="https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/amd64/centos-rootfs-amd64.tar.xz"
-        else
-            echo "Unsupported machine hardware: $(uname -m)"
-            exit
         fi
 
     elif [ "$distro" = "centos_stream" ]; then
@@ -679,9 +655,6 @@ chroot_distro_download() {
             download_url="https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS_Stream/arm64/centos_stream-rootfs-arm64.tar.xz"
         elif [ "$hardware_machine" = "amd64" ]; then
             download_url="https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS_Stream/amd64/centos_stream-rootfs-amd64.tar.xz"
-        else
-            echo "Unsupported machine hardware: $(uname -m)"
-            exit
         fi
 
     elif [ "$distro" = "void" ]; then
@@ -717,6 +690,11 @@ chroot_distro_download() {
     else
         echo "Unavailable distro: $distro"
         exit 90
+    fi
+
+    if [ "" = "$download_url" ]; then
+        echo "Unsupported machine hardware: $(uname -m)"
+        exit 87
     fi
 
     if [ -f "$chroot_distro_path/.rootfs/$distro.tar.xz" ]; then
