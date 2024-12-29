@@ -800,7 +800,7 @@ chroot_distro_download() {
         echo "[7] void linux 20210218"
         while true; do
             printf "Enter a number : "
-            read number
+            read -r number
             case "$number" in
                 1) rootfs="current"; break;;
                 2) rootfs="20240314"; break;;
@@ -814,13 +814,13 @@ chroot_distro_download() {
         done
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             if [ "$rootfs" = "current" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://repo-default.voidlinux.org/live/$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s https://repo-default.voidlinux.org/live/current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
+                void_download_url="https://repo-default.voidlinux.org/live/$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s https://repo-default.voidlinux.org/live/current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
             else
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://repo-default.voidlinux.org/live/$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$rootfs.tar.xz"
+                void_download_url="https://repo-default.voidlinux.org/live/$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$rootfs.tar.xz"
             fi
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "$void_download_url"; then
                 echo "Failed to download the Void Linux Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
