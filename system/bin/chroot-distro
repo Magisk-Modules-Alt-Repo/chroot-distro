@@ -563,7 +563,7 @@ chroot_distro_download() {
         echo "[3] Debian bookworm (proot-distro)"
         while true; do
             printf "Enter a number : "
-            read number
+            read -r number
             case "$number" in
                 1) rootfs="debian"; break;;
                 2) rootfs="debian_bullseye"; break;;
@@ -573,17 +573,17 @@ chroot_distro_download() {
         done
 
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-            if [ $rootfs = "debian" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Debian/$hardware_machine/debian-rootfs-$hardware_machine.tar.xz"
-            elif [ $rootfs = "debian_bullseye" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bullseye-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.7.0.tar.xz"
-            elif [ $rootfs = "debian_bookworm" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bookworm-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.7.0.tar.xz"
+            if [ "$rootfs" = "debian" ]; then
+                debian_download_url="https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Debian/$hardware_machine/debian-rootfs-$hardware_machine.tar.xz"
+            elif [ "$rootfs" = "debian_bullseye" ]; then
+                debian_download_url="https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bullseye-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.7.0.tar.xz"
+            elif [ "$rootfs" = "debian_bookworm" ]; then
+                debian_download_url="https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bookworm-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.7.0.tar.xz"
             fi
 
-            if [ $? -ne 0 ]; then
+            if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "$debian_download_url"; then
                 echo "Failed to download the Debian Rootfs."
-                rm $chroot_distro_path/.rootfs/$1.tar.xz
+                rm "$chroot_distro_path/.rootfs/$1.tar.xz"
                 exit
             fi
         else
