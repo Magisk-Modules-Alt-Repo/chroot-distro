@@ -464,7 +464,8 @@ Rootfs : https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS_St
 }
 
 chroot_distro_download() {
-    if [ "$1" = "ubuntu" ]; then
+    distro="$1"
+    if [ "$distro" = "ubuntu" ]; then
         distro_name='Ubuntu'
 
         if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
@@ -501,7 +502,7 @@ chroot_distro_download() {
 
         download_url="https://cdimage.ubuntu.com/ubuntu-base/releases/$rootfs/release/ubuntu-base-$rootfs_version-base-$hardware_machine.tar.gz"
 
-    elif [ "$1" = "alpine" ]; then
+    elif [ "$distro" = "alpine" ]; then
         distro_name='Alpine'
         echo "[1] alpine minirootfs latest"
         echo "[2] alpine netboot latest"
@@ -522,7 +523,7 @@ chroot_distro_download() {
         hwm_alpine=$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)
         download_url="http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$hwm_alpine/alpine-$rootfs-$(curl -s http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$hwm_alpine/ | grep -oE 'alpine-.*[0-9]+\.[0-9]+\.[0-9]+[^"]*(.tar.gz|.tar|.img)' | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | sort -V | tail -n 1)-$hwm_alpine.tar.gz"
 
-    elif [ "$1" = "kali" ]; then
+    elif [ "$distro" = "kali" ]; then
         distro_name='Kali Linux'
         echo "[1] kali linux full current"
         echo "[2] kali linux minimal current"
@@ -540,7 +541,7 @@ chroot_distro_download() {
 
         download_url="http://kali.download/nethunter-images/$rootfs_version/rootfs/kali-nethunter-rootfs-$rootfs-$hardware_machine.tar.xz"
 
-    elif [ "$1" = "debian" ]; then
+    elif [ "$distro" = "debian" ]; then
         distro_name='Debian'
         echo "[1] Debian (AnLinux)"
         echo "[2] Debian bullseye (proot-distro)"
@@ -564,12 +565,12 @@ chroot_distro_download() {
             download_url="https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bookworm-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.7.0.tar.xz"
         fi
 
-    elif [ "$1" = "parrot" ]; then
+    elif [ "$distro" = "parrot" ]; then
         distro_name='Parrot OS'
 
         download_url="https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Parrot/$hardware_machine/parrot-rootfs-$hardware_machine.tar.xz"
 
-    elif [ "$1" = "archlinux" ]; then
+    elif [ "$distro" = "archlinux" ]; then
         distro_name='Arch Linux'
 
         if [ "$hardware_machine" = "armhf" ]; then
@@ -583,7 +584,7 @@ chroot_distro_download() {
             exit
         fi
 
-    elif [ "$1" = "artix" ]; then
+    elif [ "$distro" = "artix" ]; then
         distro_name='Artix Linux'
 
         if [ "$hardware_machine" = "arm64" ]; then
@@ -593,7 +594,7 @@ chroot_distro_download() {
             exit
         fi
 
-    elif [ "$1" = "deepin" ]; then
+    elif [ "$distro" = "deepin" ]; then
         distro_name='Deepin'
 
         if [ "$hardware_machine" = "arm64" ]; then
@@ -605,7 +606,7 @@ chroot_distro_download() {
             exit
         fi
 
-    elif [ "$1" = "fedora" ]; then
+    elif [ "$distro" = "fedora" ]; then
         distro_name='Fedora'
 
         if [ "$hardware_machine" = "arm64" ]; then
@@ -617,7 +618,7 @@ chroot_distro_download() {
             exit
         fi
 
-    elif [ "$1" = "openkylin" ]; then
+    elif [ "$distro" = "openkylin" ]; then
         distro_name='OpenKylin'
 
         if [ "$hardware_machine" = "arm64" ]; then
@@ -629,7 +630,7 @@ chroot_distro_download() {
             exit
         fi
 
-    elif [ "$1" = "manjaro" ]; then
+    elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
 
         if [ "$hardware_machine" = "arm64" ]; then
@@ -639,12 +640,12 @@ chroot_distro_download() {
             exit
         fi
 
-    elif [ "$1" = "opensuse" ]; then
+    elif [ "$distro" = "opensuse" ]; then
         distro_name='OpenSuse'
 
         download_url="https://github.com/termux/proot-distro/releases/download/v4.6.0/opensuse-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.6.0.tar.xz"
 
-    elif [ "$1" = "pardus" ]; then
+    elif [ "$distro" = "pardus" ]; then
         distro_name='Pardus'
 
         if [ "$hardware_machine" != "armhf" ]; then
@@ -654,12 +655,12 @@ chroot_distro_download() {
             exit
         fi
 
-    elif [ "$1" = "backbox" ]; then
+    elif [ "$distro" = "backbox" ]; then
         distro_name='BackBox'
 
         download_url="https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/BackBox/$hardware_machine/backbox-rootfs-$hardware_machine.tar.xz"
 
-    elif [ "$1" = "centos" ]; then
+    elif [ "$distro" = "centos" ]; then
         distro_name='CentOS'
 
         if [ "$hardware_machine" = "arm64" ]; then
@@ -671,7 +672,7 @@ chroot_distro_download() {
             exit
         fi
 
-    elif [ "$1" = "centos_stream" ]; then
+    elif [ "$distro" = "centos_stream" ]; then
         distro_name='CentOS Stream'
 
         if [ "$hardware_machine" = "arm64" ]; then
@@ -683,7 +684,7 @@ chroot_distro_download() {
             exit
         fi
 
-    elif [ "$1" = "void" ]; then
+    elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
 
         echo "[1] void linux current"
@@ -714,19 +715,19 @@ chroot_distro_download() {
             download_url="https://repo-default.voidlinux.org/live/$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$rootfs.tar.xz"
         fi
     else
-        echo "Unavailable distro: $1"
+        echo "Unavailable distro: $distro"
         exit 90
     fi
 
-    if [ -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
+    if [ -f "$chroot_distro_path/.rootfs/$distro.tar.xz" ]; then
         echo "Already downloaded."
         exit 89
     fi
 
-    if ! wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "$download_url"; then
+    if ! wget -O "$chroot_distro_path/.rootfs/$distro.tar.xz" "$download_url"; then
         echo "Failed to download the $distro_name Rootfs."
-        if [ -e "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-            rm "$chroot_distro_path/.rootfs/$1.tar.xz"
+        if [ -e "$chroot_distro_path/.rootfs/$distro.tar.xz" ]; then
+            rm "$chroot_distro_path/.rootfs/$distro.tar.xz"
         fi
         exit
     fi
