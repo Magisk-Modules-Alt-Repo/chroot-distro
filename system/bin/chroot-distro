@@ -478,7 +478,7 @@ chroot_distro_download() {
             echo "[4] ubuntu focal 20.04.5"
         fi
         if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
-            echo "[5] ubuntu jammy 22.04.4"
+            echo "[5] ubuntu jammy 22.04.5"
         fi
         if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[6] ubuntu noble 24.04.1"
@@ -491,7 +491,7 @@ chroot_distro_download() {
                 2) rootfs="xenial";rootfs_version="16.04.6"; break;;
                 3) rootfs="bionic";rootfs_version="18.04.5"; break;;
                 4) rootfs="focal";rootfs_version="20.04.5"; break;;
-                5) rootfs="jammy";rootfs_version="22.04.4"; break;;
+                5) rootfs="jammy";rootfs_version="22.04.5"; break;;
                 6) rootfs="noble";rootfs_version="24.04.1"; break;;
                 *) echo "Unknown option : $number";;
             esac
