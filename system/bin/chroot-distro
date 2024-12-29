@@ -699,7 +699,7 @@ chroot_distro_download() {
     elif [ "$1" = "manjaro" ]; then
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             if [ "$hardware_machine" = "arm64" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/termux/proot-distro/releases/download/v4.6.0/manjaro-aarch64-pd-v4.6.0.tar.xz"
+                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://github.com/termux/proot-distro/releases/download/v4.14.1/manjaro-aarch64-pd-v4.14.1.tar.xz"
             else
                 echo "Unsupported machine hardware: $(uname -m)"
                 exit
