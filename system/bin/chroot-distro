@@ -1401,9 +1401,14 @@ chroot_distro_backup() {
             exit 5
         fi
     else
+        absolute_custom_path="$custom_path"
+        if [ "$custom_path" = "${custom_path#/}" ]; then
+            # can not have a relative path as current directory will change
+            absolute_custom_path="$PWD/$custom_path"
+        fi
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -caf "$custom_path" "$distro"
+            tar -caf "$absolute_custom_path" "$distro"
         )
         # shellcheck disable=SC2181
         if [ $? -ne 0 ]; then
@@ -1474,7 +1479,12 @@ chroot_distro_restore() {
     if [ "" = "$custom_backup_path" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
     else
-        backup_path="$custom_backup_path"
+        absolute_backup_path="$custom_backup_path"
+        if [ "$custom_backup_path" = "${custom_backup_path#/}" ]; then
+            # can not have a relative path as current directory may and will change
+            absolute_backup_path="$PWD/$custom_backup_path"
+        fi
+        backup_path="$absolute_backup_path"
     fi
 
     if [ ! -f "$backup_path" ]; then
