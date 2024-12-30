@@ -508,10 +508,10 @@ chroot_distro_download() {
         fi
 
     elif [ "$1" = "alpine" ]; then
-        echo "[1] alpine minirootfs 3.19.0"
-        echo "[2] alpine netboot 3.19.0"
-        echo "[3] alpine rpi 3.19.0"
-        echo "[4] alpine uboot 3.19.0"
+        echo "[1] alpine minirootfs latest"
+        echo "[2] alpine netboot latest"
+        echo "[3] alpine rpi latest"
+        echo "[4] alpine uboot latest"
         while true; do
             printf "Enter a number : "
             read number
@@ -524,7 +524,8 @@ chroot_distro_download() {
             esac
         done
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-            wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)/alpine-$rootfs-3.19.0-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g).tar.gz"
+            hwm_alpine=$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)
+            wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$hwm_alpine/alpine-$rootfs-$(curl -s http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$hwm_alpine/ | grep -oE 'alpine-.*[0-9]+\.[0-9]+\.[0-9]+[^"]*(.tar.gz|.tar|.img)' | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | sort -V | tail -n 1)-$hwm_alpine.tar.gz"
             if [ $? -ne 0 ]; then
                 echo "Failed to download the Alpine Rootfs."
                 rm $chroot_distro_path/.rootfs/$1.tar.xz
@@ -817,7 +818,7 @@ chroot_distro_download() {
         done
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
             if [ "$rootfs" = "current" ]; then
-                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://repo-default.voidlinux.org/live/$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-20230628.tar.xz"
+                wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://repo-default.voidlinux.org/live/$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s https://repo-default.voidlinux.org/live/current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
             else
                 wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "https://repo-default.voidlinux.org/live/$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$rootfs.tar.xz"
             fi
