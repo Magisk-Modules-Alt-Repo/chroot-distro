@@ -508,10 +508,10 @@ chroot_distro_download() {
         fi
 
     elif [ "$1" = "alpine" ]; then
-        echo "[1] alpine minirootfs 3.19.0"
-        echo "[2] alpine netboot 3.19.0"
-        echo "[3] alpine rpi 3.19.0"
-        echo "[4] alpine uboot 3.19.0"
+        echo "[1] alpine minirootfs latest"
+        echo "[2] alpine netboot latest"
+        echo "[3] alpine rpi latest"
+        echo "[4] alpine uboot latest"
         while true; do
             printf "Enter a number : "
             read number
