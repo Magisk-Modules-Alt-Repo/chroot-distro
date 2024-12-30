@@ -535,49 +535,21 @@ chroot_distro_download() {
         fi
 
     elif [ "$1" = "kali" ]; then
-        echo "[1] kali linux full 2024.1"
-        echo "[2] kali linux minimal 2024.1"
-        echo "[3] kali linux nano 2024.1"
-        echo
-        echo "[4] kali linux full 2023.4"
-        echo "[5] kali linux minimal 2023.4"
-        echo "[6] kali linux nano 2023.4"
-        echo
-        echo "[7] kali linux full 2023.3b"
-        echo "[8] kali linux minimal 2023.3b"
-        echo "[9] kali linux nano 2023.3b"
-        echo
-        echo "[10] kali linux full 2023.3"
-        echo "[11] kali linux minimal 2023.3"
-        echo "[12] kali linux nano 2023.3"
-        echo
-        echo "[13] kali linux full current"
-        echo "[14] kali linux minimal current"
-        echo "[15] kali linux nano current"
+        echo "[1] kali linux full current"
+        echo "[2] kali linux minimal current"
+        echo "[3] kali linux nano current"
         while true; do
             printf "Enter a number : "
             read number
             case "$number" in
-                1) rootfs="full";rootfs_version="kali-2024.1"; break;;
-                2) rootfs="minimal";rootfs_version="kali-2024.1"; break;;
-                3) rootfs="nano";rootfs_version="kali-2024.1"; break;;
-                4) rootfs="full";rootfs_version="kali-2023.4"; break;;
-                5) rootfs="minimal";rootfs_version="kali-2023.4"; break;;
-                6) rootfs="nano";rootfs_version="kali-2023.4"; break;;
-                7) rootfs="full";rootfs_version="kali-2023.3b"; break;;
-                8) rootfs="minimal";rootfs_version="kali-2023.3b"; break;;
-                9) rootfs="nano";rootfs_version="kali-2023.3b"; break;;
-                10) rootfs="full";rootfs_version="kali-2023.3"; break;;
-                11) rootfs="minimal";rootfs_version="kali-2023.3"; break;;
-                12) rootfs="nano";rootfs_version="kali-2023.3"; break;;
-                13) rootfs="full";rootfs_version="current"; break;;
-                14) rootfs="minimal";rootfs_version="current"; break;;
-                15) rootfs="nano";rootfs_version="current"; break;;
+                1) rootfs="full";rootfs_version="current"; break;;
+                2) rootfs="minimal";rootfs_version="current"; break;;
+                3) rootfs="nano";rootfs_version="current"; break;;
                 *) echo "Unknown option : $number";;
             esac
         done
         if [ ! -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-            wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://kali.download/nethunter-images/$rootfs_version/rootfs/kalifs-$hardware_machine-$rootfs.tar.xz"
+            wget -O "$chroot_distro_path/.rootfs/$1.tar.xz" "http://kali.download/nethunter-images/$rootfs_version/rootfs/kali-nethunter-rootfs-$rootfs-$hardware_machine.tar.xz"
             if [ $? -ne 0 ]; then
                 echo "Failed to download the Kali Linux Rootfs."
                 rm $chroot_distro_path/.rootfs/$1.tar.xz
