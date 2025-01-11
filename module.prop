@@ -1,6 +1,6 @@
 id=chroot-distro
 name=chroot-distro
-version=1.3.2
-versionCode=14
+version=1.4.0
+versionCode=15
 author=@YasserNull
 description=install linux distributions on android
