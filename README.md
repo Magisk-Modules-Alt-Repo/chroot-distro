@@ -1,223 +1,636 @@
 # chroot-distro
 chroot-distro :
-  Install linux distributions on android
-
-+ chroot-distro path : /data/local/chroot-distro/
-
-## Installing
-
-### Installation requirements
-
-Reasonably new Busybox for Android NDK Magisk module version installed (1.36.1 is known to work, 1.32.1 is known to not work). If new enough version is not installed it may lead to problems, for example with downloading rootfs. Using Busybox provided by Magisk/KernelSU/APatch (ie. without Busybox for Android NDK Magisk module) is community supported, and may lead to bugs during usage.
-
-### Android paths on distributions :
-+ /dev 
-+ /sys
-+ /proc
-+ /dev/pts
-+ /sdcard 
-+ /system *(NOTE: not used by default)*
-+ /storage
-+ /data *(NOTE: not used by default)*
-
-## Using
-
-### Root usage
-
-Be aware that as the chroot-distro needs to be running as a root to function there is a possibility that some corner case may have been missed where it is possible to accidentally removed more files than intended. The developers strive to ensure that this will not happen but before using the software you should backup your files/firmware just in case. Please also note that this is not specific to only this software but should be used as a general caution when ever using a rooted device.
-
-As they say: *With great power comes great responsibility.*
-
-### Available commands
-
-+ help
+  Installs Linux distributions in a chroot environment on Android.
++ Directory structure
 ```
+/data/local/chroot-distro/
+├── .backup/
+├── .rootfs/
+├── distro1/
+└── distro2/
+```
++ All necessary system paths are mounted automatically
++ GUI applications is possible through VNC or X11 forwarding
+___
+## Requirements
+
+### Rooted Android Device
+All root implementations are compatible.
+
+You can use chroot-distro on any terminal, for example: MiXplorer, MT Manager, Termux, TWRP and Android Terminal Emulator (ADB Shell).
+
+### Busybox for Android NDK
+You need a recent version of the "Busybox for Android NDK by osm0sis" Magisk module installed.
+* **Recommended:** v1.36.1 is confirmed to work.
+* **Avoid:** v1.32.1 is known to cause issues.
+* **Important:** Using an outdated version can lead to problems, such as difficulties downloading the rootfs.
+
+### Alternative Busybox
+Using the Busybox provided by:
+* Magisk/KernelSU/APatch 
+(without the "Busybox for Android NDK" module) is supported by the community, but it might introduce bugs during use.
+
+## Android Paths
+
+### System Points
+```
+/chroot-distro/distro1
+├── /dev
+├── /sys
+├── /proc
+├── /dev/pts
+├── /sdcard
+└── /storage
+```
+
+### Optional Mounts
+use `-a` or `--android` when installing to mount it
+```
+├── /system   (Not mounted by default)
+└── /data     (Not mounted by default)
+```
+
+## Usage Warning
+
+### Notice
+chroot-distro requires root access to function. While running as root:
+* There's a small possibility of unintended file deletion
+* System files could be accidentally modified
+* Corner cases might exist despite thorough testing
+
+### Careful
+Before running chroot-distro:
+* Always Backup your important files
+* Always Backup your system partitions
+
+### Remember
+This warning applies to all root-level operations, not just chroot-distro.
+
+As they say: ***With great power comes great responsibility.***
+
+## Commands Usage
+
+### Basic Commands
+
+```
+# Show all commands and usage
 chroot-distro help
-```
-+ output debug information about environment
-```
-chroot-distro env
-```
-+ list of available linux distributions
-```
-chroot-distro list
-```
 
-+ download rootfs
-```
+# Display environment details
+chroot-distro env
+
+# Show available distributions
+chroot-distro list
+
+# Download a new distribution
 chroot-distro download <distro>
-```
-+ re-download rootfs
-```
+
+# Refresh existing distribution
 chroot-distro redownload <distro>
-```
-+ delete rootfs 
-```
+
+# Remove distribution
 chroot-distro delete <distro>
 ```
 
-+ install distro
-  + By default does not mount `/data` or `/system` folder, use `-a` or `--android` to mount it
+### Usage Examples
 ```
-chroot-distro install [-a|--android] <distro>
+chroot-distro download ubuntu
+chroot-distro redownload debian
+chroot-distro delete ubuntu
 ```
-+ reinstall distro
-  + By default does not mount `/data` or `/system` folder, use `-a` or `--android` to mount it
-  + By default stops reinstall if there is open files and/or active mounts within the distro. By using `-f` or `--force` will try closing any process trying to access distro rootfs, and unmount any active mount points. You should prefer running the command first without `force` option to review the processes and mounts before forcefully closing them.
-```
-chroot-distro reinstall [-a|--android] [-f|--force] <distro>
-```
-+ uninstall distro
-  + By default stops uninstall if there is open files and/or active mounts within the distro. By using `-f` or `--force` will try closing any process trying to access distro rootfs, and unmount any active mount points. You should prefer running the command first without `force` option to review the processes and mounts before forcefully closing them.
-```
-chroot-distro uninstall [-f|--force] <distro>
-```
+>*Replace `<distro>` with your chosen distribution identifier*
 
-+ backup distro
-  + If path given, then backup saved at that path
+### Installation Commands
 ```
-chroot-distro backup <distro> [<path>]
+# Basic installation
+chroot-distro install <distro>
+# Install with Android mounts
+chroot-distro install --android <distro>
+
+# Reinstall distribution
+chroot-distro reinstall <distro>
+# Force reinstall with Android mounts
+chroot-distro reinstall --android --force <distro>
+
+# Remove distribution
+chroot-distro uninstall <distro>
+# Force uninstall
+chroot-distro uninstall --force <distro>
 ```
-+ delete default backup
+Usage Note:
++ By default, Optional mounts (/data, /system) are not mounted. Use `-a` or `--android` flag to mount them.
+
++ The reinstall process will stop if files are open or mounts are active. Using `-f` or `--force` will close running processes and unmount active points. For safety, first run without force to see what's running before using the force option.
+
+### Backup Operations
 ```
+# Create backup
+chroot-distro backup <distro> [path]
+# Remove backup
 chroot-distro unbackup <distro>
+# Restore backup
+chroot-distro restore <distro> [path]
+# Restore to defaults
+chroot-distro restore --default <distro>
 ```
-+ restore distro
-  + By default restores as is, use `-d` or `--default` to reset to default settings (note: only those set during install)
-  + If path given, then backup restored from that path
-  + If using old format backups you may need to use `--force` to restore the backup but please be aware that you should review the backup before restoring said backup as there could be unintended side effects (for example system mounts shadowing restored files or internal storage running out)
-```
-chroot-distro restore [-d|--default] [--force] <distro> [<path>]
-```
+Usage Note:
++ Restores backup in its current state. Use `-d` or `--default` to restore original install settings.
++ Optional: Specify custom path to restore from.
++ For old backups: `--force` may be needed, but review first to avoid issues like:
+  * System mount conflicts
+  * Storage space problems
 
-+ unmount (system) mount points
-  + By default stops if unmounting fails. By using `-f` or `--force` will try closing any process trying to access (system) mount point, and unmount any active mount points which prevent (system) mount points from unmounting. You should prefer running the command first without `force` option to review the processes and mounts before forcefully closing them.
-  + By default unmounts only system mount points. By using `-a` or `--all` will try to unmount all found mount points be it a normal mount poit, or a loopback mount point.
+### Unmount Paths
 ```
-chroot-distro unmount [-f|--force] [-a|--all] <distro>
+# Unmount system points
+chroot-distro unmount <distro>
+# Force unmount all points
+chroot-distro unmount --force --all <distro>
 ```
+Usage Note:
++ Stops if unmount fails. Use `-f` or `--force` to:
+  * Close any process trying to access system points
+  * Unmount any active system points forcefully
++ By default: Only unmounts system points
++ Use `-a` or `--all` to unmount everything (system, normal, and loopback mounts)
 
-+ run command
-  + If command is quoted then can pass parameters to command, for example `"ping 127.0.0.1"`
+### Execute Commands
 ```
-chroot-distro command <distro> <command>
+# Run specific command
+chroot-distro command <distro> "command"
+# Login to distro
+chroot-distro login <distro>
 ```
-+ login to distro
-```
-chroot-distro login <distro> 
-```
+Usage Note:
++ Execute Commands:
+   ```
+   chroot-distro command <distro> "command"
+   ```
+   * Runs a command within specified distro
+   * Commands must be enclosed in quotes
+   * Executes and returns to host system
 
-### example
+### Usage Examples
 ```
 chroot-distro download ubuntu
 chroot-distro install ubuntu
+chroot-distro install --android debian
 chroot-distro login ubuntu
+chroot-distro command debian "su -l root" 
 ```
+>*Replace `<distro>` with your chosen distribution identifier.*
 
-### supported distributions
+## Supported Distributions
+Note: Use lowercase identifiers for it to be properly identified.
+| Distributions   | Identifiers     |
+|----------------|-----------------|
+| Kali Linux     | `kali`         |
+| Parrot OS      | `parrot`       |
+| Alpine Linux   | `alpine`       |
+| Arch Linux     | `archlinux`    |
+| BackBox        | `backbox`      |
+| Centos         | `centos`       |
+| Centos Stream  | `centos_stream`|
+| Artix Linux    | `artix`        |
+| Debian         | `debian`       |
+| Deepin         | `deepin`       |
+| Fedora 39      | `fedora`       |
+| Manjaro        | `manjaro`      |
+| OpenKylin      | `openkylin`    |
+| OpenSUSE       | `opensuse`     |
+| Pardus         | `pardus`       |
+| Ubuntu         | `ubuntu`       |
+| Void Linux     | `void`         |
 
-Note: right side is used as distro identifier, and it needs to be lowercase for it to be properly identified.
+## Download Releases
 
-+ Kali Linux : kali
-+ Parrot OS : parrot
-+ Alpine Linux : alpine
-+ Arch Linux : archlinux
-+ BackBox : backbox
-+ Centos : centos
-+ Centos Stream : centos_stream
-+ Artix Linux : artix
-+ Debian : debian
-+ Deepin : deepin
-+ Fedora 39 : fedora
-+ Manjaro : manjaro
-+ OpenKylin : openkylin
-+ OpenSUSE : opensuse
-+ Pardus : pardus
-+ Ubuntu : ubuntu
-+ Void Linux : void
+|   Versions  |   Releases   |
+|-------------|--------------|
+|   v1.3.0    | [Download](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/download/v1.3.0/chroot-distro.zip) |
+|   v1.4.0    | [Download](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/download/v1.4.0/chroot-distro.zip) |
+|   Latest    | [Download](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/latest/download/chroot-distro.zip) |
 
-### Supported environments
+Install via Manager or flash through custom recovery.
 
-You can use chroot-distro on any terminal, for example MT Manager, Termux, TWRP or Android terminal emulator (ADB Shell)...
-
-### Sample screenshots
-
+## Screenshot Examples
 ![Debian console](screenshot/debian.png)
-
 ![Kali Linux console](screenshot/kali-linux.png)
 
-## How to enable ...
+## TODO: How-to Instructions
 
-### vnc
+### Fixing Sudo
+
+By default Android prevents suid usage under `/data` folder. This will prevent using `sudo` inside the rootfs. There is a few alternatives how this can be solved:
+
+1. Quick Remount  
+Remount /data for the current process with needed capabilities
+```
+# Run once per session
+su -c mount -o remount,dev,suid /data
+```
+
+2. Image File Method
+```
+# Create image (adjust size as needed)
+su -c truncate -S 15G /data/local/distros.img
+su -c mke2fs -t ext4 /data/local/distros.img
+
+# Mount after each reboot
+su -c mount /data/local/distros.img /data/local/chroot-distro
+```
+
+3. SD Card Method  
+https://xdaforums.com/t/mount-ext4-formatted-sd-card.3769344/
+```
+1. Format SD card with ext4
+2. Mount to `/data/local/chroot-distro`
+3. Remount after each reboot
+```
+Overall Note:
+- Methods 2 & 3 are safer (prevent accidental command execution)
+- SD Card Method advantages:
+  - Saves internal storage space
+  - Reduces wear on internal storage
+  - Extends device lifespan
+  - Note: You can't use it for Android stuff (at least by default)
+---
+
+### Desktop Environment with VNC
 
 ![Debian GUI over VNC](screenshot/debian_vnc.png)
-
 ![Ubuntu GUI over VNC](screenshot/ubuntu.png)
 
-your can use any vnc app , tutorial (tested on ubuntu and debian)
+1. Install Required Packages  
+(Assuming that you're already installed the Chroot Distro)  
+Inside your chroot environment:
 ```
 apt update
 apt upgrade
 apt install tightvncserver nano dbus-x11 xfce4 xfce4-goodies xfce4-terminal
+```
+
+2. Set Up Desktop Environment
+```
+# Configure Terminal
 update-alternatives --config x-terminal-emulator
+
+# Start VNC first time to create config
 vncserver
+
+# Stop the server
 vncserver -kill :1
+
+# Add XFCE to startup
 echo 'startxfce4 &' >> ~/.vnc/xstartup
 ```
-start server : 
+
+3. Launch Desktop Environment
 ```
+# Start VNC
 vncserver
-```
-stop server :
-```
+
+# Stop VNC
 vncserver -kill :1
 ```
 
-### sudo
+### Desktop Environment with Termux-X11
+1. Install Termux-X11  
+Download and install Termux-X11 from the official repository:
+  https://github.com/termux/termux-x11
 
-Be default Android prevents suid usage under `/data` folder. This will prevent using `sudo` inside the rootfs. There is a few alternatives how this can be solved:
-
-+ remount `/data` for the current process with needed capabilities (needs to be run once for every session)
-```sh
-su -c mount -o remount,dev,suid /data
+2. Install Required Packages in Termux
+First, open Termux and run these commands:
 ```
-+ create an image to be mounted at `/data/local/chroot-distro`
-```sh
-# use whatever size you want
-su -c truncate -S 15G /data/local/distros.img
-su -c mke2fs -t ext4 /data/local/distros.img
-# following command needs to be run every time device is rebooted
-su -c mount /data/local/distros.img /data/local/chroot-distro
+pkg install x11-repo
+pkg install root-repo
+pkg install tsu
+pkg install ncurses-utils
+pkg install termux-x11-nightly
+pkg install pulseaudio
+pkg install virglrenderer-android
 ```
-+ Format SD card with ext4
-  + Follow the instructions on [how to mount ext4 SD card](https://xdaforums.com/t/mount-ext4-formatted-sd-card.3769344/)
-  + Mount point should be `/data/local/chroot-distro` instead of `/storage/sdcard1` mentioned in the post
-  + Mounting will need to be done every time device is rebooted
 
-From security perspective the second and third one are the better as there is less of chance to accidentally running something which you did not intend. The third one (and second one if the image is created to SD card) helps preventing the internal storage from running out and also helps lessen the amount of writes done to internal storage (thus prolonging the use of the device). Note that when using third alternative you can't use it for android stuff (at least by default).
+3. Set Up Desktop Environment  
+(Assuming that you're already installed the Chroot Distro)  
+Inside your chroot environment, Install XFCE4:
+```
+apt install xfce4
+# Optional: Make sure to set up mpd.conf for music/audio server before running 'Audio Server'.
+apt install mpd
+```
 
-## Install chroot-distro
+4. Launch the Desktop Environment Easily
+![Screenshot_20250113-153820_Termux~4](https://github.com/user-attachments/assets/3f5db05f-fdde-40da-aab1-bb754ca98e35)
+Note: Make sure to run the script in Termux.
 
-+ [chroot-distro v1.4.0](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/tag/v1.4.0)
+Save this script as "chroot-xfce.sh" as it provides user-friendly menu and use it to launch your XFCE4 desktop environment later:
+1. Create the script:
+```
+nano chroot-xfce.sh
+```
 
-## Hacking
+2. Copy and paste the provided code:
+```
+#!/bin/bash
 
-If you want to help with development, or if developers have requested you to check a bug report against latest development version, you can create development version with the help of this command:
+# Set colors and styles
+normal=$(tput sgr0)
+highlight=$(tput bold; tput setaf 6)
+logolight=$(tput bold; tput setaf 5)
+title=$(tput bold; tput setaf 2)
+error=$(tput setaf 1)
+hide_cursor=$(tput civis)
+show_cursor=$(tput cnorm)
 
-```sh
+# Menu options
+options=("Audio Server" "Login CLI" "Login GUI")
+selected=0
+selected_distro_index=0
+distro_selected=false
+
+# Get Installed Distros
+get_installed_distros() {
+    installed_distros=()
+    while read -r line; do
+        if [[ "$line" =~ ^[A-Za-z].+[[:space:]]*:[[:space:]]*[a-z] ]]; then
+            alias=$(echo "$line" | awk -F': ' '{print $2}')
+            read -r next_line
+            while [[ -n "$next_line" ]]; do
+                if [[ "$next_line" == *"Installed: Yes"* ]]; then
+                    installed_distros+=("$alias")
+                    break
+                fi
+                read -r next_line
+            done
+        fi
+    done < <(sudo chroot-distro list)
+    
+    if [ ${#installed_distros[@]} -eq 0 ]; then
+        echo "No distributions installed."
+        exit 1
+    fi
+}
+
+# Format installed distros for display
+format_installed_distros() {
+    local distro_list
+    distro_list=$(printf "%s " "${installed_distros[@]}")
+    formatted_distro="Installed = [ ${distro_list%* } ]"
+}
+
+# ASCII art logo
+logo="
+  ____ _                     _     ____  _     _             
+ / ___| |__  _ __ ___   ___ | |_  |  _ \(_)___| |_ _ __ ___  
+| |   | '_ \| '__/ _ \ / _ \| __| | | | | / __| __| '__/ _ \ 
+| |___| | | | | (_) | (_) | |_  | |_| | \__ \ |_| | | (_) |
+ \____|_| |_|_|  \___/ \___/ \__| |____/|_|___/\__|_|  \___/
+                              v1.1-final the.puer@discord"
+
+# Tips array
+infoa=("[Info] Use Up/Down to navigate."
+      "[Info] Press Enter to select an option."
+      "[Info] Use Home/End for quick navigation."
+      "[Info] Press Esc or q or Ctrl+C to exit.")
+infob=("[Info] Run Audio Server once before login as CLI.")
+
+# Function to wait for user input to continue
+wait_for_key_press() {
+    echo -e "${normal}Press any key to continue..."
+    read -r -n1 -s
+}
+
+# Function to draw the main menu
+draw_menu() {
+    clear
+    echo -e "\n${logolight}${logo}"
+    echo -e "${normal}Login to Distro"
+    echo -e "${error}${formatted_distro}\n"
+    echo -e "${normal}${infoa[RANDOM % ${#infoa[@]}]}"
+    echo -e "${normal}${infob[RANDOM % ${#infob[@]}]}\n"
+
+    echo -e "${title}-- Main Menu --${normal}"
+    for i in "${!options[@]}"; do
+        if [[ $i -eq $selected ]]; then
+            printf " ${highlight}> ${options[$i]} ${normal}\n"
+        else
+            printf "   ${options[$i]}\n"
+        fi
+    done
+    
+    echo -e "\n${normal}(Use Up/Down arrows, Enter, Escape, q, Home, or End)"
+}
+
+# Function to draw the distro selection menu
+draw_distro_menu() {
+    clear
+    echo -e "\n${logolight}${logo}"
+    echo -e "${normal}Login to Distro"
+    echo -e "${error}${formatted_distro}\n"
+    echo -e "${normal}${infoa[RANDOM % ${#infoa[@]}]}"
+    echo -e "${normal}${infob[RANDOM % ${#infob[@]}]}\n"
+
+    echo -e "${title}-- Select Distro --${normal}"
+    for i in "${!installed_distros[@]}"; do
+        if [[ $i -eq $selected_distro_index ]]; then
+            printf " ${highlight}> ${installed_distros[$i]} ${normal}\n"
+        else
+            printf "   ${installed_distros[$i]}\n"
+        fi
+    done
+    
+    echo -e "\n${normal}(Use Up/Down arrows, Enter to select, Escape or q to exit)"
+}
+
+# Function to select distro
+select_distro() {
+    selected_distro_index=0
+    distro_selected=false
+    
+    draw_distro_menu
+    
+    while true; do
+        stty -echo
+        read -r -sN1 char
+        case "$char" in
+            $'\e')
+                read -r -sN2 -t 0.1 char2
+                case "$char2" in
+                    '[A') # Up
+                        selected_distro_index=$(( (selected_distro_index - 1 + ${#installed_distros[@]}) % ${#installed_distros[@]} ))
+                        ;;
+                    '[B') # Down
+                        selected_distro_index=$(( (selected_distro_index + 1) % ${#installed_distros[@]} ))
+                        ;;
+                    '[H') # Home
+                        selected_distro_index=0
+                        ;;
+                    '[F') # End
+                        selected_distro_index=$((${#installed_distros[@]} - 1))
+                        ;;
+                    *) 
+                        stty echo
+                        echo -e "$show_cursor"
+                        return 1
+                        ;;
+                esac
+                ;;
+            $'\n'|$'\r') # Enter
+                selected_distro="${installed_distros[$selected_distro_index]}"
+                distro_selected=true
+                stty echo
+                return 0
+                ;;
+            $'\x03'|'q') # Ctrl+C or q
+                stty echo
+                echo -e "$show_cursor"
+                exit 0
+                ;;
+        esac
+        draw_distro_menu
+    done
+}
+
+# Function for the option
+start_termux_server() {
+    pkill -f com.termux.x11
+    sudo pkill mpd
+    killall -9 termux-x11 Xwayland pulseaudio virgl_test_server_android termux-wake-lock
+    sudo fuser -k 4713/tcp
+    sudo busybox mount --bind "$PREFIX/tmp" /data/local/chroot-distro/"$selected_distro"/tmp
+    XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
+    sleep 2
+    pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
+    pacmd load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1
+    virgl_test_server_android &
+    sudo chmod -R 1777 /data/data/com.termux/files/usr/tmp
+}
+
+audio_server() {
+    select_distro || return 1
+    echo -e "\nRunning Audio Server for $selected_distro..."
+    start_termux_server
+    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session && clear && mpd\""
+}
+
+login_cli() {
+    select_distro || return 1
+    echo -e "\nLogging in as CLI to $selected_distro..."
+    read -rp "Enter username: " username
+    sudo chroot-distro command "$selected_distro" "su -l $username"
+}
+
+login_gui() {
+    select_distro || return 1
+    echo -e "\nLogging in as GUI to $selected_distro..."
+    read -rp "Enter username: " username
+    start_termux_server
+    am start --user 0 -n com.termux.x11/com.termux.x11.MainActivity
+    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session sudo -u $username startxfce4\""
+}
+
+# Initialize
+get_installed_distros
+format_installed_distros
+
+# Hide cursor and draw initial menu
+echo -e "$hide_cursor"
+draw_menu
+
+# Main loop
+trap 'stty echo; echo -e "$show_cursor"; exit' EXIT SIGINT SIGTERM
+while true; do
+    stty -echo
+    read -r -sN1 char
+    case "$char" in
+        $'\e')
+            read -r -sN2 -t 0.1 char2
+            case "$char2" in
+                '[A') selected=$(( (selected - 1 + ${#options[@]}) % ${#options[@]} )) ;;
+                '[B') selected=$(( (selected + 1) % ${#options[@]} )) ;;
+                '[H') selected=0 ;;
+                '[F') selected=$((${#options[@]} - 1)) ;;
+                *) stty echo; echo -e "$show_cursor"; exit 0 ;;
+            esac
+            ;;
+        $'\n'|$'\r')
+            clear
+            echo -e "${title}You selected: ${options[$selected]}${normal}"
+            case "${options[$selected]}" in
+                "Audio Server")
+                    audio_server
+                    echo -e "You can login as CLI now.\nSelect 'Login CLI' to login!\n"
+                    wait_for_key_press
+                    ;;
+                "Login CLI")
+                    su -c mount -o remount,dev,suid /data
+                    login_cli
+                    ;;
+                "Login GUI")
+                    su -c mount -o remount,dev,suid /data
+                    login_gui
+                    ;;
+            esac
+            stty echo; echo -e "$show_cursor"; exit 0
+            ;;
+        $'\x03'|'q')
+            stty echo; echo -e "$show_cursor"; exit 0
+            ;;
+    esac
+
+    stty echo
+    draw_menu
+done
+```
+
+4. Save and make it executable:
+```
+chmod +x chroot-xfce.sh
+```
+
+5. Run the script:
+```
+./chroot-xfce.sh
+or
+bash chroot-xfce.sh
+```
+
+Once completed, you'll have a fully functional XFCE4 desktop environment with audio capabilities running through Termux-X11.
+
+## Development Guide
+
+If you want to help with development or test a bug report against the latest version, create a development build using:
+
+```
 zip chroot-distro.zip config.sh module.prop META-INF/com/google/android/* system/bin/chroot-distro
 ```
 
-Alternative way to do the development is to enable ssh with one of the distros and then remotely update the script to a separate location, and then invoke the development script against some other distro. This way there is no need to reboot the device, thus making the development quicker. Or even, doing the development directly on the device (either physically, or by remote connection), if that is your preferred way.
+Alternative approaches:
+- Enable SSH in a distro, update scripts remotely, and test against another distro (no reboot needed thus making the development quicker)
+- Develop directly on the device (physically or via remote connection)
 
-For any non-trivial change, you should verify that the change works, not only from Termux (or some other on-device terminals) but also with Android terminal emulator (ADB Shell). This is because ADB Shell will only have Busybox and Android Toybox commands available, and they may not behave the same way as the more full blown counterparts available for example in Termux.
+Testing requirements:
+- Test all changes in Termux (or other terminals) AND Android terminal emulator (ADB Shell)
+- Note: ADB Shell only has Busybox and Android Toybox commands, which may behave differently than Termux
 
-During the development you should use `shellcheck` to ensure that the changes you make to the script will be POSIX compliant, and that they do not introduce new `shellcheck` warnings (either fix the code or document why the warning is ok with `# shellcheck disable=SCXXXX` and accompanied comment). And if you are not familiar with shell scripts (or even if you are familiar), you should peruse [tutorial](https://www.grymoire.com/Unix/Sh.html) made by Grymoire as he explains the POSIX shell basics (and some not so basic stuff) very well.
+Code quality:
+- Use `shellcheck` for POSIX compliance
+- Document warning exceptions with `# shellcheck disable=SCXXXX` and explanatory comments
+- For shell scripting guidance, refer to [Grymoire's tutorial](https://www.grymoire.com/Unix/Sh.html)
 
-## Versioning
+## Semantic Versioning
 
-`chroot-distro` uses semantic versioning for version numbers. Versioning uses three levels: major, minor and patch. Major version will change if there is breaking changes in API. Minor version will change for new features (or otherwise significant changes which does not break backwards compatibility). Patch version is reserved only for bug fixes, or really small changes (note: no breaking changes).
+`chroot-distro` uses semantic versioning for version numbers. Versioning uses three levels: major, minor and patch. Major version changes when there are breaking changes in API. Minor version changes for new features (or significant changes that don't break compatibility). Patch version is only for bug fixes or very small changes (no breaking changes).
 
-## License
+- **Major (X)**: Changes when API breaks compatibility
+- **Minor (Y)**: Changes for new features (no compatibility breaks)
+- **Patch (Z)**: Bug fixes and small updates (no breaking changes)
 
-[GNU GPL v3](LICENSE)
+## Software License
+
+This software is licensed under the GNU General Public License v3.0 (GPL-3.0). You are free to:
+- Use, modify, and distribute this software
+- Access and modify the source code
+- Use for commercial purposes
+
+Full license text: [GNU GPL v3](LICENSE)
