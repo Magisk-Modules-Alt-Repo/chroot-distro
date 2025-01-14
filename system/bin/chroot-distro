@@ -252,10 +252,72 @@ if [ "" != "$check_env" ]; then
         echo "Magisk installed ($magisk_version)"
     elif [ -e /data/adb/ksu ]; then
         # would be nice if the version information could be provided, patches welcome
-        echo 'KernelSU installed (version not known)'
+        echo "KernelSU installed (Unknown)"
     elif [ -e /data/adb/ap ]; then
-        # would be nice if the version information could be provided, patches welcome
-        echo 'APatch installed (version not known)'
+        # Verify the APatch daemon executable exists
+        if [ -e /data/adb/ap/bin/apd ]; then
+            # Set path to APatch daemon and get its version
+            apatchbin=/data/adb/ap/bin/apd
+            binary_version=$("$apatchbin" -V | awk '{print $2}')
+
+            # I can't find any method or way, with no documentation whatsoever to get the kernel patch version
+            # So I had to do it in a ughh fucking crude way by getting the value from the log and calculating it
+            if [ -e /data/adb/ap/log/dmesg.log ]; then
+                # Extract the KernelPatch version hex value from log (e.g., "b01")
+                # $6 refers to the 6th field in the log line "KP KernelPatch Version: b01"
+                kp_version=$(grep "KP KernelPatch Version:" /data/adb/ap/log/dmesg.log | awk '{print $6}')
+
+                # Check if we successfully got a version number
+                if [ -z "$kp_version" ]; then
+                    apatch_version="Unknown"
+                else
+                    # Clean up the hex value:
+                    # - Remove '0x' prefix if present using sed
+                    # - Convert to lowercase for consistency
+                    clean_hex=$(echo "$kp_version" | sed 's/^0x//i' | tr '[:upper:]' '[:lower:]')
+                    
+                    # Convert hex to decimal
+                    # Format: 0xb01 = 2817 (decimal)
+                    # If conversion fails, dec_value will be empty
+                    dec_value=$(printf '%d' "0x$clean_hex" 2>/dev/null) || dec_value=""
+
+                    if [ -n "$dec_value" ]; then
+                        # Get length of hex string to handle different formats
+                        hex_len=${#clean_hex}
+                        
+                        # Handle small hex values (≤ 2 digits)
+                        if [ "$hex_len" -le 2 ]; then
+                            major=0
+                            minor=0
+                            patch="$dec_value"
+                        else
+                            # Extract version components using bitwise operations:
+                            # For hex b01 (2817 decimal):
+                            # major: bits 15-12 (0 in this case)
+                            # minor: bits 11-8  (11 in this case)
+                            # patch: bits 7-0   (1 in this case)
+                            major=$(( dec_value >> 12 & 15 ))  # Get highest 4 bits
+                            minor=$(( dec_value >> 8 & 15 ))   # Get next 4 bits
+                            patch=$(( dec_value & 255 ))       # Get lowest 8 bits
+                        fi
+                        
+                        # Format version string (e.g., "0.11.1")
+                        version_string="$major.$minor.$patch"
+                        # Combine with binary version (e.g., "0.11.1 [11023]")
+                        apatch_version="$version_string [$binary_version]"
+                    else
+                        apatch_version="Unknown"
+                    fi
+                fi
+            else
+                apatch_version="Unknown"
+            fi
+        else
+            apatch_version="Unknown"
+        fi
+        # Final result (e.g., "APatch installed (0.11.1 [11023])")
+        # I haven't tested it against older versions yet, but I'm sure it will works somehow and hopefully for the future versions as well
+        echo "APatch installed ($apatch_version)"
     else
         echo 'Unknown root solution, possible candidates:'
         for candidate in /data/adb/*; do
