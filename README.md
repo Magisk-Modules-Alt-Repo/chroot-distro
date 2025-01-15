@@ -265,7 +265,6 @@ Overall Note:
 1. Install VNC Server  
 Download and install any VNC viewer app.
   * RealVNC Viewer
-  * VNC Viewer by RealVNC
   * bVNC Pro
   * MultiVNC
 
