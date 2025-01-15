@@ -436,7 +436,7 @@ draw_menu() {
 draw_distro_menu() {
     clear
     echo -e "\n${logolight}${logo}"
-    echo -e "\n\n${normal}Login to Distro"
+    echo -e "\n${normal}Login to Distro"
     echo -e "${error}${formatted_distro}\n"
     echo -e "${normal}${infoa[RANDOM % ${#infoa[@]}]}"
     echo -e "${normal}${infob[RANDOM % ${#infob[@]}]}\n"
