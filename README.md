@@ -10,7 +10,7 @@ chroot-distro :
 └── distro2/
 ```
 + All necessary system paths are mounted automatically
-+ GUI applications is possible through VNC or X11 forwarding
++ GUI applications are possible through VNC or X11 forwarding
 ___
 ## Requirements
 
@@ -60,8 +60,8 @@ chroot-distro requires root access to function. While running as root:
 
 ### Careful
 Before running chroot-distro:
-* Always Backup your important files
-* Always Backup your system partitions
+* Always backup your important files
+* Always backup your system partitions
 
 ### Remember
 This warning applies to all root-level operations, not just chroot-distro.
@@ -128,6 +128,7 @@ Usage Note:
 chroot-distro backup <distro> [path]
 # Remove backup
 chroot-distro unbackup <distro>
+
 # Restore backup
 chroot-distro restore <distro> [path]
 # Restore to defaults
@@ -158,6 +159,7 @@ Usage Note:
 ```
 # Run specific command
 chroot-distro command <distro> "command"
+
 # Login to distro
 chroot-distro login <distro>
 ```
@@ -260,16 +262,24 @@ Overall Note:
 ![Debian GUI over VNC](screenshot/debian_vnc.png)
 ![Ubuntu GUI over VNC](screenshot/ubuntu.png)
 
-1. Install Required Packages  
+1. Install VNC Server  
+Download and install any VNC viewer app.
+  * RealVNC Viewer
+  * VNC Viewer by RealVNC
+  * bVNC Pro
+  * MultiVNC
+
+2. Install Required Packages  
 (Assuming that you're already installed the Chroot Distro)  
 Inside your chroot environment:
 ```
 apt update
 apt upgrade
-apt install tightvncserver nano dbus-x11 xfce4 xfce4-goodies xfce4-terminal
+apt install tightvncserver
+apt install nano dbus-x11 xfce4 xfce4-goodies xfce4-terminal
 ```
 
-2. Set Up Desktop Environment
+3. Set Up Desktop Environment
 ```
 # Configure Terminal
 update-alternatives --config x-terminal-emulator
@@ -284,7 +294,7 @@ vncserver -kill :1
 echo 'startxfce4 &' >> ~/.vnc/xstartup
 ```
 
-3. Launch Desktop Environment
+4. Launch Desktop Environment
 ```
 # Start VNC
 vncserver
@@ -315,12 +325,13 @@ pkg install virglrenderer-android
 Inside your chroot environment, Install XFCE4:
 ```
 apt install xfce4
+
 # Optional: Make sure to set up mpd.conf for music/audio server before running 'Audio Server'.
 apt install mpd
 ```
 
 4. Launch the Desktop Environment Easily
-![Screenshot_20250113-153820_Termux~4](https://github.com/user-attachments/assets/3f5db05f-fdde-40da-aab1-bb754ca98e35)
+![chroot-xfce.sh](https://github.com/user-attachments/assets/3f5db05f-fdde-40da-aab1-bb754ca98e35)
 Note: Make sure to run the script in Termux.
 
 Save this script as "chroot-xfce.sh" as it provides user-friendly menu and use it to launch your XFCE4 desktop environment later:
@@ -385,7 +396,7 @@ logo="
 | |   | '_ \| '__/ _ \ / _ \| __| | | | | / __| __| '__/ _ \ 
 | |___| | | | | (_) | (_) | |_  | |_| | \__ \ |_| | | (_) |
  \____|_| |_|_|  \___/ \___/ \__| |____/|_|___/\__|_|  \___/
-                              v1.1-final the.puer@discord"
+ v1.2 the.puer@discord | YasserNull@github | jjkola@github!!"
 
 # Tips array
 infoa=("[Info] Use Up/Down to navigate."
@@ -404,7 +415,7 @@ wait_for_key_press() {
 draw_menu() {
     clear
     echo -e "\n${logolight}${logo}"
-    echo -e "${normal}Login to Distro"
+    echo -e "\n${normal}Login to Distro"
     echo -e "${error}${formatted_distro}\n"
     echo -e "${normal}${infoa[RANDOM % ${#infoa[@]}]}"
     echo -e "${normal}${infob[RANDOM % ${#infob[@]}]}\n"
@@ -425,7 +436,7 @@ draw_menu() {
 draw_distro_menu() {
     clear
     echo -e "\n${logolight}${logo}"
-    echo -e "${normal}Login to Distro"
+    echo -e "\n\n${normal}Login to Distro"
     echo -e "${error}${formatted_distro}\n"
     echo -e "${normal}${infoa[RANDOM % ${#infoa[@]}]}"
     echo -e "${normal}${infob[RANDOM % ${#infob[@]}]}\n"
@@ -491,6 +502,24 @@ select_distro() {
     done
 }
 
+# Function to unmount remaining mounted points
+unmount_chroot() {
+    local chmount="/data/local/chroot-distro/$selected_distro"
+    
+    for leftover in dev sys proc dev/pts sdcard system data \
+             storage/emulated storage/self \
+             "data/local/chroot-distro/$selected_distro/storage/emulated" \
+             "data/local/chroot-distro/$selected_distro/storage/self"; do
+        su -c "mount | grep -q '$chmount/$leftover'" >/dev/null 2>&1 && \
+        su -c "umount -l '$chmount/$leftover'" >/dev/null 2>&1
+    done
+
+    su -c "mount | grep '$chmount' | awk '{print \$3}'" | \
+    while read leftover; do
+        su -c "umount -l '$leftover'" >/dev/null 2>&1
+    done
+}
+
 # Function for the option
 start_termux_server() {
     pkill -f com.termux.x11
@@ -508,21 +537,28 @@ start_termux_server() {
 
 audio_server() {
     select_distro || return 1
+    unmount_chroot
     echo -e "\nRunning Audio Server for $selected_distro..."
     start_termux_server
-    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session && clear && mpd\""
+    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session && mpd\""
+    clear
 }
 
 login_cli() {
     select_distro || return 1
+    unmount_chroot
+    clear
     echo -e "\nLogging in as CLI to $selected_distro..."
+    tput cnorm
     read -rp "Enter username: " username
     sudo chroot-distro command "$selected_distro" "su -l $username"
 }
 
 login_gui() {
     select_distro || return 1
+    unmount_chroot
     echo -e "\nLogging in as GUI to $selected_distro..."
+    tput cnorm
     read -rp "Enter username: " username
     start_termux_server
     am start --user 0 -n com.termux.x11/com.termux.x11.MainActivity
@@ -559,8 +595,9 @@ while true; do
             case "${options[$selected]}" in
                 "Audio Server")
                     audio_server
-                    echo -e "You can login as CLI now.\nSelect 'Login CLI' to login!\n"
+                    echo -e "\nYou can login as CLI now.\nSelect 'Login CLI' to login!\n"
                     wait_for_key_press
+                    $HOME/chroot-xfce.sh
                     ;;
                 "Login CLI")
                     su -c mount -o remount,dev,suid /data
