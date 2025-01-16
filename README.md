@@ -260,7 +260,7 @@ Overall Note:
 ![Debian GUI over VNC](screenshot/debian_vnc.png)
 ![Ubuntu GUI over VNC](screenshot/ubuntu.png)
 
-1. Install VNC Server  
+1. Install VNC app  
 Download and install any VNC viewer app.
   * RealVNC Viewer
   * bVNC Pro
