@@ -226,7 +226,7 @@ By default Android prevents suid usage under `/data` folder. This will prevent u
 Remount /data for the current process with needed capabilities
 ```
 # Should be executed only once during setup, not on every login!
-su -c "mount -o remount,suid /data"
+su -c "mount -o remount,dev,suid /data"
 ```
 
 2. Image File Method
