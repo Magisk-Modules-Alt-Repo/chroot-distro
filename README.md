@@ -176,7 +176,7 @@ chroot-distro download ubuntu
 chroot-distro install ubuntu
 chroot-distro install --android debian
 chroot-distro login ubuntu
-chroot-distro command debian "su -l root" 
+chroot-distro command debian "sudo -i -u root" 
 ```
 >*Replace `<distro>` with your chosen distribution identifier.*
 
