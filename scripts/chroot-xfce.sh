@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Set colors and styles
 normal=$(tput sgr0)
@@ -8,6 +8,8 @@ title=$(tput bold; tput setaf 2)
 error=$(tput setaf 1)
 hide_cursor=$(tput civis)
 show_cursor=$(tput cnorm)
+
+chrootdistro_dir=/data/local/chroot-distro
 
 # Menu options
 options=("Audio Server" "Login CLI" "Login GUI")
@@ -31,7 +33,7 @@ get_installed_distros() {
             done
         fi
     done < <(sudo chroot-distro list)
-    
+
     if [ ${#installed_distros[@]} -eq 0 ]; then
         echo "No distributions installed."
         exit 1
@@ -41,8 +43,8 @@ get_installed_distros() {
 # Format installed distros for display
 format_installed_distros() {
     local distro_list
-    distro_list=$(printf "%s " "${installed_distros[@]}")
-    formatted_distro="Installed = [ ${distro_list%* } ]"
+    distro_list=$(echo -e "${installed_distros[@]}") 
+    formatted_distro="Installed = [ ${distro_list} ]" 
 }
 
 # ASCII art logo
@@ -52,7 +54,7 @@ logo="
 | |   | '_ \| '__/ _ \ / _ \| __| | | | | / __| __| '__/ _ \ 
 | |___| | | | | (_) | (_) | |_  | |_| | \__ \ |_| | | (_) |
  \____|_| |_|_|  \___/ \___/ \__| |____/|_|___/\__|_|  \___/
-                              v1.1-final the.puer@discord"
+                                     v1.2 the.puer@discord"
 
 # Tips array
 infoa=("[Info] Use Up/Down to navigate."
@@ -71,7 +73,7 @@ wait_for_key_press() {
 draw_menu() {
     clear
     echo -e "\n${logolight}${logo}"
-    echo -e "${normal}Login to Distro"
+    echo -e "\n${normal}Login to Distro"
     echo -e "${error}${formatted_distro}\n"
     echo -e "${normal}${infoa[RANDOM % ${#infoa[@]}]}"
     echo -e "${normal}${infob[RANDOM % ${#infob[@]}]}\n"
@@ -79,12 +81,12 @@ draw_menu() {
     echo -e "${title}-- Main Menu --${normal}"
     for i in "${!options[@]}"; do
         if [[ $i -eq $selected ]]; then
-            printf " ${highlight}> ${options[$i]} ${normal}\n"
+            echo -ne " ${highlight}> ${options[$i]} ${normal}\n"
         else
-            printf "   ${options[$i]}\n"
+            echo -ne "   ${options[$i]}\n"
         fi
     done
-    
+
     echo -e "\n${normal}(Use Up/Down arrows, Enter, Escape, q, Home, or End)"
 }
 
@@ -92,7 +94,7 @@ draw_menu() {
 draw_distro_menu() {
     clear
     echo -e "\n${logolight}${logo}"
-    echo -e "${normal}Login to Distro"
+    echo -e "\n${normal}Login to Distro"
     echo -e "${error}${formatted_distro}\n"
     echo -e "${normal}${infoa[RANDOM % ${#infoa[@]}]}"
     echo -e "${normal}${infob[RANDOM % ${#infob[@]}]}\n"
@@ -100,12 +102,12 @@ draw_distro_menu() {
     echo -e "${title}-- Select Distro --${normal}"
     for i in "${!installed_distros[@]}"; do
         if [[ $i -eq $selected_distro_index ]]; then
-            printf " ${highlight}> ${installed_distros[$i]} ${normal}\n"
+            echo -ne " ${highlight}> ${installed_distros[$i]} ${normal}\n"
         else
-            printf "   ${installed_distros[$i]}\n"
+            echo -ne "   ${installed_distros[$i]}\n"
         fi
     done
-    
+
     echo -e "\n${normal}(Use Up/Down arrows, Enter to select, Escape or q to exit)"
 }
 
@@ -113,9 +115,9 @@ draw_distro_menu() {
 select_distro() {
     selected_distro_index=0
     distro_selected=false
-    
+
     draw_distro_menu
-    
+
     while true; do
         stty -echo
         read -r -sN1 char
@@ -135,7 +137,7 @@ select_distro() {
                     '[F') # End
                         selected_distro_index=$((${#installed_distros[@]} - 1))
                         ;;
-                    *) 
+                    *)
                         stty echo
                         echo -e "$show_cursor"
                         return 1
@@ -144,7 +146,7 @@ select_distro() {
                 ;;
             $'\n'|$'\r') # Enter
                 selected_distro="${installed_distros[$selected_distro_index]}"
-                distro_selected=true
+                export distro_selected=true
                 stty echo
                 return 0
                 ;;
@@ -158,13 +160,42 @@ select_distro() {
     done
 }
 
+# Function to unmount remaining mounted points
+unmount_chroot() {
+  local chmount="$chrootdistro_dir/$selected_distro"
+
+  sudo chroot-distro unmount "$selected_distro" &> /dev/null
+
+  local leftover=(
+    "$chmount/data"
+    "$chmount/tmp"
+    "$chmount/dev"
+  )
+
+  for mount_point in "${leftover[@]}"; do
+    if [[ -d "$mount_point" ]]; then
+      su -c "umount -l '$mount_point'" 2>/dev/null
+    fi
+  done
+}
+
+# Function to fix sudo
+sudo_fix() {
+  if su -c "mountpoint -q /data && grep -q 'dev,suid' /proc/mounts | grep -q /data" 2>/dev/null; then
+    return 0
+  fi
+
+  su -c "mount -o remount,dev,suid /data" 2>/dev/null
+  return $?
+}
+
 # Function for the option
 start_termux_server() {
     pkill -f com.termux.x11
     sudo pkill mpd
     killall -9 termux-x11 Xwayland pulseaudio virgl_test_server_android termux-wake-lock
     sudo fuser -k 4713/tcp
-    sudo busybox mount --bind "$PREFIX/tmp" /data/local/chroot-distro/"$selected_distro"/tmp
+    sudo busybox mount --bind "$PREFIX/tmp" "$chrootdistro_dir"/"$selected_distro"/tmp
     XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
     sleep 2
     pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
@@ -175,25 +206,34 @@ start_termux_server() {
 
 audio_server() {
     select_distro || return 1
+    unmount_chroot
     echo -e "\nRunning Audio Server for $selected_distro..."
     start_termux_server
-    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session && clear && mpd\""
+    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session && mpd\""
+    clear
 }
 
 login_cli() {
     select_distro || return 1
+    unmount_chroot
+    clear
     echo -e "\nLogging in as CLI to $selected_distro..."
+    echo -ne "$show_cursor"
     read -rp "Enter username: " username
+
     sudo chroot-distro command "$selected_distro" "su -l $username"
 }
 
 login_gui() {
     select_distro || return 1
+    unmount_chroot
     echo -e "\nLogging in as GUI to $selected_distro..."
+    echo -ne "$show_cursor"
     read -rp "Enter username: " username
     start_termux_server
     am start --user 0 -n com.termux.x11/com.termux.x11.MainActivity
-    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session sudo -u $username startxfce4\""
+
+    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session && sudo -U $username startxfce4\""
 }
 
 # Initialize
@@ -226,15 +266,16 @@ while true; do
             case "${options[$selected]}" in
                 "Audio Server")
                     audio_server
-                    echo -e "You can login as CLI now.\nSelect 'Login CLI' to login!\n"
+                    echo -e "\nYou can login as CLI now.\nSelect 'Login CLI' to login!\n"
                     wait_for_key_press
+                    "$(readlink -f "$0")"
                     ;;
                 "Login CLI")
-                    su -c mount -o remount,dev,suid /data
+                    sudo_fix
                     login_cli
                     ;;
                 "Login GUI")
-                    su -c mount -o remount,dev,suid /data
+                    sudo_fix
                     login_gui
                     ;;
             esac
