@@ -1602,6 +1602,11 @@ chroot_distro_login() {
         exit 1
     fi
 
+    if [ "$1" = "archlinux" ] || [ "$1" = "manjaro" ] || [ "$1" = "artix" ]; then
+        mount --bind "$distro_path" "$distro_path"
+    fi
+    
+
     chroot_distro_mount_system_points "$distro_path" no
 
     chroot_distro_jail "$distro_path"
