@@ -11,7 +11,7 @@ fi
 [ ! -d /data/adb/modules/busybox-ndk ] && ui_print "- Warning: You are installing this module in $mode without busybox-ndk installed"
 dos2unix "$MODPATH/system/bin/chroot-distro"
 set_perm_recursive "$MODPATH/system" 0 0 0755 0755
-ui_print "chroot-distro installation completed"
+ui_print "- chroot-distro installation completed"
 
 
 
