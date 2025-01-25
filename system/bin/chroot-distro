@@ -1164,7 +1164,9 @@ chroot_distro_install() {
             exit 5
         fi
     fi
-
+    if [ "$1" = "archlinux" ] || [ "$1" = "manjaro" ] || [ "$1" = "artix" ]; then
+        mount --bind "$distro_path" "$distro_path"
+    fi
     chroot_distro_mount_system_points "$distro_path" "$use_android"
 
     resolvconf="$distro_path"/etc/resolv.conf
@@ -1601,6 +1603,11 @@ chroot_distro_login() {
         echo "$1 not installed"
         exit 1
     fi
+
+    if [ "$1" = "archlinux" ] || [ "$1" = "manjaro" ] || [ "$1" = "artix" ]; then
+        mount --bind "$distro_path" "$distro_path"
+    fi
+    
 
     chroot_distro_mount_system_points "$distro_path" no
 
