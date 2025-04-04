@@ -1172,7 +1172,9 @@ chroot_distro_install() {
         rm "$resolvconf"
     fi
     echo "nameserver 8.8.8.8" > "$resolvconf"
+    echo "nameserver 8.8.4.4" >> "$resolvconf"
     echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
+    echo "::1 ip6-localhost" >> "$distro_path"/etc/hosts
     chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null
     chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
     chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
@@ -1505,7 +1507,9 @@ chroot_distro_restore() {
             rm "$resolvconf"
         fi
         echo "nameserver 8.8.8.8" > "$resolvconf"
+        echo "nameserver 8.8.4.4" >> "$resolvconf"
         echo "127.0.0.1 localhost" > "$distro_path"/etc/hosts
+        echo "::1 ip6-localhost" >> "$distro_path"/etc/hosts
         chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null
         chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
         chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
