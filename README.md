@@ -371,6 +371,14 @@ Code quality:
 - Document warning exceptions with `# shellcheck disable=SCXXXX` and explanatory comments
 - For shell scripting guidance, refer to [Grymoire's tutorial](https://www.grymoire.com/Unix/Sh.html)
 
+### Error Detection
+To enable command monitoring and stop on errors, use:
+```
+export chroot_distro_log=""
+```
+- Displays executed commands.
+- Stops immediately on error with line number.
+
 ## Semantic Versioning
 
 `chroot-distro` uses semantic versioning for version numbers. Versioning uses three levels: major, minor and patch. Major version changes when there are breaking changes in API. Minor version changes for new features (or significant changes that don't break compatibility). Patch version is only for bug fixes or very small changes (no breaking changes).
