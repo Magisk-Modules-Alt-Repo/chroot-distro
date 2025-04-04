@@ -233,7 +233,7 @@ login_gui() {
     start_termux_server
     am start --user 0 -n com.termux.x11/com.termux.x11.MainActivity
 
-    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session && sudo -U $username startxfce4\""
+    su -c "chroot-distro command $selected_distro \"export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && dbus-launch --exit-with-session && sudo -u $username startxfce4\""
 }
 
 # Initialize
