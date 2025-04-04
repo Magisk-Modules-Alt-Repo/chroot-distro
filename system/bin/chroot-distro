@@ -5,6 +5,12 @@
 # Code is licensed under terms of GNU GPL v3, see LICENSE file
 # for the full terms.
 
+if [ ! -z "${chroot_distro_log+x}" ]; then
+  set -e
+  set -x
+  trap 'echo "Error at line $LINENO"' ERR
+fi
+
 chroot_distro_path="/data/local/chroot-distro"
 script=$(basename "$0")
 
