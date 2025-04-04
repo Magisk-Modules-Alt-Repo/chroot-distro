@@ -365,17 +365,10 @@ if [ $? -ne 4 ]; then
     exit 1
 fi
 
-# get a unique name
-non_existent_file=$(mktemp -u)
-
-tar_output=$(tar -t -J -f "$non_existent_file.tar.xz" 2>&1)
-if [ "1" = "$(echo "$tar_output" | grep -i -c "(invalid|unknown) option")" ]; then
+if ! tar --help 2>&1 | grep -q -- "-J" ; then
     echo 'Your Busybox tar does not support xz compression. Update your busybox!'
-    echo "Run '$script env' for extra information"
     exit 1
 fi
-
-unset non_existent_file
 
 if [ ! -d "$chroot_distro_path/" ]; then
     mkdir -p $chroot_distro_path/
