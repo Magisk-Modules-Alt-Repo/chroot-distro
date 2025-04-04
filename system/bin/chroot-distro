@@ -1178,7 +1178,9 @@ chroot_distro_install() {
     chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
     chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
     chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
-    chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+    timezone="$(getprop persist.sys.timezone)"
+    chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 2>/dev/null 
+    unset timezone
     chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
     chroot_distro_jail "$distro_path"
 }
@@ -1508,8 +1510,10 @@ chroot_distro_restore() {
         chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null
         chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null
         chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-        chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
-        chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime 2>/dev/null
+        chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null 
+        timezone="$(getprop persist.sys.timezone)"
+        chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 2>/dev/null 
+        unset timezone
         chroot "$distro_path" /sbin/locale-gen en_US.UTF-8 2>/dev/null
     fi
     chroot_distro_jail "$distro_path"
