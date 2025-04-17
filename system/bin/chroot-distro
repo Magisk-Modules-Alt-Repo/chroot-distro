@@ -901,7 +901,6 @@ chroot_distro_mount_system_point() {
 chroot_distro_mount_system_points() {
     distro_path="$1"
     use_android="$2"
-    mount -o remount,dev,suid /data 
     chroot_distro_mount_system_point /dev "$distro_path/dev"
     chroot_distro_mount_system_point /sys "$distro_path/sys"
     chroot_distro_mount_system_point /proc "$distro_path/proc"
