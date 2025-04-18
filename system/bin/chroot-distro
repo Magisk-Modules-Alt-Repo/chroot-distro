@@ -795,7 +795,7 @@ chroot_distro_download() {
 }
 
 chroot_distro_check_if_supported() {
-    echo "$1" | tr ' ' '\n' | while read -r distro; do
+    echo "$supported_distros" | tr ' ' '\n' | while read -r distro; do
         if [ "$distro" = "$2" ]; then
             return 99;
         fi
@@ -803,7 +803,8 @@ chroot_distro_check_if_supported() {
     if [ $? -eq 99 ]; then
         return 0;
     else
-        return 1;
+        echo "unavailable distro $2"
+        exit 1
     fi
 }
 
@@ -828,10 +829,7 @@ chroot_distro_find_all_loopback_mount_points() {
 }
 
 chroot_distro_delete() {
-    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
-        echo "unavailable distro $1"
-        exit 1
-    fi
+    chroot_distro_check_if_supported "$1"
 
     archive_path="$chroot_distro_path/.rootfs/$1.tar.xz"
     if [ -f "$archive_path" ]; then
@@ -1101,10 +1099,7 @@ chroot_distro_jail() {
 chroot_distro_install() {
     distro=$1
     use_android=$2
-    if ! chroot_distro_check_if_supported "$supported_distros" "$distro"; then
-        echo "unavailable distro $distro"
-        exit 1
-    fi
+    chroot_distro_check_if_supported "$distro"
 
     archive_path="$chroot_distro_path/.rootfs/$distro.tar.xz"
     if [ ! -f "$archive_path" ]; then
@@ -1224,10 +1219,7 @@ chroot_distro_list_unmount_issues() {
 }
 
 chroot_distro_uninstall() {
-    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
-        echo "unavailable distro $1"
-        exit 1
-    fi
+    chroot_distro_check_if_supported "$1" 
 
     distro_path="$chroot_distro_path/$1"
     force=$2
@@ -1269,10 +1261,7 @@ chroot_distro_uninstall() {
 chroot_distro_backup() {
     distro=$1
     custom_path=$2
-    if ! chroot_distro_check_if_supported "$supported_distros" "$distro"; then
-        echo "unavailable distro $distro"
-        exit 1
-    fi
+    chroot_distro_check_if_supported "$distro
 
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
@@ -1376,10 +1365,7 @@ chroot_distro_find_archive_common_path() {
 }
 
 chroot_distro_unbackup() {
-    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
-        echo "unavailable distro $1"
-        exit 1
-    fi
+    chroot_distro_check_if_supported "$1"
 
     backup_path="$chroot_distro_path/.backup/$1.tar.xz"
     if [ -f "$backup_path" ]; then
@@ -1395,10 +1381,7 @@ chroot_distro_restore() {
     custom_backup_path="$2"
     restore_defaults="$3"
     force="$4"
-    if ! chroot_distro_check_if_supported "$supported_distros" "$distro"; then
-        echo "unavailable distro $distro"
-        exit 1
-    fi
+    chroot_distro_check_if_supported "$distro"
 
     distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
@@ -1568,10 +1551,7 @@ chroot_distro_unmount() {
 }
 
 chroot_distro_command() {
-    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
-        echo "unavailable distro $1"
-        exit 1
-    fi
+    chroot_distro_check_if_supported "$1"
 
     command="$2"
 
@@ -1587,10 +1567,7 @@ chroot_distro_command() {
 }
 
 chroot_distro_login() {
-    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
-        echo "unavailable distro $1"
-        exit 1
-    fi
+    chroot_distro_check_if_supported "$1"
 
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
