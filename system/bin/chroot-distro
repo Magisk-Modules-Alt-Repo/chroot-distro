@@ -1582,7 +1582,7 @@ chroot_distro_user_check_parameters() {
 }
 
 chroot_distro_missing_distro() {
-    chroot_distro_invalid_parameters "misssing distro"
+    chroot_distro_invalid_parameters "missing distro"
 }
 
 if [ $# -eq 0 ]; then
