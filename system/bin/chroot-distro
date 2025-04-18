@@ -29,6 +29,8 @@ case "$(uname -m)" in
 esac
 unset machine
 
+supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+
 check_env=''
 if [ $# -ge 1 ] && [ "env" = "$1" ]; then
     check_env=true
@@ -826,8 +828,7 @@ chroot_distro_find_all_loopback_mount_points() {
 }
 
 chroot_distro_delete() {
-    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
+    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
@@ -1100,8 +1101,7 @@ chroot_distro_jail() {
 chroot_distro_install() {
     distro=$1
     use_android=$2
-    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+    if ! chroot_distro_check_if_supported "$supported_distros" "$distro"; then
         echo "unavailable distro $distro"
         exit 1
     fi
@@ -1224,8 +1224,7 @@ chroot_distro_list_unmount_issues() {
 }
 
 chroot_distro_uninstall() {
-    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
+    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
@@ -1270,8 +1269,7 @@ chroot_distro_uninstall() {
 chroot_distro_backup() {
     distro=$1
     custom_path=$2
-    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+    if ! chroot_distro_check_if_supported "$supported_distros" "$distro"; then
         echo "unavailable distro $distro"
         exit 1
     fi
@@ -1378,8 +1376,7 @@ chroot_distro_find_archive_common_path() {
 }
 
 chroot_distro_unbackup() {
-    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
+    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
@@ -1398,8 +1395,7 @@ chroot_distro_restore() {
     custom_backup_path="$2"
     restore_defaults="$3"
     force="$4"
-    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+    if ! chroot_distro_check_if_supported "$supported_distros" "$distro"; then
         echo "unavailable distro $distro"
         exit 1
     fi
@@ -1523,8 +1519,7 @@ chroot_distro_unmount() {
     distro="$1"
     force="$2"
     all="$3"
-    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$distro"; then
+    if ! chroot_distro_check_if_supported "$supported_distros" "$distro"; then
         echo "unavailable distro $distro"
         exit 1
     fi
@@ -1573,8 +1568,7 @@ chroot_distro_unmount() {
 }
 
 chroot_distro_command() {
-    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
+    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
@@ -1593,8 +1587,7 @@ chroot_distro_command() {
 }
 
 chroot_distro_login() {
-    supported="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
-    if ! chroot_distro_check_if_supported "$supported" "$1"; then
+    if ! chroot_distro_check_if_supported "$supported_distros" "$1"; then
         echo "unavailable distro $1"
         exit 1
     fi
