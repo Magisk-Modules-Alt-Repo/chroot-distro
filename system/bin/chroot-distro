@@ -584,7 +584,7 @@ chroot_distro_download() {
         echo "[3] alpine rpi latest"
         echo "[4] alpine uboot latest"
         while true; do
-            printf "Enter a number (1-6, or 'q' to quit): "
+            printf "Enter a number (1-4, or 'q' to quit): "
             read -r number
             case "$number" in
                 1) rootfs="minirootfs";break;;
