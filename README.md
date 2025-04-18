@@ -371,7 +371,7 @@ Code quality:
 - Document warning exceptions with `# shellcheck disable=SCXXXX` and explanatory comments
 - For shell scripting guidance, refer to [Grymoire's tutorial](https://www.grymoire.com/Unix/Sh.html)
 
-### Error Detection
+Error Detection: 
 To enable command monitoring and stop on errors, use:
 ```
 export chroot_distro_log=""
