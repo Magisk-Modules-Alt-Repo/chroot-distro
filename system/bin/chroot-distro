@@ -75,8 +75,9 @@ if [ $? -ne 0 ]; then
             echo 'Checking for hidden Busyboxes'
         fi
         for possiblepath in /data/adb/modules/busybox-ndk/system/*/busybox /data/adb/magisk/busybox /data/adb/ksu/bin/busybox /data/adb/ap/bin/busybox; do
-            if [ "" = "$busyboxpath" ] && [ -f "$possiblepath" ]; then
+            if [ -f "$possiblepath" ]; then
                 busyboxpath="$possiblepath"
+                break
             fi
         done;
     fi
