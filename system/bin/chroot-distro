@@ -368,16 +368,7 @@ if ! tar --help 2>&1 | grep -q -- "-J" ; then
     exit 1
 fi
 
-if [ ! -d "$chroot_distro_path/" ]; then
-    mkdir -p $chroot_distro_path/
-fi
-
-if [ ! -d "$chroot_distro_path/.rootfs/" ]; then
-    mkdir -p $chroot_distro_path/.rootfs/
-fi
-if [ ! -d "$chroot_distro_path/.backup/" ]; then
-    mkdir -p $chroot_distro_path/.backup/
-fi
+mkdir -p "$chroot_distro_path" "$chroot_distro_path/.rootfs" "$chroot_distro_path/.backup"
 
 chroot_distro_warn_if_unsupported_busybox() {
     if [ "" != "$unsupported_busybox" ]; then
