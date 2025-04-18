@@ -372,6 +372,7 @@ Code quality:
 - For shell scripting guidance, refer to [Grymoire's tutorial](https://www.grymoire.com/Unix/Sh.html)
 
 Error Detection: 
+
 To enable command monitoring and stop on errors, use:
 ```
 export chroot_distro_log=""
