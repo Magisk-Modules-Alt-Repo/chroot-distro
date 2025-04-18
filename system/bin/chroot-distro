@@ -561,7 +561,7 @@ chroot_distro_download() {
             echo "[6] ubuntu noble 24.04.1"
         fi
         while true; do
-            printf "Enter a number : "
+            printf "Enter a number (1-6, or 'q' to quit): " 
             read -r number
             case "$number" in
                 1) release="trusty";release_version="14.04.6"; break;;
@@ -570,7 +570,8 @@ chroot_distro_download() {
                 4) release="focal";release_version="20.04.5"; break;;
                 5) release="jammy";release_version="22.04.5"; break;;
                 6) release="noble";release_version="24.04.1"; break;;
-                *) echo "Unknown option : $number";;
+                q) echo "Operation cancelled"; exit 1;;
+                *) echo "Invalid option: $number. Please try again.";;
             esac
         done
 
@@ -583,14 +584,15 @@ chroot_distro_download() {
         echo "[3] alpine rpi latest"
         echo "[4] alpine uboot latest"
         while true; do
-            printf "Enter a number : "
+            printf "Enter a number (1-6, or 'q' to quit): "
             read -r number
             case "$number" in
                 1) rootfs="minirootfs";break;;
                 2) rootfs="netboot"; break;;
                 3) rootfs="rpi"; break;;
                 4) rootfs="uboot";break;;
-                *) echo "Unknown option : $number";;
+                q) echo "Operation cancelled"; exit 1;;
+                *) echo "Invalid option: $number. Please try again.";;
             esac
         done
 
@@ -603,13 +605,14 @@ chroot_distro_download() {
         echo "[2] kali linux minimal current"
         echo "[3] kali linux nano current"
         while true; do
-            printf "Enter a number : "
+            printf "Enter a number (1-3, or 'q' to quit): "
             read -r number
             case "$number" in
                 1) rootfs="full";rootfs_version="current"; break;;
                 2) rootfs="minimal";rootfs_version="current"; break;;
                 3) rootfs="nano";rootfs_version="current"; break;;
-                *) echo "Unknown option : $number";;
+                q) echo "Operation cancelled"; exit 1;;
+                *) echo "Invalid option: $number. Please try again.";;
             esac
         done
 
@@ -621,13 +624,14 @@ chroot_distro_download() {
         echo "[2] Debian bullseye (proot-distro)"
         echo "[3] Debian bookworm (proot-distro)"
         while true; do
-            printf "Enter a number : "
+            printf "Enter a number (1-3, or 'q' to quit): "
             read -r number
             case "$number" in
                 1) rootfs="debian"; break;;
                 2) rootfs="debian_bullseye"; break;;
                 3) rootfs="debian_bookworm";break;;
-                *) echo "Unknown option : $number";;
+                q) echo "Operation cancelled"; exit 1;;
+                *) echo "Invalid option: $number. Please try again.";;
             esac
         done
 
@@ -742,7 +746,7 @@ chroot_distro_download() {
         echo "[6] void linux 20210316"
         echo "[7] void linux 20210218"
         while true; do
-            printf "Enter a number : "
+            printf "Enter a number (1-7, or 'q' to quit): "
             read -r number
             case "$number" in
                 1) rootfs="current"; break;;
@@ -752,7 +756,8 @@ chroot_distro_download() {
                 5) rootfs="20210930"; break;;
                 6) rootfs="20210316"; break;;
                 7) rootfs="20210218";break;;
-                *) echo "Unknown option : $number";;
+                q) echo "Operation cancelled"; exit 1;;
+                *) echo "Invalid option: $number. Please try again.";;
             esac
         done
 
