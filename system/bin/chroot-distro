@@ -1300,7 +1300,7 @@ chroot_distro_backup() {
     if [ "" = "$lsofpath" ]; then
         echo "Warning: supported lsof not found, open files and/or programs currently running in jail will not be found."
         echo "In the case of errors run \`lsof | grep -F '$distro_path/'\` manually"
-    elif [ "0" != "$open_file_count" ]; then
+    elif [ "$open_file_count" -ne 0 ]; then
         echo "Warning: Open files detected, backup may fail (at least partially)"
     fi
 
@@ -1308,7 +1308,7 @@ chroot_distro_backup() {
     # (same reasons as system mount points)
     mounts=$(mount | grep -F "$distro_path")
     loopbacks=$(losetup -a | grep -F "$distro_path")
-    if [ "0" != "$mounts" ] || [ "0" != "$loopbacks" ]; then
+    if [ -n "$mounts" ] || [ -n "$loopbacks" ]; then
         echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
         echo
         echo "To automatically unmount mount points mentioned below, run \`$script unmount -a $1\`"
