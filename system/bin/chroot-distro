@@ -20,18 +20,13 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 machine=$(uname -m)
-if [ "$machine" = "aarch64" ] || [ "$machine" = "arm64" ]; then
-    hardware_machine="arm64"
-elif [ "$machine" = "arm" ] || [ "$machine" = "armel" ] || [ "$machine" = "armhf" ] || [ "$machine" = "armhfp" ] || [ "$machine" = "armv7" ] || [ "$machine" = "armv7l" ] || [ "$machine" = "armv7a" ] || [ "$machine" = "armv8l" ]; then
-    hardware_machine="armhf"
-elif [ "$machine" = "386" ] || [ "$machine" = "i386" ] || [ "$machine" = "i686" ] || [ "$machine" = "x86" ]; then
-    hardware_machine="i386"
-elif [ "$machine" = "amd64" ] || [ "$machine" = "x86_64" ]; then
-    hardware_machine="amd64"
-else
-    echo "Unsupported machine hardware: $machine"
-    exit 1
-fi
+case "$(uname -m)" in
+    aarch64|arm64) hardware_machine="arm64" ;;
+    arm|armel|armhf|armhfp|armv7|armv7l|armv7a|armv8l) hardware_machine="armhf" ;;
+    386|i386|i686|x86) hardware_machine="i386" ;;
+    amd64|x86_64) hardware_machine="amd64" ;;
+    *) echo "Unsupported machine hardware: $(uname -m)"; exit 1 ;;
+esac
 unset machine
 
 check_env=''
