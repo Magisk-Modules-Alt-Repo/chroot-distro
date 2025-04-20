@@ -559,6 +559,12 @@ chroot_distro_download() {
         fi
         if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[6] ubuntu noble 24.04.1"
+        fi 
+        if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
+            echo "[7] ubuntu oracular 24.10"
+        fi
+        if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
+            echo "[8] ubuntu plucky 25.04"
         fi
         while true; do
             printf "Enter a number (1-8, or 'q' to quit): " 
