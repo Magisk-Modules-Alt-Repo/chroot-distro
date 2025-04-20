@@ -443,25 +443,30 @@ chroot_distro_list_item() {
 
 # Notice: if you change one of the base urls, remember to check that the full download link is still correct
 # as some of the full urls may have the version information multiple times
+proot_distro_rootfs_base_url=https://github.com/termux/proot-distro/releases/download 
+anlinux_rootfs_base_url=https://github.com/EXALAB/Anlinux-Resources
+# proot distro rootfs: 
+debian_rootfs_base_url_prootdistro=$proot_distro_rootfs_base_url/v4.7.0/
+fedora_rootfs_base_url=$proot_distro_rootfs_base_url/v4.15.0/
+manjaro_rootfs_base_url=$proot_distro_rootfs_base_url/v4.14.1/
+openkylin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.10.0/
+pardus_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
+opensuse_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
+artix_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
+deepin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
+#... 
 ubuntu_rootfs_base_url=https://cdimage.ubuntu.com/ubuntu-base/releases/
 kali_rootfs_base_url=http://kali.download/nethunter-images/
-debian_rootfs_base_url_anlinux=https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Debian/
-debian_rootfs_base_url_prootdistro=https://github.com/termux/proot-distro/releases/download/v4.7.0/
-parrot_rootfs_base_url=https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Parrot/
 alpine_rootfs_base_url=http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/
 void_rootfs_base_url=https://repo-default.voidlinux.org/live/
 archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
 archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
-artix_rootfs_base_url=https://github.com/termux/proot-distro/releases/download/v4.6.0/
-deepin_rootfs_base_url=https://github.com/termux/proot-distro/releases/download/v4.16.0/
-fedora_rootfs_base_url=https://github.com/termux/proot-distro/releases/download/v4.15.0/
-manjaro_rootfs_base_url=https://github.com/termux/proot-distro/releases/download/v4.14.1/
-openkylin_rootfs_base_url=https://github.com/termux/proot-distro/releases/download/v4.10.0/
-pardus_rootfs_base_url=https://github.com/termux/proot-distro/releases/download/v4.6.0/
-opensuse_rootfs_base_url=https://github.com/termux/proot-distro/releases/download/v4.6.0/
-backbox_rootfs_base_url=https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/BackBox/
-centos_rootfs_base_url=https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/
-centos_stream_rootfs_base_url=https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS_Stream/
+# AnLinux rootfs: 
+debian_rootfs_base_url_anlinux=$anlinux_rootfs_base_url/raw/master/Rootfs/Debian/
+parrot_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/Parrot/
+backbox_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/BackBox/
+centos_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS/
+centos_stream_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS_Stream/
 
 chroot_distro_list() {
     echo "Ubuntu : ubuntu
