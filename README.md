@@ -207,6 +207,9 @@ Note: Use lowercase identifiers for it to be properly identified.
 | Pardus         | `pardus`       |
 | Ubuntu         | `ubuntu`       |
 | Void Linux     | `void`         |
+| Rocky          | `rocky`        |
+| Adelie         | `Adelie`       |
+| Chimera        | `chimera`      |
 
 ## Download Releases
 
