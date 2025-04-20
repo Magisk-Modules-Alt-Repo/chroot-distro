@@ -447,7 +447,6 @@ proot_distro_rootfs_base_url=https://github.com/termux/proot-distro/releases/dow
 anlinux_rootfs_base_url=https://github.com/EXALAB/Anlinux-Resources
 # proot distro rootfs: 
 debian_rootfs_base_url_prootdistro=$proot_distro_rootfs_base_url/v4.7.0/
-fedora_rootfs_base_url=$proot_distro_rootfs_base_url/v4.15.0/
 manjaro_rootfs_base_url=$proot_distro_rootfs_base_url/v4.14.1/
 openkylin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.10.0/
 pardus_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
@@ -506,7 +505,7 @@ Rootfs : $deepin_rootfs_base_url"
     fi
     if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
         echo "Fedora : fedora
-Rootfs : $fedora_rootfs_base_url"
+Rootfs : $proot_distro_rootfs_base_url"
         chroot_distro_list_item fedora
     fi
     if [ "$hardware_machine" = "arm64" ]; then
@@ -678,11 +677,26 @@ chroot_distro_download() {
 
     elif [ "$distro" = "fedora" ]; then
         distro_name='Fedora'
-
+        echo "[1] fedora  4.24.0"
+        echo "[2] fedora 4.23.0"
+        echo "[3] fedora 4.17.3"
+        echo "[4] fedora 4.15.0"
+        while true; do
+            printf "Enter a number (1-4, or 'q' to quit): " 
+            read -r number
+            case "$number" in
+                1) release_version="4.24.0"; break;;
+                2) release_version="4.23.0"; break;;
+                3) release_version="4.17.3"; break;;
+                4) release_version="4.15.0"; break;;
+                q) echo "Operation cancelled"; exit 1;;
+                *) echo "Invalid option: $number. Please try again.";;
+            esac
+        done
         if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${fedora_rootfs_base_url}fedora-aarch64-pd-v4.15.0.tar.xz"
+            download_url="${proot_distro_rootfs_base_url}/${release_version}/fedora-aarch64-pd-${release_version}.tar.xz"
         elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${fedora_rootfs_base_url}fedora-x86_64-pd-v4.15.0.tar.xz"
+            download_url="${proot_distro_rootfs_base_url}/${release_version}/fedora-aarch64-pd-${release_version}.tar.xz"
         fi
 
     elif [ "$distro" = "openkylin" ]; then
