@@ -561,7 +561,7 @@ chroot_distro_download() {
             echo "[6] ubuntu noble 24.04.1"
         fi
         while true; do
-            printf "Enter a number (1-6, or 'q' to quit): " 
+            printf "Enter a number (1-8, or 'q' to quit): " 
             read -r number
             case "$number" in
                 1) release="trusty";release_version="14.04.6"; break;;
@@ -570,6 +570,8 @@ chroot_distro_download() {
                 4) release="focal";release_version="20.04.5"; break;;
                 5) release="jammy";release_version="22.04.5"; break;;
                 6) release="noble";release_version="24.04.1"; break;;
+                7) release="oracular";release_version="24.10"; break;; 
+                8) release="plucky";release_version="25.04"; break;; 
                 q) echo "Operation cancelled"; exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
