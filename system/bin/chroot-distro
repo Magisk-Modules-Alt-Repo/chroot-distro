@@ -29,7 +29,7 @@ case "$(uname -m)" in
 esac
 unset machine
 
-supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream"
+supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream rocky adelie chimera"
 
 check_env=''
 if [ $# -ge 1 ] && [ "env" = "$1" ]; then
@@ -453,6 +453,9 @@ pardus_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
 opensuse_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
 artix_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
 deepin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
+rocky_rootfs_base_url=$proot_distro_rootfs_base_url/v4.20.0/
+adelie_rootfs_base_url=$proot_distro_rootfs_base_url/v4.19.0/
+chimera_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
 #... 
 ubuntu_rootfs_base_url=https://cdimage.ubuntu.com/ubuntu-base/releases/
 kali_rootfs_base_url=http://kali.download/nethunter-images/
@@ -538,6 +541,21 @@ Rootfs : $centos_rootfs_base_url"
         echo "CentOS Stream : centos_stream
 Rootfs : $centos_stream_rootfs_base_url"
         chroot_distro_list_item centos_stream
+    fi
+if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
+        echo "Rocky : rocky
+Rootfs : $rocky_rootfs_base_url"
+        chroot_distro_list_item rocky 
+    fi
+if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ] || [ "$hardware_machine" = "armhf" ]; then
+        echo "Adelie : adelie
+Rootfs : $adelie_rootfs_base_url"
+        chroot_distro_list_item adelie
+    fi
+if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
+        echo "Chimera : chimera
+Rootfs : $chimera_rootfs_base_url"
+        chroot_distro_list_item chimera
     fi
 }
 
@@ -707,7 +725,33 @@ chroot_distro_download() {
         elif [ "$hardware_machine" = "amd64" ]; then
             download_url="${openkylin_rootfs_base_url}openkylin-x86_64-pd-v4.10.0.tar.xz"
         fi
+        elif [ "$distro" = "rocky" ]; then
+        distro_name='Rocky'
 
+        if [ "$hardware_machine" = "arm64" ]; then
+            download_url="${rocky_rootfs_base_url}rocky-aarch64-pd-v4.20.0.tar.xz"
+        elif [ "$hardware_machine" = "amd64" ]; then
+            download_url="${rocky_rootfs_base_url}rocky-x86_64-pd-v4.20.0.tar.xz"
+        fi
+        elif [ "$distro" = "chimera" ]; then
+        distro_name='Chimera'
+
+        if [ "$hardware_machine" = "arm64" ]; then
+            download_url="${chimera_rootfs_base_url}chimera-aarch64-pd-v4.16.0.tar.xz"
+        elif [ "$hardware_machine" = "amd64" ]; then
+            download_url="${chimera_rootfs_base_url}chimera-x86_64-pd-v4.16.0.tar.xz"
+        fi
+       elif [ "$distro" = "adelie" ]; then
+        distro_name='Adelie'
+
+        if [ "$hardware_machine" = "arm64" ]; then
+            download_url="${adelie_rootfs_base_url}adelie-aarch64-pd-v4.19.0.tar.xz"
+        elif [ "$hardware_machine" = "armhf" ]; then
+            download_url="${adelie_rootfs_base_url}adelie-arm-pd-v4.19.0.tar.xz"
+        elif [ "$hardware_machine" = "amd64" ]; then
+            download_url="${adelie_rootfs_base_url}adelie-x86_64-pd-v4.19.0.tar.xz"
+        fi
+        
     elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
 
