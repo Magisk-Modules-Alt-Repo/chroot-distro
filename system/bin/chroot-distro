@@ -544,26 +544,13 @@ chroot_distro_download() {
 
         if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[1] ubuntu trusty 14.04.6"
-        fi
-        if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[2] ubuntu xenial 16.04.6"
-        fi
-        if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[3] ubuntu bionic 18.04.5"
-        fi
         if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[4] ubuntu focal 20.04.5"
-        fi
-        if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[5] ubuntu jammy 22.04.5"
-        fi
-        if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[6] ubuntu noble 24.04.1"
-        fi 
-        if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[7] ubuntu oracular 24.10"
-        fi
-        if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[8] ubuntu plucky 25.04"
         fi
         while true; do
