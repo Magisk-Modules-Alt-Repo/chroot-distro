@@ -696,7 +696,7 @@ chroot_distro_download() {
         if [ "$hardware_machine" = "arm64" ]; then
             download_url="${proot_distro_rootfs_base_url}/${release_version}/fedora-aarch64-pd-${release_version}.tar.xz"
         elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${proot_distro_rootfs_base_url}/${release_version}/fedora-aarch64-pd-${release_version}.tar.xz"
+            download_url="${proot_distro_rootfs_base_url}/${release_version}/fedora-x86_64-pd-${release_version}.tar.xz"
         fi
 
     elif [ "$distro" = "openkylin" ]; then
