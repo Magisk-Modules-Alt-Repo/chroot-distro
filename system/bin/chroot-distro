@@ -454,15 +454,15 @@ opensuse_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
 artix_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
 deepin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
 rocky_rootfs_base_url=$proot_distro_rootfs_base_url/v4.20.0/
-adelie_rootfs_base_url=$proot_distro_rootfs_base_url/v4.19.0/
 chimera_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
-#... 
+# Official rootfs: 
 ubuntu_rootfs_base_url=https://cdimage.ubuntu.com/ubuntu-base/releases/
 kali_rootfs_base_url=http://kali.download/nethunter-images/
 alpine_rootfs_base_url=http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/
 void_rootfs_base_url=https://repo-default.voidlinux.org/live/
 archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
 archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
+adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/
 # AnLinux rootfs: 
 debian_rootfs_base_url_anlinux=$anlinux_rootfs_base_url/raw/master/Rootfs/Debian/
 parrot_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/Parrot/
@@ -743,15 +743,28 @@ chroot_distro_download() {
         fi
        elif [ "$distro" = "adelie" ]; then
         distro_name='Adelie'
+        echo "[1] adelie linux full"
+        echo "[2] adelie linux minimal"
+
+        while true; do
+            printf "Enter a number (1-2, or 'q' to quit): "
+            read -r number
+            case "$number" in
+                1) rootfs="full"; break;;
+                2) rootfs="minimal"; break;;
+                q) echo "Operation cancelled"; exit 1;;
+                *) echo "Invalid option: $number. Please try again.";;
+            esac
+        done
 
         if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${adelie_rootfs_base_url}adelie-aarch64-pd-v4.19.0.tar.xz"
+            download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-aarch64-1.0-beta6-20241223.txz"
         elif [ "$hardware_machine" = "armhf" ]; then
-            download_url="${adelie_rootfs_base_url}adelie-arm-pd-v4.19.0.tar.xz"
+            download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-armv7-1.0-beta6-20241223.txz"
         elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${adelie_rootfs_base_url}adelie-x86_64-pd-v4.19.0.tar.xz"
+            download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-x86_64-1.0-beta6-20241223.txz"
         fi
-        
+
     elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
 
