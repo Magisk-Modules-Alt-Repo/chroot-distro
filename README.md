@@ -210,6 +210,7 @@ Note: Use lowercase identifiers for it to be properly identified.
 | Rocky          | `rocky`        |
 | Adelie         | `Adelie`       |
 | Chimera        | `chimera`      |
+| Gentoo         | `gentoo`       |
 
 ## Download Releases
 
