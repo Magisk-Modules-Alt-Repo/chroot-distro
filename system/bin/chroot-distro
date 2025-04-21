@@ -29,7 +29,7 @@ case "$(uname -m)" in
 esac
 unset machine
 
-supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream rocky adelie chimera"
+supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream rocky adelie chimera gentoo"
 
 check_env=''
 if [ $# -ge 1 ] && [ "env" = "$1" ]; then
@@ -463,6 +463,7 @@ void_rootfs_base_url=https://repo-default.voidlinux.org/live/
 archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
 archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
 adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/
+gentoo_rootfs_base_url=https://distfiles.gentoo.org/releases/
 # AnLinux rootfs: 
 debian_rootfs_base_url_anlinux=$anlinux_rootfs_base_url/raw/master/Rootfs/Debian/
 parrot_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/Parrot/
@@ -557,6 +558,9 @@ if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
 Rootfs : $chimera_rootfs_base_url"
         chroot_distro_list_item chimera
     fi
+echo "Gentoo : gentoo
+Rootfs : $Gentoo_rootfs_base_url"
+    chroot_distro_list_item gentoo
 }
 
 chroot_distro_download() {
@@ -806,7 +810,17 @@ chroot_distro_download() {
         elif [ "$hardware_machine" = "amd64" ]; then
             download_url="${centos_stream_rootfs_base_url}amd64/centos_stream-rootfs-amd64.tar.xz"
         fi
-
+        elif [ "$distro" = "gentoo" ]; then
+        distro_name='gentoo'
+        if [ "$hardware_machine" = "arm64" ]; then
+            download_url="${gentoo_rootfs_base_url}arm64/autobuilds/current-stage3-arm64-openrc/stage3-arm64-openrc-20250420T230518Z.tar.xz"
+        elif [ "$hardware_machine" = "amd64" ]; then
+            download_url="${gentoo_rootfs_base_url}amd64/autobuilds/current-stage3-amd64-openrc/stage3-amd64-openrc-20250420T121009Z.tar.xz"
+        elif [ "$hardware_machine" = "armhf" ]; then
+            download_url="${gentoo_rootfs_base_url}arm/autobuilds/current-stage3-armv7a-openrc/stage3-armv7a-openrc-20250416T215027Z.tar.xz"
+         elif [ "$hardware_machine" = "i386" ]; then
+            download_url="${gentoo_rootfs_base_url}x86/autobuilds/current-stage3-i686-openrc/stage3-i686-openrc-20250414T165036Z.tar.xz"
+        fi
     elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
 
