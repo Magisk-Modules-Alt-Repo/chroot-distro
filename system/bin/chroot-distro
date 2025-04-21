@@ -1065,7 +1065,7 @@ chroot_distro_check_if_system_points_mounted() {
                 fi
                 partial=
                 # strip quotes, assumes that path is 'some/path', ie. both start and end has quotes
-                full="$(expr "$full" : '.\(.*\).')"
+                full="${full:1:${#full}-2}"
 
                 if chroot_distro_check_if_system_point_mounted "$full"; then
                     return 0
@@ -1328,7 +1328,7 @@ chroot_distro_uninstall() {
 chroot_distro_backup() {
     distro=$1
     custom_path=$2
-    chroot_distro_check_if_supported "$distro
+    chroot_distro_check_if_supported "$distro" 
 
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
