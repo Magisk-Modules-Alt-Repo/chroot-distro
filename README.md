@@ -200,7 +200,7 @@ Note: Use lowercase identifiers for it to be properly identified.
 | Artix Linux    | `artix`        |
 | Debian         | `debian`       |
 | Deepin         | `deepin`       |
-| Fedora 39      | `fedora`       |
+| Fedora         | `fedora`       |
 | Manjaro        | `manjaro`      |
 | OpenKylin      | `openkylin`    |
 | OpenSUSE       | `opensuse`     |
