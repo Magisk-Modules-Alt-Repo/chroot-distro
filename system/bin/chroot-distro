@@ -886,17 +886,13 @@ chroot_distro_download() {
 }
 
 chroot_distro_check_if_supported() {
-    echo "$supported_distros" | tr ' ' '\n' | while read -r distro; do
-        if [ "$distro" = "$2" ]; then
-            return 99;
+    for distro in $supported_distros; do
+        if [ "$distro" = "$1" ]; then
+            return 0
         fi
     done
-    if [ $? -eq 99 ]; then
-        return 0;
-    else
-        echo "unavailable distro $2"
-        exit 1
-    fi
+    echo "unavailable distro $1"
+    exit 1
 }
 
 chroot_distro_find_processes_with_open_files() {
@@ -1591,10 +1587,7 @@ chroot_distro_unmount() {
     distro="$1"
     force="$2"
     all="$3"
-    if ! chroot_distro_check_if_supported "$supported_distros" "$distro"; then
-        echo "unavailable distro $distro"
-        exit 1
-    fi
+    chroot_distro_check_if_supported "$distro" 
 
     distro_path="$chroot_distro_path/$distro"
     if [ ! -d "$distro_path" ]; then
