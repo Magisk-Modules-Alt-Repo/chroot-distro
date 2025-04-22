@@ -454,7 +454,6 @@ opensuse_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
 artix_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
 deepin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
 rocky_rootfs_base_url=$proot_distro_rootfs_base_url/v4.20.0/
-chimera_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
 # Official rootfs: 
 ubuntu_rootfs_base_url=https://cdimage.ubuntu.com/ubuntu-base/releases/
 kali_rootfs_base_url=http://kali.download/nethunter-images/
@@ -464,6 +463,7 @@ archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
 archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
 adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/
 gentoo_rootfs_base_url=https://distfiles.gentoo.org/releases/
+chimera_rootfs_base_url=https://repo.chimera-linux.org/live/20250420/
 # AnLinux rootfs: 
 debian_rootfs_base_url_anlinux=$anlinux_rootfs_base_url/raw/master/Rootfs/Debian/
 parrot_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/Parrot/
@@ -739,11 +739,22 @@ chroot_distro_download() {
         fi
         elif [ "$distro" = "chimera" ]; then
         distro_name='Chimera'
-
+        echo "[1] chimera full"
+        echo "[2] chimera minimal"
+        while true; do
+            printf "Enter a number (1-2, or 'q' to quit): "
+            read -r number
+            case "$number" in
+                1) rootfs="full"; break;;
+                2) rootfs="bootstrap"; break;;
+                q) echo "Operation cancelled"; exit 1;;
+                *) echo "Invalid option: $number. Please try again.";;
+            esac
+        done
         if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${chimera_rootfs_base_url}chimera-aarch64-pd-v4.16.0.tar.xz"
+            download_url="${chimera_rootfs_base_url}chimera-linux-aarch64-ROOTFS-20250420-${rootfs}.tar.gz"
         elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${chimera_rootfs_base_url}chimera-x86_64-pd-v4.16.0.tar.xz"
+            download_url="${chimera_rootfs_base_url}chimera-linux-x86_64-ROOTFS-20250420-${rootfs}.tar.gz"
         fi
        elif [ "$distro" = "adelie" ]; then
         distro_name='Adelie'
