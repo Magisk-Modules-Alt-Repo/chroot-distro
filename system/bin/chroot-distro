@@ -825,15 +825,13 @@ chroot_distro_download() {
         fi
         elif [ "$distro" = "gentoo" ]; then
         distro_name='gentoo'
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${gentoo_rootfs_base_url}arm64/autobuilds/current-stage3-arm64-openrc/stage3-arm64-openrc-20250420T230518Z.tar.xz"
-        elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${gentoo_rootfs_base_url}amd64/autobuilds/current-stage3-amd64-openrc/stage3-amd64-openrc-20250420T121009Z.tar.xz"
-        elif [ "$hardware_machine" = "armhf" ]; then
-            download_url="${gentoo_rootfs_base_url}arm/autobuilds/current-stage3-armv7a-openrc/stage3-armv7a-openrc-20250416T215027Z.tar.xz"
-         elif [ "$hardware_machine" = "i386" ]; then
-            download_url="${gentoo_rootfs_base_url}x86/autobuilds/current-stage3-i686-openrc/stage3-i686-openrc-20250414T165036Z.tar.xz"
-        fi
+        case "$hardware_machine" in
+            arm64|amd64|i386) arch="$hardware_machine" ;;
+            armhf) arch="armv7a" ;;
+           *) exit 1 ;;
+        esac
+       version=$(curl -s "https://distfiles.gentoo.org/releases/${arch}/autobuilds/current-stage3-${arch}-openrc/" | grep -oE "stage3-${arch}-openrc-[0-9]{8}T[0-9]{6}Z\.tar\.xz" | sed -E "s/.*stage3-${arch}-openrc-([0-9]{8}T[0-9]{6}Z)\.tar\.xz/\1/" | head -n 1)
+       download_url="${gentoo_rootfs_base_url}${arch}/autobuilds/current-stage3-${arch}-openrc/stage3-${arch}-openrc-${version}.tar.xz"
     elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
         download_url="${void_rootfs_base_url}current/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
