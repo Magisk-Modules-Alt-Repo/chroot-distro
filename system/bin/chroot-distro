@@ -66,10 +66,8 @@ if [ "" != "$check_env" ]; then
     echo "Toybox version: $(toybox --version)"
 fi
 
-busyboxpath="$(command -v busybox 2> /dev/null)"
-# shellcheck disable=SC2181
-# need both ouput and error code thus needs indirect error checking
-if [ $? -ne 0 ]; then
+busyboxpath="$(command -v busybox 2> /dev/null || true)"
+if [ -z "$busyboxpath" ]; then
     busyboxpath=''
     if [ -e /data/adb ]; then
         # try harder... -- thanks for the pointer, @osm0sis
