@@ -832,35 +832,7 @@ chroot_distro_download() {
         fi
     elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
-
-        echo "[1] void linux current"
-        echo "[2] void linux 20240314"
-        echo "[3] void linux 20230628"
-        echo "[4] void linux 20221001"
-        echo "[5] void linux 20210930"
-        echo "[6] void linux 20210316"
-        echo "[7] void linux 20210218"
-        while true; do
-            printf "Enter a number (1-7, or 'q' to quit): "
-            read -r number
-            case "$number" in
-                1) rootfs="current"; break;;
-                2) rootfs="20240314"; break;;
-                3) rootfs="20230628"; break;;
-                4) rootfs="20221001";break;;
-                5) rootfs="20210930"; break;;
-                6) rootfs="20210316"; break;;
-                7) rootfs="20210218";break;;
-                q) echo "Operation cancelled"; exit 1;;
-                *) echo "Invalid option: $number. Please try again.";;
-            esac
-        done
-
-        if [ "$rootfs" = "current" ]; then
-            download_url="$void_rootfs_base_url$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
-        else
-            download_url="$void_rootfs_base_url$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$rootfs.tar.xz"
-        fi
+        download_url="$void_rootfs_base_url$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
     else
         echo "Unavailable distro: $distro"
         exit 90
