@@ -622,22 +622,23 @@ chroot_distro_download() {
 
     elif [ "$distro" = "kali" ]; then
         distro_name='Kali Linux'
-        echo "[1] kali linux full current"
-        echo "[2] kali linux minimal current"
-        echo "[3] kali linux nano current"
+        echo "[1] kali linux full"
+        echo "[2] kali linux minimal"
+        echo "[3] kali linux nano"
         while true; do
             printf "Enter a number (1-3, or 'q' to quit): "
             read -r number
             case "$number" in
-                1) rootfs="full";rootfs_version="current"; break;;
-                2) rootfs="minimal";rootfs_version="current"; break;;
-                3) rootfs="nano";rootfs_version="current"; break;;
+                1) rootfs="full"; break;;
+                2) rootfs="minimal"; break;;
+                3) rootfs="nano"; break;;
                 q) echo "Operation cancelled"; exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
 
-        download_url="$kali_rootfs_base_url$rootfs_version/rootfs/kali-nethunter-rootfs-$rootfs-$hardware_machine.tar.xz"
+        version="$(curl -s $kali_rootfs_base_url | grep -oE "kali-nethunter-[0-9]+\.[0-9]+-generic-${hardware_machine}-${rootfs_version}\.zip" | head -n 1 | sed -E 's/kali-nethunter-([0-9]+\.[0-9]+)-.*/\1/')"
+        download_url="${kali_rootfs_base_url}current/kali-nethunter-${version}-generic-${hardware_machine}-${rootfs_version}\.zip"
 
     elif [ "$distro" = "debian" ]; then
         distro_name='Debian'
