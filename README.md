@@ -390,6 +390,25 @@ export chroot_distro_log=""
 - Displays executed commands.
 - Stops immediately on error with line number.
 
+Check rootfs urls: 
+
+1. Download the provided code:  
+[scripts/check_rootfs_urls.sh](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/tree/main/scripts/check_rootfs_urls.sh)
+
+2. Make it executable:
+```
+chmod +x check_rootfs_urls.sh
+```
+
+3. Run the script:
+```
+./check_rootfs_urls.sh
+or
+bash check_rootfs_urls.sh
+```
+
+If you see a red link, report it in the [issues](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/issues) section.
+
 ## Semantic Versioning
 
 `chroot-distro` uses semantic versioning for version numbers. Versioning uses three levels: major, minor and patch. Major version changes when there are breaking changes in API. Minor version changes for new features (or significant changes that don't break compatibility). Patch version is only for bug fixes or very small changes (no breaking changes).
