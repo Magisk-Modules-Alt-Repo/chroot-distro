@@ -159,7 +159,7 @@ fi
 
 busyboxlsofcaller=''
 busyboxlsof=''
-if [ "" != "$busyboxpath" ] && "$busyboxpath" lsof > /dev/null 2>&1; then
+if [ "" != "$busyboxpath" ] && "$busyboxpath" lsof > /dev/null 2>&1 || true; then
     # prefer the version provided by the found busybox binary
     busyboxlsofcaller=true
     busyboxlsof=true
@@ -1024,7 +1024,9 @@ chroot_distro_unmount_system_point() {
         # then hope for the best...
     fi
     # no need to check for the success as the caller will take care of that
-    umount "$mount_point"
+    if ! umount "$mount_point" || true; then
+    echo "Warning: Failed to unmount $mount_point"
+    fi
 }
 
 chroot_distro_unmount_system_points() {
@@ -1049,8 +1051,11 @@ chroot_distro_check_if_system_point_mounted() {
         # nothing to do, mount point missing
         return 1
     fi
-    mountpoint -q "$mount_point" 2>/dev/null
-    return $?
+    if mountpoint -q "$mount_point" 2>/dev/null || true; then
+       return 0
+    else
+       return 1
+    fi
 }
 
 chroot_distro_check_if_system_points_mounted() {
@@ -1221,7 +1226,7 @@ chroot_distro_install() {
         exit 5
     fi
     if [ "." = "$rootdir" ]; then
-        mkdir "$distro_path"
+        mkdir -p "$distro_path"
         if ! tar -xf "$archive_path" -C "$distro_path/"; then
             echo "Error: Unpacking the archive failed"
             exit 5
@@ -1400,13 +1405,11 @@ chroot_distro_backup() {
         fi
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -caf "$backup_path" "$distro"
+            if ! tar -caf "$backup_path" "$distro" 2>/dev/null || true; then
+                echo "Error: creating the backup failed"
+                exit 5
+            fi
         )
-        # shellcheck disable=SC2181
-        if [ $? -ne 0 ]; then
-            echo "Error: creating the backup failed"
-            exit 5
-        fi
     else
         absolute_custom_path="$custom_path"
         if [ "$custom_path" = "${custom_path#/}" ]; then
@@ -1415,13 +1418,11 @@ chroot_distro_backup() {
         fi
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -caf "$absolute_custom_path" "$distro"
+            if ! tar -caf "$absolute_custom_path" "$distro" 2>/dev/null || true; then
+                echo "Error: creating the backup failed"
+                exit 5
+            fi
         )
-        # shellcheck disable=SC2181
-        if [ $? -ne 0 ]; then
-            echo "Error: creating the backup failed"
-            exit 5
-        fi
     fi
 }
 
@@ -1511,10 +1512,8 @@ chroot_distro_restore() {
 
     if [ "." = "$rootdir" ]; then
         # backup has relative path, restoring is not a problem
-        mkdir "$distro_path"
-        tar -xf "$backup_path" -C "$distro_path/"
-        # shellcheck disable=SC2181
-        if [ $? -ne 0 ]; then
+        mkdir -p "$distro_path"
+        if ! tar -xf "$backup_path" -C "$distro_path/" 2>/dev/null || true; then
             echo "Error: Unpacking the archive failed"
             exit 5
         fi
@@ -1525,13 +1524,11 @@ chroot_distro_restore() {
         # fill the internal storage. There is also possibility of using wrong backup.
         (
             cd /
-            tar -xf "$backup_path"
+            if ! tar -xf "$backup_path" 2>/dev/null || true; then
+                echo "Error: Unpacking the archive failed"
+                exit 5
+            fi
         )
-        # shellcheck disable=SC2181
-        if [ $? -ne 0 ]; then
-            echo "Error: Unpacking the archive failed"
-            exit 5
-        fi
     elif [ "data" = "$rootdir" ]; then
         echo "Will restore from root directory, review the contents and use --force."
         echo "Warning: Old style backup. May contain file backups from sdcard and other system mount points."
@@ -1547,13 +1544,11 @@ chroot_distro_restore() {
         # new format backups
         (
             cd "$chroot_distro_path" || exit 1;
-            tar -xf "$backup_path"
+            if ! tar -xf "$backup_path" 2>/dev/null || true; then
+                echo "Error: Unpacking the archive failed"
+                exit 5
+            fi
         )
-        # shellcheck disable=SC2181
-        if [ $? -ne 0 ]; then
-            echo "Error: Unpacking the archive failed"
-            exit 5
-        fi
     else
         echo "Backup may be for wrong distro (root directory $rootdir), review the backup before proceeding"
         exit 4
