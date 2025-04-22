@@ -774,14 +774,11 @@ chroot_distro_download() {
             esac
         done
 
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-aarch64-1.0-beta6-20241223.txz"
-        elif [ "$hardware_machine" = "armhf" ]; then
-            download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-armv7-1.0-beta6-20241223.txz"
-        elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-x86_64-1.0-beta6-20241223.txz"
-        fi
-
+        case "$hardware_machine" in
+           arm64) version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-aarch64-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1); download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-aarch64-1.0-beta6-${version}.txz";;
+           armhf) version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-armv7-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1); download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-armv7-1.0-beta6-${version}.txz";;
+           amd64) version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-x86_64-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1); download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-x86_64-1.0-beta6-${version}.txz";;
+        esac
     elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
 
