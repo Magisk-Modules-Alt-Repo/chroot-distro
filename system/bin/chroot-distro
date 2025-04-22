@@ -19,7 +19,6 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-machine=$(uname -m)
 case "$(uname -m)" in
     aarch64|arm64) hardware_machine="arm64" ;;
     arm|armel|armhf|armhfp|armv7|armv7l|armv7a|armv8l) hardware_machine="armhf" ;;
@@ -27,7 +26,6 @@ case "$(uname -m)" in
     amd64|x86_64) hardware_machine="amd64" ;;
     *) echo "Unsupported machine hardware: $(uname -m)"; exit 1 ;;
 esac
-unset machine
 
 supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream rocky adelie chimera gentoo"
 
