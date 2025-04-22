@@ -567,14 +567,14 @@ chroot_distro_download() {
         distro_name='Ubuntu'
 
         if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
-            echo "[1] ubuntu trusty 14.04.6"
-            echo "[2] ubuntu xenial 16.04.6"
-            echo "[3] ubuntu bionic 18.04.5"
+            echo "[1] ubuntu trusty 14.04"
+            echo "[2] ubuntu xenial 16.04"
+            echo "[3] ubuntu bionic 18.04"
         fi
-        if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
-            echo "[4] ubuntu focal 20.04.5"
-            echo "[5] ubuntu jammy 22.04.5"
-            echo "[6] ubuntu noble 24.04.1"
+        if [ "$hardware_machine" != "i386" ]; then
+            echo "[4] ubuntu focal 20.04"
+            echo "[5] ubuntu jammy 22.04"
+            echo "[6] ubuntu noble 24.04"
             echo "[7] ubuntu oracular 24.10"
             echo "[8] ubuntu plucky 25.04"
         fi
@@ -582,20 +582,21 @@ chroot_distro_download() {
             printf "Enter a number (1-8, or 'q' to quit): " 
             read -r number
             case "$number" in
-                1) release="trusty";release_version="14.04.6"; break;;
-                2) release="xenial";release_version="16.04.6"; break;;
-                3) release="bionic";release_version="18.04.5"; break;;
-                4) release="focal";release_version="20.04.5"; break;;
-                5) release="jammy";release_version="22.04.5"; break;;
-                6) release="noble";release_version="24.04.1"; break;;
-                7) release="oracular";release_version="24.10"; break;; 
-                8) release="plucky";release_version="25.04"; break;; 
+                1) release="trusty"; break;;
+                2) release="xenial"; break;;
+                3) release="bionic"; break;;
+                4) release="focal"; break;;
+                5) release="jammy"; break;;
+                6) release="noble"; break;;
+                7) release="oracular"; break;; 
+                8) release="plucky"; break;; 
                 q) echo "Operation cancelled"; exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
 
-        download_url="$ubuntu_rootfs_base_url$release/release/ubuntu-base-$release_version-base-$hardware_machine.tar.gz"
+        version=$(curl -s ${ubuntu_rootfs_base_url}${release}/release/ | grep -oE "ubuntu-base-[0-9]+\.[0-9]+-base-${hardware_machine}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+\.[0-9]+)-.*/\1/')
+        download_url="${ubuntu_rootfs_base_url}${release}/release/ubuntu-base-${version}-base-${hardware_machine}.tar.gz"
 
     elif [ "$distro" = "alpine" ]; then
         distro_name='Alpine'
