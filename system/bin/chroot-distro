@@ -697,7 +697,7 @@ chroot_distro_download() {
 
     elif [ "$distro" = "fedora" ]; then
         distro_name='Fedora'
-        echo "[1] fedora  4.24.0"
+        echo "[1] fedora 4.24.0"
         echo "[2] fedora 4.23.0"
         echo "[3] fedora 4.17.3"
         echo "[4] fedora 4.15.0"
@@ -832,7 +832,7 @@ chroot_distro_download() {
         fi
     elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
-        download_url="$void_rootfs_base_url$rootfs/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
+        download_url="${void_rootfs_base_url}current/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
     else
         echo "Unavailable distro: $distro"
         exit 90
