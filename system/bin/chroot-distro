@@ -656,7 +656,7 @@ chroot_distro_download() {
     elif [ "$distro" = "archlinux" ]; then
         distro_name='Arch Linux'
         case "$hardware_machine" in
-             amd64) download_url="${archlinux_rootfs_base_url}archlinux-bootstrap-$(echo "$hardware_machine" | sed 's/arm64/aarch64/; s/amd64/x86_64/; s/armhf/armv7/') .tar.gz";;
+             amd64) download_url="${archlinux_rootfs_base_url}archlinux-bootstrap-$(echo "$hardware_machine" | sed s/amd64/x86_64/).tar.zst";;
              armhf | arm64) download_url="${archlinux_rootfs_base_url_arm}ArchLinuxARM-$(echo "$hardware_machine" | sed 's/arm64/aarch64/; s/amd64/x86_64/; s/armhf/armv7/')-latest.tar.gz";;
         esac
     elif [ "$distro" = "artix" ]; then
