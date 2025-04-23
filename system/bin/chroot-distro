@@ -544,11 +544,9 @@ if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
 Rootfs : $rocky_rootfs_base_url"
         chroot_distro_list_item rocky 
     fi
-if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ] || [ "$hardware_machine" = "armhf" ]; then
         echo "Adelie : adelie
 Rootfs : $adelie_rootfs_base_url"
         chroot_distro_list_item adelie
-    fi
 if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
         echo "Chimera : chimera
 Rootfs : $chimera_rootfs_base_url"
@@ -723,8 +721,8 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ )-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1);
-        download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ )-1.0-beta6-${version}.txz"
+        version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ | sed s/i686/pmmx/)-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1);
+        download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ | sed s/i686/pmmx/)-1.0-beta6-${version}.txz"
     elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
         download_url="${manjaro_rootfs_base_url}manjaro-$(echo $hardware_machine | sed s/arm64/aarch64/)-pd-v4.14.1.tar.xz"
