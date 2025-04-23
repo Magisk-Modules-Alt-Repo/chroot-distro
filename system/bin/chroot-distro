@@ -563,7 +563,6 @@ chroot_distro_download() {
     distro="$1"
     if [ "$distro" = "ubuntu" ]; then
         distro_name='Ubuntu'
-
         if [ "$hardware_machine" = "i386" ] || [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "armhf" ] || [ "$hardware_machine" = "amd64" ]; then
             echo "[1] ubuntu trusty 14.04"
             echo "[2] ubuntu xenial 16.04"
@@ -592,10 +591,8 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-
         version=$(curl -s ${ubuntu_rootfs_base_url}${release}/release/ | grep -oE "ubuntu-base-[0-9]+\.[0-9]+-base-${hardware_machine}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+\.[0-9]+)-.*/\1/')
         download_url="${ubuntu_rootfs_base_url}${release}/release/ubuntu-base-${version}-base-${hardware_machine}.tar.gz"
-
     elif [ "$distro" = "alpine" ]; then
         distro_name='Alpine'
         echo "[1] alpine minirootfs latest"
@@ -614,10 +611,8 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-
         hwm_alpine=$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)
         download_url="$alpine_rootfs_base_url$hwm_alpine/alpine-$rootfs-$(curl -s $alpine_rootfs_base_url$hwm_alpine/ | grep -oE 'alpine-.*[0-9]+\.[0-9]+\.[0-9]+[^"]*(.tar.gz|.tar|.img)' | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | sort -V | tail -n 1)-$hwm_alpine.tar.gz"
-
     elif [ "$distro" = "kali" ]; then
         distro_name='Kali Linux'
         echo "[1] kali linux full"
@@ -634,10 +629,8 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-
         version="$(curl -s $kali_rootfs_base_url | grep -oE "kali-nethunter-[0-9]+\.[0-9]+-generic-${hardware_machine}-${rootfs_version}\.zip" | head -n 1 | sed -E 's/kali-nethunter-([0-9]+\.[0-9]+)-.*/\1/')"
         download_url="${kali_rootfs_base_url}current/kali-nethunter-${version}-generic-${hardware_machine}-${rootfs_version}\.zip"
-
     elif [ "$distro" = "debian" ]; then
         distro_name='Debian'
         echo "[1] Debian (AnLinux)"
@@ -654,42 +647,26 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-
         case "$rootfs" in
              debian) download_url="$debian_rootfs_base_url_anlinux$hardware_machine/debian-rootfs-$hardware_machine.tar.xz";;
              debian_bullseye) download_url="${debian_rootfs_base_url_prootdistro}debian-bullseye-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.7.0.tar.xz";;
              debian_bookworm) download_url="${debian_rootfs_base_url_prootdistro}debian-bookworm-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.7.0.tar.xz";;
         esac
-
     elif [ "$distro" = "parrot" ]; then
         distro_name='Parrot OS'
-
         download_url="$parrot_rootfs_base_url$hardware_machine/parrot-rootfs-$hardware_machine.tar.xz"
-
     elif [ "$distro" = "archlinux" ]; then
         distro_name='Arch Linux'
-
         case "$hardware_machine" in
              amd64) download_url="${archlinux_rootfs_base_url}archlinux-bootstrap-$(echo "$hardware_machine" | sed 's/arm64/aarch64/; s/amd64/x86_64/; s/armhf/armv7/') .tar.gz";;
              armhf | arm64) download_url="${archlinux_rootfs_base_url_arm}ArchLinuxARM-$(echo "$hardware_machine" | sed 's/arm64/aarch64/; s/amd64/x86_64/; s/armhf/armv7/')-latest.tar.gz";;
         esac
-
     elif [ "$distro" = "artix" ]; then
         distro_name='Artix Linux'
-
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${artix_rootfs_base_url}artix-aarch64-pd-v4.6.0.tar.xz"
-        fi
-
+        download_url="${artix_rootfs_base_url}artix-aarch64-pd-v4.6.0.tar.xz"
     elif [ "$distro" = "deepin" ]; then
         distro_name='Deepin'
-
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${deepin_rootfs_base_url}deepin-aarch64-pd-v4.16.0.tar.xz"
-        elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${deepin_rootfs_base_url}deepin-x86_64-pd-v4.16.0.tar.xz"
-        fi
-
+        download_url="${deepin_rootfs_base_url}deepin-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-v4.16.0.tar.xz"
     elif [ "$distro" = "fedora" ]; then
         distro_name='Fedora'
         echo "[1] fedora 4.24.0"
@@ -708,28 +685,14 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${proot_distro_rootfs_base_url}/${release_version}/fedora-aarch64-pd-${release_version}.tar.xz"
-        elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${proot_distro_rootfs_base_url}/${release_version}/fedora-x86_64-pd-${release_version}.tar.xz"
-        fi
-
+        download_url="${proot_distro_rootfs_base_url}/${release_version}/fedora-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-${release_version}.tar.xz"
+    
     elif [ "$distro" = "openkylin" ]; then
         distro_name='OpenKylin'
-
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${openkylin_rootfs_base_url}openkylin-aarch64-pd-v4.10.0.tar.xz"
-        elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${openkylin_rootfs_base_url}openkylin-x86_64-pd-v4.10.0.tar.xz"
-        fi
+        download_url="${openkylin_rootfs_base_url}openkylin-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-v4.10.0.tar.xz"
         elif [ "$distro" = "rocky" ]; then
         distro_name='Rocky'
-
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${rocky_rootfs_base_url}rocky-aarch64-pd-v4.20.0.tar.xz"
-        elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${rocky_rootfs_base_url}rocky-x86_64-pd-v4.20.0.tar.xz"
-        fi
+        download_url="${rocky_rootfs_base_url}rocky-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-v4.20.0.tar.xz"
         elif [ "$distro" = "chimera" ]; then
         distro_name='Chimera'
         echo "[1] chimera full"
@@ -744,18 +707,12 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        if [ "$hardware_machine" = "arm64" ]; then
-            version="$(curl -s ${chimera_rootfs_base_url}latest | grep -oE "chimera-linux-aarch64-ROOTFS-[0-9]{8}-${rootfs}\.tar.gz" | sed -E 's/.*chimera-linux-aarch64-ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/' | head -n 1)"
-            download_url="${chimera_rootfs_base_url}latest/chimera-linux-aarch64-ROOTFS-${version}-${rootfs}\.tar.gz"
-        elif [ "$hardware_machine" = "amd64" ]; then
-            version="$(curl -s ${chimera_rootfs_base_url}latest | grep -oE "chimera-linux-aarch64-ROOTFS-[0-9]{8}-${rootfs}\.tar.gz" | sed -E 's/.*chimera-linux-x86_64-ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/' | head -n 1)"
-            download_url="${chimera_rootfs_base_url}latest/chimera-linux-x86_64-ROOTFS-${version}-${rootfs}\.tar.gz"
-        fi
+        version="$(curl -s ${chimera_rootfs_base_url}latest | grep -oE "chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-[0-9]{8}-${rootfs}\.tar.gz" | sed -E 's/.*chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/' | head -n 1)"
+        download_url="${chimera_rootfs_base_url}latest/chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-${version}-${rootfs}\.tar.gz"
        elif [ "$distro" = "adelie" ]; then
         distro_name='Adelie'
         echo "[1] adelie linux full"
         echo "[2] adelie linux minimal"
-
         while true; do
             printf "Enter a number (1-2, or 'q' to quit): "
             read -r number
@@ -766,62 +723,30 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-
-        case "$hardware_machine" in
-           arm64) version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-aarch64-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1); download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-aarch64-1.0-beta6-${version}.txz";;
-           armhf) version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-armv7-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1); download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-armv7-1.0-beta6-${version}.txz";;
-           amd64) version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-x86_64-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1); download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-x86_64-1.0-beta6-${version}.txz";;
-        esac
+        version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ )-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1);
+        download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ )-1.0-beta6-${version}.txz"
     elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
-
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${manjaro_rootfs_base_url}manjaro-aarch64-pd-v4.14.1.tar.xz"
-        fi
-
+        download_url="${manjaro_rootfs_base_url}manjaro-$(echo $hardware_machine | sed s/arm64/aarch64/)-pd-v4.14.1.tar.xz"
     elif [ "$distro" = "opensuse" ]; then
         distro_name='OpenSuse'
-
         download_url="${opensuse_rootfs_base_url}opensuse-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.6.0.tar.xz"
-
     elif [ "$distro" = "pardus" ]; then
         distro_name='Pardus'
-
-        if [ "$hardware_machine" != "armhf" ]; then
-            download_url="${pardus_rootfs_base_url}pardus-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.6.0.tar.xz"
-        fi
-
+        download_url="${pardus_rootfs_base_url}pardus-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.6.0.tar.xz"
     elif [ "$distro" = "backbox" ]; then
         distro_name='BackBox'
-
         download_url="$backbox_rootfs_base_url$hardware_machine/backbox-rootfs-$hardware_machine.tar.xz"
-
     elif [ "$distro" = "centos" ]; then
         distro_name='CentOS'
-
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${centos_rootfs_base_url}arm64/centos-rootfs-arm64.tar.xz"
-        elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${centos_rootfs_base_url}amd64/centos-rootfs-amd64.tar.xz"
-        fi
-
+        download_url="${centos_rootfs_base_url}${hardware_machine}/centos-rootfs-${hardware_machine}.tar.xz"
     elif [ "$distro" = "centos_stream" ]; then
         distro_name='CentOS Stream'
-
-        if [ "$hardware_machine" = "arm64" ]; then
-            download_url="${centos_stream_rootfs_base_url}arm64/centos_stream-rootfs-arm64.tar.xz"
-        elif [ "$hardware_machine" = "amd64" ]; then
-            download_url="${centos_stream_rootfs_base_url}amd64/centos_stream-rootfs-amd64.tar.xz"
-        fi
+        download_url="${centos_stream_rootfs_base_url}${hardware_machine}/centos_stream-rootfs-${hardware_machine}.tar.xz"
         elif [ "$distro" = "gentoo" ]; then
         distro_name='gentoo'
-        case "$hardware_machine" in
-            arm64|amd64|i386) arch="$hardware_machine" ;;
-            armhf) arch="armv7a" ;;
-           *) exit 1 ;;
-        esac
-       version=$(curl -s "https://distfiles.gentoo.org/releases/${arch}/autobuilds/current-stage3-${arch}-openrc/" | grep -oE "stage3-${arch}-openrc-[0-9]{8}T[0-9]{6}Z\.tar\.xz" | sed -E "s/.*stage3-${arch}-openrc-([0-9]{8}T[0-9]{6}Z)\.tar\.xz/\1/" | head -n 1)
-       download_url="${gentoo_rootfs_base_url}${arch}/autobuilds/current-stage3-${arch}-openrc/stage3-${arch}-openrc-${version}.tar.xz"
+        version=$(curl -s "https://distfiles.gentoo.org/releases/${hardware_machine/armhf/armv7a}/autobuilds/current-stage3-${hardware_machine/armhf/armv7a}-openrc/" | grep -oE "stage3-${hardware_machine/armhf/armv7a}-openrc-[0-9]{8}T[0-9]{6}Z\.tar\.xz" | sed -E "s/.*stage3-${hardware_machine/armhf/armv7a}-openrc-([0-9]{8}T[0-9]{6}Z)\.tar\.xz/\1/" | head -n 1)
+        download_url="${gentoo_rootfs_base_url}${hardware_machine/armhf/armv7a}/autobuilds/current-stage3-${hardware_machine/armhf/armv7a}-openrc/stage3-${hardware_machine/armhf/armv7a}-openrc-${version}.tar.xz"
     elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
         download_url="${void_rootfs_base_url}current/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
@@ -834,7 +759,11 @@ chroot_distro_download() {
         echo "Unsupported machine hardware: $(uname -m)"
         exit 87
     fi
-
+    if ! wget --spider -q -T 10 -t 1 "$download_url"; then
+        echo "Failed to access URL: $download_url"
+        echo "The architecture '$hardware_machine' may not be supported or the URL is unavailable."
+        exit 87
+    fi
     if [ -f "$chroot_distro_path/.rootfs/$distro.tar.xz" ]; then
         echo "Already downloaded."
         exit 89
