@@ -121,7 +121,7 @@ chroot-distro uninstall --force <distro>
 ```
 Usage Note:
 + By default, all Android root directories are not mounted.
-Binding them requires the -a or --android flag
+Binding them requires the `-a` or `--android` flag
 + The reinstall process will stop if files are open or mounts are active. Using `-f` or `--force` will close running processes and unmount active points. For safety, first run without force to see what's running before using the force option.
 
 ### Backup Operations
