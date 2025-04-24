@@ -435,9 +435,9 @@ $script redownload <distro> - redownload rootfs
 $script delete <distro> - delete rootfs
 
 $script install <distro> [-a|--android] - install distro
-    '-a|--android'  Installs also /data and /system folders, by default not installed
+    '-a|--android'  Bind all Android root directories, which are not bound by default
 $script reinstall <distro> [-a|--android] [-f|--force] - reinstall distro
-    '-a|--android'  Installs also /data and /system folders, by default not installed
+    '-a|--android'  Bind all Android root directories, which are not bound by default
     '-f|--force'    Force closing open files (closes the process accessing them)
                     and/or unmounting active mounts. Use with care.
 $script uninstall <distro> [-f|--force] - uninstall distro
@@ -908,25 +908,27 @@ chroot_distro_mount_system_point() {
     fi
 }
 
+mount_android_dirs() {
+  for dir in /*; do
+    case "$dir" in
+      /bin|/boot|/etc|/home|/lib|/media|/opt|/root|/run|/sbin|/srv|/usr|/var)
+        ;;
+      *)
+        [[ " $system_points " == *" $dir "* ]] && continue
+        system_points="$system_points $dir"
+        ;;
+    esac
+  done
+}
+
 chroot_distro_mount_system_points() {
     distro_path="$1"
     use_android="$2"
+    if [ "yes" = "$use_android" ]; then
+        mount_android_dirs
+    fi
     for point in $system_points; do
-        case "$point" in
-            /system)
-                if [ "yes" = "$use_android" ] || [ -d "$distro_path/system" ]; then
-                    chroot_distro_mount_system_point "$point" "$distro_path$point"
-                fi
-                ;;
-            /data)
-                if [ "yes" = "$use_android" ] || [ -d "$distro_path/data" ]; then
-                    chroot_distro_mount_system_point "$point" "$distro_path$point"
-                fi
-                ;;
-            *)
-                chroot_distro_mount_system_point "$point" "$distro_path$point"
-                ;;
-        esac
+        chroot_distro_mount_system_point "$point" "$distro_path$point"
     done
 }
 
@@ -982,50 +984,11 @@ chroot_distro_check_if_system_point_mounted() {
 
 chroot_distro_check_if_system_points_mounted() {
     distro_path="$1"
-    # shellcheck disable=SC2089
-    # quotes are intentionally added
-    # dev/pts is not checked as it is assumed that if dev is mounted then also pts is mounted and if dev is not mounted then pts is not mounted
-    system_paths="'$distro_path/dev' '$distro_path/sys' '$distro_path/proc' '$distro_path/sdcard' '$distro_path/system' '$distro_path/data'"
-    for file in "/storage"/*; do
-        # no need for separator as separator already comes from file variable itself
-        system_paths="$system_paths '$distro_path$file'"
-    done
-
-    # shellcheck disable=SC2090
-    # shellcheck disable=SC2086
-    # double quotes are intentionally omitted
-    set -- $system_paths
-    partial=
-    quote="'"
-    while [ $# -gt 0 ]
-    do
-        # This case shenanigan is required to ensure that if there is space in the path that the path is constructed properly
-        # as we don't use quotes for set parameters. There is still possibility of somebody intentionally using path "/some' /path".
-        # In this case the path will be split wrongly but then again there is likely more pressing issues if somebody gets to do that.
-        case "$1" in
-            *$quote)
-                if [ "" = "$partial" ]; then
-                    full="$1"
-                else
-                    full="$partial $1"
-                fi
-                partial=
-                # strip quotes, assumes that path is 'some/path', ie. both start and end has quotes
-                full="${full:1:${#full}-2}"
-
-                if chroot_distro_check_if_system_point_mounted "$full"; then
-                    return 0
-                fi
-                ;;
-            *)
-                if [ "" = "$partial" ]; then
-                    partial="$1"
-                else
-                    partial="$partial $1"
-                fi
-                ;;
-        esac
-        shift
+    for point in $system_points; do
+        path="$distro_path$point"
+        if chroot_distro_check_if_system_point_mounted "$path"; then
+            return 0
+        fi
     done
     return 1
 }
