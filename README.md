@@ -232,12 +232,14 @@ Install via Manager or flash through custom recovery.
 
 By default Android prevents suid usage under `/data` folder. This will prevent using `sudo` inside the rootfs. There is a few alternatives how this can be solved:
 
-1. Quick Remount  
-Remount /data for the current process with needed capabilities
+1. fixsuid (automatic)
+The fixsuid feature is enabled automatically. It tries to remount /data with the correct suid and dev options, so sudo can work out of the box.
+If you want to disable this and use another method, you can run:
 ```
-# Should be executed only once during setup, not on every login!
-su -c "mount -o remount,dev,suid /data"
+$script fixsuid <enable|disable|default>
 ```
+enable/default: Forces enabling suid handling.
+disable: Disables automatic remount logic.
 
 2. Image File Method
 ```
