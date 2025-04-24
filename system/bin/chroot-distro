@@ -516,92 +516,77 @@ centos_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS/
 centos_stream_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS_Stream/
 
 chroot_distro_list() {
-    echo "Ubuntu : ubuntu
-Rootfs : $ubuntu_rootfs_base_url"
+    echo "Ubuntu : ubuntu"
     chroot_distro_list_item ubuntu
-    echo "Kali Linux : kali
-Rootfs : $kali_rootfs_base_url"
+
+    echo "Kali Linux : kali"
     chroot_distro_list_item kali
-    echo "Debian : debian
-Rootfs : $debian_rootfs_base_url_anlinux
-Rootfs : $debian_rootfs_base_url_prootdistro"
+
+    echo "Debian : debian"
     chroot_distro_list_item debian
-    echo "Parrot OS : parrot
-Rootfs : $parrot_rootfs_base_url"
+
+    echo "Parrot OS : parrot"
     chroot_distro_list_item parrot
-    echo "Alpine : alpine
-Rootfs : $alpine_rootfs_base_url"
+
+    echo "Alpine Linux : alpine"
     chroot_distro_list_item alpine
-    echo "Void Linux : void
-Rootfs : $void_rootfs_base_url"
+
+    echo "Void Linux : void"
     chroot_distro_list_item void
+
     if [ "$hardware_machine" != "i386" ]; then
-        echo "Arch Linux : archlinux
-Rootfs : $archlinux_rootfs_base_url_arm
-Rootfs : $archlinux_rootfs_base_url"
+        echo "Arch Linux : archlinux"
         chroot_distro_list_item archlinux
     fi
+
     if [ "$hardware_machine" = "arm64" ]; then
-        echo "Artix Linux : artix
-Rootfs : $artix_rootfs_base_url"
+        echo "Artix Linux : artix"
         chroot_distro_list_item artix
     fi
+
     if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
-        echo "Deepin : deepin
-Rootfs : $deepin_rootfs_base_url"
+        echo "Deepin : deepin"
         chroot_distro_list_item deepin
-    fi
-    if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
-        echo "Fedora : fedora
-Rootfs : $proot_distro_rootfs_base_url"
+
+        echo "Fedora Linux : fedora"
         chroot_distro_list_item fedora
-    fi
-    if [ "$hardware_machine" = "arm64" ]; then
-        echo "Manjaro : manjaro
-Rootfs : $manjaro_rootfs_base_url"
-        chroot_distro_list_item manjaro
-    fi
-    if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
-        echo "OpenKylin : openkylin
-Rootfs : $openkylin_rootfs_base_url"
+
+        echo "OpenKylin : openkylin"
         chroot_distro_list_item openkylin
-    fi
-    if [ "$hardware_machine" != "armhf" ]; then
-        echo "Pardus : pardus
-Rootfs : $pardus_rootfs_base_url"
-        chroot_distro_list_item pardus
-    fi
-    echo "OpenSuse : opensuse
-Rootfs : $opensuse_rootfs_base_url"
-    chroot_distro_list_item opensuse
-    echo "BackBox : backbox
-Rootfs : $backbox_rootfs_base_url"
-    chroot_distro_list_item backbox
-    if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
-        echo "CentOS : centos
-Rootfs : $centos_rootfs_base_url"
+
+        echo "CentOS : centos"
         chroot_distro_list_item centos
-    fi
-    if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
-        echo "CentOS Stream : centos_stream
-Rootfs : $centos_stream_rootfs_base_url"
+
+        echo "CentOS Stream : centos_stream"
         chroot_distro_list_item centos_stream
-    fi
-if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
-        echo "Rocky : rocky
-Rootfs : $rocky_rootfs_base_url"
-        chroot_distro_list_item rocky 
-    fi
-        echo "Adelie : adelie
-Rootfs : $adelie_rootfs_base_url"
-        chroot_distro_list_item adelie
-if [ "$hardware_machine" = "arm64" ] || [ "$hardware_machine" = "amd64" ]; then
-        echo "Chimera : chimera
-Rootfs : $chimera_rootfs_base_url"
+
+        echo "Rocky Linux : rocky"
+        chroot_distro_list_item rocky
+
+        echo "Chimera Linux : chimera"
         chroot_distro_list_item chimera
     fi
-echo "Gentoo : gentoo
-Rootfs : $Gentoo_rootfs_base_url"
+
+    if [ "$hardware_machine" = "arm64" ]; then
+        echo "Manjaro : manjaro"
+        chroot_distro_list_item manjaro
+    fi
+
+    if [ "$hardware_machine" != "armhf" ]; then
+        echo "Pardus : pardus"
+        chroot_distro_list_item pardus
+    fi
+
+    echo "openSUSE : opensuse"
+    chroot_distro_list_item opensuse
+
+    echo "BackBox : backbox"
+    chroot_distro_list_item backbox
+
+    echo "Adélie Linux : adelie"
+    chroot_distro_list_item adelie
+
+    echo "Gentoo Linux : gentoo"
     chroot_distro_list_item gentoo
 }
 
