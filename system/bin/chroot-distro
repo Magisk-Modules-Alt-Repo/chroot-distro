@@ -895,6 +895,7 @@ chroot_distro_mount_system_point() {
 
 mount_android_dirs() {
   for dir in /*; do
+    [[ -d "$dir" ]] || continue
     case "$dir" in
       /bin|/boot|/etc|/home|/lib|/media|/opt|/root|/run|/sbin|/srv|/usr|/var|/linkerconfig)
         ;;
