@@ -49,10 +49,8 @@ Using the Busybox provided by:
 
 ### Optional Mounts
 use `-a` or `--android` flag:
-```
-├── /system   (Not mounted by default)
-└── /data     (Not mounted by default)
-```
+
+Binding all Android root directories not mounted by default for full environment access. 
 
 ## Usage Warning
 
@@ -122,8 +120,8 @@ chroot-distro uninstall <distro>
 chroot-distro uninstall --force <distro>
 ```
 Usage Note:
-+ By default, Optional mounts (/data, /system) are not mounted. Use `-a` or `--android` flag to mount them.
-
++ By default, all Android root directories are not mounted.
+Binding them requires the -a or --android flag
 + The reinstall process will stop if files are open or mounts are active. Using `-f` or `--force` will close running processes and unmount active points. For safety, first run without force to see what's running before using the force option.
 
 ### Backup Operations
@@ -207,10 +205,10 @@ Note: Use lowercase identifiers for it to be properly identified.
 | Pardus         | `pardus`       |
 | Ubuntu         | `ubuntu`       |
 | Void Linux     | `void`         |
-| Rocky          | `rocky`        |
-| Adelie         | `Adelie`       |
-| Chimera        | `chimera`      |
-| Gentoo         | `gentoo`       |
+| Rocky Linux    | `rocky`        |
+| Adélie Linux   | `adelie`       |
+| Chimera Linux  | `chimera`      |
+| Gentoo Linux   | `gentoo`       |
 
 ## Download Releases
 
