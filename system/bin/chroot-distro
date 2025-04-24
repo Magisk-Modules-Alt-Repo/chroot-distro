@@ -366,6 +366,22 @@ fi
 
 mkdir -p "$chroot_distro_path" "$chroot_distro_path/.rootfs" "$chroot_distro_path/.backup"
 
+# Check if the suid file exists; if not, create it and set value to 1
+if [ ! -f "$chroot_distro_path/suid" ]; then
+    echo 1 > "$chroot_distro_path/suid"
+fi
+
+# Check if the value inside suid file is 1
+if [ "$(cat "$chroot_distro_path/suid")" = "1" ]; then
+    # Check if /data is mounted with the 'nosuid' option
+    if mount | grep -q "^/dev" && mount | grep -q "/data" && mount | grep -q "nosuid"; then
+        # Try to remount /data with 'suid' and 'dev' options
+        if ! mount -o remount,dev,suid /data; then
+            echo "Failed to remount /data. Check permissions or the system configuration."
+        fi
+    fi
+fi
+
 chroot_distro_warn_if_unsupported_busybox() {
     if [ "" != "$unsupported_busybox" ]; then
         echo "Warning: You are using Magisk/KernelSU/APatch without Busybox for Android NDK installed."
@@ -381,6 +397,8 @@ usage :
 $script help - for more information
 $script env - output debug information about environment
 $script list - list of available linux distributions
+
+$script fixsuid <enable|disable|default> - force suid option on /data mount
 
 $script download <distro> - download rootfs
 $script redownload <distro> - redownload rootfs
@@ -1910,6 +1928,29 @@ elif [ "$command" = "unmount" ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_unmount "$1" "$force" "$all"
+elif [ "$command" = "fixsuid" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
+    if [ $# -ne 0 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    case "$2" in
+         enable | default) echo 1 > "$chroot_distro_path/suid";; 
+         disable) echo 0 > "$chroot_distro_path/suid";; 
+         *) echo "unknown option";; 
+    esac
 else
     chroot_distro_invalid_parameters "invalid command $command"
 fi
