@@ -238,8 +238,8 @@ If you want to disable this and use another method, you can run:
 ```
 $script fixsuid <enable|disable|default>
 ```
-enable/default: Forces enabling suid handling.
-disable: Disables automatic remount logic.
+- enable/default: Forces enabling suid handling.
+- disable: Disables automatic remount logic.
 
 2. Image File Method
 ```
