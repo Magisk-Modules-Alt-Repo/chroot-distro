@@ -409,6 +409,39 @@ fi
 
 fixsuid
 
+android_bind_file="$chroot_distro_path/android_bind"
+android_bind_val=""
+
+android_bind() {
+    android_bind_val=$(cat "$android_bind_file" 2>/dev/null)
+
+    # If the argument is "enable", write 1 to the android bind file
+    if [ "$1" = "enable" ]; then
+        if [ "$android_bind_val" != "1" ]; then
+            echo 1 > "$android_bind_file" || true
+        else
+            echo "android bind is enabled already"
+        fi
+    # If the argument is "disable", write 0 to the android bind file
+    elif [ "$1" = "disable" ]; then
+        if [ "$android_bind_val" != "0" ]; then
+            echo 0 > "$android_bind_file" || true
+        else
+            echo "android bind is disabled already"
+        fi
+    fi
+
+    # Re-read the value from the android bind file
+    android_bind_val=$(cat "$android_bind_file" 2>/dev/null)
+
+}
+
+if [ ! -f "$chroot_distro_path/android_bind" ]; then
+    android_bind enable
+fi
+
+android_bind
+
 system_points="/dev /sys /proc /dev/pts /sdcard"
 for file in "/storage"/*; do
     system_points="$system_points $file"
@@ -436,10 +469,8 @@ $script download <distro> - download rootfs
 $script redownload <distro> - redownload rootfs
 $script delete <distro> - delete rootfs
 
-$script install <distro> [-a|--android] - install distro
-    '-a|--android'  Bind all Android root directories, which are not bound by default
-$script reinstall <distro> [-a|--android] [-f|--force] - reinstall distro
-    '-a|--android'  Bind all Android root directories, which are not bound by default
+$script install <distro> - install distro
+$script reinstall <distro> [-f|--force] - reinstall distro
     '-f|--force'    Force closing open files (closes the process accessing them)
                     and/or unmounting active mounts. Use with care.
 $script uninstall <distro> [-f|--force] - uninstall distro
@@ -911,8 +942,7 @@ mount_android_dirs() {
 
 chroot_distro_mount_system_points() {
     distro_path="$1"
-    use_android="$2"
-    if [ "yes" = "$use_android" ]; then
+    if [ "1" = "$android_bind_val" ]; then
         mount_android_dirs
     fi
     for point in $system_points; do
@@ -1087,7 +1117,6 @@ prepare_chroot_distro() {
 
 chroot_distro_install() {
     distro=$1
-    use_android=$2
     chroot_distro_check_if_supported "$distro"
 
     archive_path="$chroot_distro_path/.rootfs/$distro.tar.xz"
@@ -1144,7 +1173,7 @@ chroot_distro_install() {
         fi
     fi
 
-    chroot_distro_mount_system_points "$distro_path" "$use_android"
+    chroot_distro_mount_system_points "$distro_path" 
     prepare_chroot_distro
     chroot_distro_jail "$distro_path"
 }
@@ -1630,15 +1659,10 @@ elif [ "$command" = "delete" ]; then
     fi
     chroot_distro_delete "$1"
 elif [ "$command" = "install" ]; then
-    PARSED=$(getopt --options=a --longoptions=android --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=a --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
-    android=no
     while true; do
         case "$1" in
-            -a|--android)
-                android=yes
-                shift
-                ;;
             --)
                 shift
                 break
@@ -1655,7 +1679,7 @@ elif [ "$command" = "install" ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_warn_if_unsupported_busybox
-    chroot_distro_install "$1" "$android"
+    chroot_distro_install "$1" 
 elif [ "$command" = "uninstall" ]; then
     PARSED=$(getopt --options=f --longoptions=force --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
@@ -1683,17 +1707,12 @@ elif [ "$command" = "uninstall" ]; then
     fi
     chroot_distro_uninstall "$1" "$force" "$command"
 elif [ "$command" = "reinstall" ]; then
-    OPTS=af LONGOPTS=android,force
+    OPTS=af LONGOPTS=force
     PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
-    android=no
     force=no
     while true; do
         case "$1" in
-            -a|--android)
-                android=yes
-                shift
-                ;;
             -f|--force)
                 force=yes
                 shift
@@ -1714,7 +1733,7 @@ elif [ "$command" = "reinstall" ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_uninstall "$1" "$force" "$command"
-    chroot_distro_install "$1" "$android"
+    chroot_distro_install "$1" 
 elif [ "$command" = "backup" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
@@ -1885,6 +1904,29 @@ elif [ "$command" = "fixsuid" ]; then
     case "$1" in
          enable) fixsuid enable;; 
          disable) fixsuid disable;; 
+         *) echo "Unknown option $1";; 
+    esac
+elif [ "$command" = "android-bind" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
+    if [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    case "$1" in
+         enable) android_bind enable;; 
+         disable) android_bind disable;; 
          *) echo "Unknown option $1";; 
     esac
 else
