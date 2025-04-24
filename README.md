@@ -236,7 +236,7 @@ By default Android prevents suid usage under `/data` folder. This will prevent u
 The fixsuid feature is enabled automatically. It tries to remount /data with the correct suid and dev options, so sudo can work out of the box.
 If you want to disable this and use another method, you can run:
 ```
-$script fixsuid <enable|disable|default>
+chroot-distro fixsuid <enable|disable|default>
 ```
 - enable/default: Forces enabling suid handling.
 - disable: Disables automatic remount logic.
