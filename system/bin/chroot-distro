@@ -548,7 +548,7 @@ chroot_distro_list() {
         echo "Deepin : deepin"
         chroot_distro_list_item deepin
 
-        echo "Fedora Linux : fedora"
+        echo "Fedora : fedora"
         chroot_distro_list_item fedora
 
         echo "OpenKylin : openkylin"
@@ -625,7 +625,7 @@ chroot_distro_download() {
         version=$(curl -s ${ubuntu_rootfs_base_url}${release}/release/ | grep -oE "ubuntu-base-[0-9]+\.[0-9]+-base-${hardware_machine}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+\.[0-9]+)-.*/\1/')
         download_url="${ubuntu_rootfs_base_url}${release}/release/ubuntu-base-${version}-base-${hardware_machine}.tar.gz"
     elif [ "$distro" = "alpine" ]; then
-        distro_name='Alpine'
+        distro_name='Alpine Linux'
         echo "[1] alpine minirootfs latest"
         echo "[2] alpine netboot latest"
         echo "[3] alpine rpi latest"
@@ -722,10 +722,10 @@ chroot_distro_download() {
         distro_name='OpenKylin'
         download_url="${openkylin_rootfs_base_url}openkylin-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-v4.10.0.tar.xz"
         elif [ "$distro" = "rocky" ]; then
-        distro_name='Rocky'
+        distro_name='Rocky Linux'
         download_url="${rocky_rootfs_base_url}rocky-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-v4.20.0.tar.xz"
         elif [ "$distro" = "chimera" ]; then
-        distro_name='Chimera'
+        distro_name='Chimera Linux'
         echo "[1] chimera full"
         echo "[2] chimera minimal"
         while true; do
@@ -741,7 +741,7 @@ chroot_distro_download() {
         version="$(curl -s ${chimera_rootfs_base_url}latest | grep -oE "chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-[0-9]{8}-${rootfs}\.tar.gz" | sed -E 's/.*chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/' | head -n 1)"
         download_url="${chimera_rootfs_base_url}latest/chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-${version}-${rootfs}\.tar.gz"
        elif [ "$distro" = "adelie" ]; then
-        distro_name='Adelie'
+        distro_name='Adélie Linux'
         echo "[1] adelie linux full"
         echo "[2] adelie linux minimal"
         while true; do
@@ -775,7 +775,7 @@ chroot_distro_download() {
         distro_name='CentOS Stream'
         download_url="${centos_stream_rootfs_base_url}${hardware_machine}/centos_stream-rootfs-${hardware_machine}.tar.xz"
         elif [ "$distro" = "gentoo" ]; then
-        distro_name='gentoo'
+        distro_name='Gentoo Linux'
         version=$(curl -s "https://distfiles.gentoo.org/releases/${hardware_machine/armhf/armv7a}/autobuilds/current-stage3-${hardware_machine/armhf/armv7a}-openrc/" | grep -oE "stage3-${hardware_machine/armhf/armv7a}-openrc-[0-9]{8}T[0-9]{6}Z\.tar\.xz" | sed -E "s/.*stage3-${hardware_machine/armhf/armv7a}-openrc-([0-9]{8}T[0-9]{6}Z)\.tar\.xz/\1/" | head -n 1)
         download_url="${gentoo_rootfs_base_url}${hardware_machine/armhf/armv7a}/autobuilds/current-stage3-${hardware_machine/armhf/armv7a}-openrc/stage3-${hardware_machine/armhf/armv7a}-openrc-${version}.tar.xz"
     elif [ "$distro" = "void" ]; then
