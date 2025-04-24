@@ -423,7 +423,7 @@ $script help - for more information
 $script env - output debug information about environment
 $script list - list of available linux distributions
 
-$script fixsuid <enable|disable|default> - force suid option on /data mount
+$script fixsuid <enable|disable> - force suid option on /data mount (default: enable) 
 
 $script download <distro> - download rootfs
 $script redownload <distro> - redownload rootfs
@@ -1972,7 +1972,7 @@ elif [ "$command" = "fixsuid" ]; then
         chroot_distro_user_check_parameters
     fi
     case "$2" in
-         enable | default) fixsuid enable;; 
+         enable) fixsuid enable;; 
          disable) fixsuid disable;; 
          *) echo "unknown option";; 
     esac
