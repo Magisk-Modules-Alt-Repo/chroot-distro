@@ -464,6 +464,7 @@ $script env - output debug information about environment
 $script list - list of available linux distributions
 
 $script fixsuid <enable|disable> - force suid option on /data mount (default: enable) 
+$script android-bind <enable|disable> - Bind all Android root directories, which are not bound by default (default: enable) 
 
 $script download <distro> - download rootfs
 $script redownload <distro> - redownload rootfs
