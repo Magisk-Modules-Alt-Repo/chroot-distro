@@ -1164,7 +1164,7 @@ chroot_distro_install() {
     echo "1006 aid_video">> "$distro_path/etc/group"
     echo "1007 aid_drm">> "$distro_path/etc/group"
     # Add usermod for _apt only if the distro is Debian-based
-    chroot "$distro_path" id _apt >/dev/null 2>&1 && chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null || true
+    chroot "$distro_path" /bin/id _apt >/dev/null 2>&1 && chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null || true
     chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null || true
     timezone="$(getprop persist.sys.timezone)"
     chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 2>/dev/null || true
@@ -1478,7 +1478,7 @@ chroot_distro_restore() {
         echo "1006 aid_video">> "$distro_path/etc/group"
         echo "1007 aid_drm">> "$distro_path/etc/group"
         # Add usermod for _apt only if the distro is Debian-based
-        chroot "$distro_path" id _apt >/dev/null 2>&1 && chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null || true
+        chroot "$distro_path" /bin/id _apt >/dev/null 2>&1 && chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null || true
         chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null || true
         timezone="$(getprop persist.sys.timezone)"
         chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 2>/dev/null || true
