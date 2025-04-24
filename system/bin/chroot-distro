@@ -407,6 +407,11 @@ if [ ! -f "$chroot_distro_path/suid" ]; then
     fixsuid enable
 fi
 
+system_points="/dev /sys /proc /dev/pts /sdcard /system /data"
+for file in "/storage"/*; do
+    system_points="$system_points $file"
+done
+
 chroot_distro_warn_if_unsupported_busybox() {
     if [ "" != "$unsupported_busybox" ]; then
         echo "Warning: You are using Magisk/KernelSU/APatch without Busybox for Android NDK installed."
@@ -924,20 +929,22 @@ chroot_distro_mount_system_point() {
 chroot_distro_mount_system_points() {
     distro_path="$1"
     use_android="$2"
-    chroot_distro_mount_system_point /dev "$distro_path/dev"
-    chroot_distro_mount_system_point /sys "$distro_path/sys"
-    chroot_distro_mount_system_point /proc "$distro_path/proc"
-    chroot_distro_mount_system_point /dev/pts "$distro_path/dev/pts"
-    chroot_distro_mount_system_point /sdcard "$distro_path/sdcard"
-    if [ "yes" = "$use_android" ] || [ -d "$distro_path/system" ]; then
-        chroot_distro_mount_system_point /system "$distro_path/system"
-    fi
-    if [ "yes" = "$use_android" ] || [ -d "$distro_path/data" ]; then
-        chroot_distro_mount_system_point /data "$distro_path/data"
-    fi
-    for file in "/storage"/*; do
-        # no need for separator as separator already comes from file variable itself
-        chroot_distro_mount_system_point "$file" "$distro_path$file"
+    for point in $system_points; do
+        case "$point" in
+            /system)
+                if [ "yes" = "$use_android" ] || [ -d "$distro_path/system" ]; then
+                    chroot_distro_mount_system_point "$point" "$distro_path$point"
+                fi
+                ;;
+            /data)
+                if [ "yes" = "$use_android" ] || [ -d "$distro_path/data" ]; then
+                    chroot_distro_mount_system_point "$point" "$distro_path$point"
+                fi
+                ;;
+            *)
+                chroot_distro_mount_system_point "$point" "$distro_path$point"
+                ;;
+        esac
     done
 }
 
@@ -973,18 +980,10 @@ chroot_distro_unmount_system_point() {
 chroot_distro_unmount_system_points() {
     distro_path="$1"
     force="$2"
-    for file in "/storage"/*; do
-        # no need for separator as separator already comes from file variable itself
-        chroot_distro_unmount_system_point "$distro_path$file" "$force"
+    for point in $system_points; do
+        chroot_distro_unmount_system_point "$distro_path$point" "$force"
     done
-    chroot_distro_unmount_system_point "$distro_path/data" "$force"
-    chroot_distro_unmount_system_point "$distro_path/system" "$force"
-    chroot_distro_unmount_system_point "$distro_path/sdcard" "$force"
-    chroot_distro_unmount_system_point "$distro_path/dev/pts" "$force"
-    chroot_distro_unmount_system_point "$distro_path/proc" "$force"
-    chroot_distro_unmount_system_point "$distro_path/sys" "$force"
-    chroot_distro_unmount_system_point "$distro_path/dev" "$force"
-}
+} 
 
 chroot_distro_check_if_system_point_mounted() {
     mount_point="$1"
