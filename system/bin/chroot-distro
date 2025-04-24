@@ -865,9 +865,16 @@ chroot_distro_mount_system_point() {
         # nothing to do, already mounted
         return
     fi
-    if ! mount --bind "$path_to_mount" "$mount_point"; then
-        echo "could not mount $path_to_mount to $mount_point"
-        exit 1
+    if [ "$path_to_mount" = "/dev/pts" ]; then
+        if ! mount -t devpts devpts "$mount_point"; then
+            echo "could not mount devpts to $mount_point"
+            exit 1
+        fi
+    else
+        if ! mount --bind "$path_to_mount" "$mount_point"; then
+            echo "could not mount $path_to_mount to $mount_point"
+            exit 1
+        fi 
     fi
 }
 
