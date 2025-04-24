@@ -365,21 +365,46 @@ if ! tar --help 2>&1 | grep -q -- "-J" ; then
 fi
 
 mkdir -p "$chroot_distro_path" "$chroot_distro_path/.rootfs" "$chroot_distro_path/.backup"
+suid_file="$chroot_distro_path/suid"
+
+fixsuid() {
+    suid_val=$(cat "$suid_file" 2>/dev/null)
+
+    # If the argument is "enable", write 1 to the suid file
+    if [ "$1" = "enable" ]; then
+        if [ "$suid_val" != "1" ]; then
+            echo 1 > "$suid_file" || true
+        else
+            echo "fixsuid is enabled already"
+        fi
+    # If the argument is "disable", write 0 to the suid file
+    elif [ "$1" = "disable" ]; then
+        if [ "$suid_val" != "0" ]; then
+            echo 0 > "$suid_file" || true
+        else
+            echo "fixsuid is disabled already"
+        fi
+    fi
+
+    # Re-read the value from the suid file
+    suid_val=$(cat "$suid_file" 2>/dev/null)
+
+    # If suid is disabled (0), remount /data with nosuid and nodev if needed
+    if [ "$suid_val" = "0" ]; then
+        if cat /proc/mounts | grep '^/dev' | grep ' /data ' | grep -wq "suid" || true; then
+            mount -o remount,nodev,nosuid /data || true || echo "Failed to remount /data with nosuid"
+        fi
+    # If suid is enabled (1), remount /data with suid and dev if needed
+    elif [ "$suid_val" = "1" ]; then
+        if cat /proc/mounts | grep '^/dev' | grep ' /data ' | grep -wq "nosuid" || true; then
+            mount -o remount,dev,suid /data || true || echo "Failed to remount /data with suid"
+        fi
+    fi
+}
 
 # Check if the suid file exists; if not, create it and set value to 1
 if [ ! -f "$chroot_distro_path/suid" ]; then
-    echo 1 > "$chroot_distro_path/suid"
-fi
-
-# Check if the value inside suid file is 1
-if [ "$(cat "$chroot_distro_path/suid")" = "1" ]; then
-    # Check if /data is mounted with the 'nosuid' option
-    if mount | grep -q "^/dev" && mount | grep -q "/data" && mount | grep -q "nosuid"; then
-        # Try to remount /data with 'suid' and 'dev' options
-        if ! mount -o remount,dev,suid /data; then
-            echo "Failed to remount /data. Check permissions or the system configuration."
-        fi
-    fi
+    fixsuid enable
 fi
 
 chroot_distro_warn_if_unsupported_busybox() {
@@ -1947,8 +1972,8 @@ elif [ "$command" = "fixsuid" ]; then
         chroot_distro_user_check_parameters
     fi
     case "$2" in
-         enable | default) echo 1 > "$chroot_distro_path/suid";; 
-         disable) echo 0 > "$chroot_distro_path/suid";; 
+         enable | default) fixsuid enable;; 
+         disable) fixsuid disable;; 
          *) echo "unknown option";; 
     esac
 else
