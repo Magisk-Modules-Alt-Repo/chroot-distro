@@ -407,7 +407,7 @@ if [ ! -f "$chroot_distro_path/suid" ]; then
     fixsuid enable
 fi
 
-system_points="/dev /sys /proc /dev/pts /sdcard /storage"
+system_points="/dev /sys /proc /dev/pts /sdcard"
 for file in "/storage"/*; do
     system_points="$system_points $file"
 done
@@ -1876,13 +1876,13 @@ elif [ "$command" = "fixsuid" ]; then
                 ;;
         esac
     done
-    if [ $# -ne 0 ]; then
+    if [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
-    case "$2" in
+    case "$1" in
          enable) fixsuid enable;; 
          disable) fixsuid disable;; 
-         *) echo "unknown option";; 
+         *) echo "Unknown option $1";; 
     esac
 else
     chroot_distro_invalid_parameters "invalid command $command"
