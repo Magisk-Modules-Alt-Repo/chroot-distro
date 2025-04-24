@@ -1155,10 +1155,16 @@ chroot_distro_install() {
     echo "nameserver 8.8.8.8" > "$resolvconf"
     echo "nameserver 8.8.4.4" >> "$resolvconf"
     cp /etc/hosts "$distro_path"/etc/hosts
-    chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null || true
-    chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null || true
-    chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null || true
-    chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null || true
+    echo "3003 aid_inet">> "$distro_path/etc/group"
+    echo "3004 aid_net_raw">> "$distro_path/etc/group"
+    echo "1003 aid_graphics">> "$distro_path/etc/group"
+    echo "1003 aid_graphics">> "$distro_path/etc/group"
+    echo "1004 aid_input">> "$distro_path/etc/group"
+    echo "1005 aid_audio">> "$distro_path/etc/group"
+    echo "1006 aid_video">> "$distro_path/etc/group"
+    echo "1007 aid_drm">> "$distro_path/etc/group"
+    # Add usermod for _apt only if the distro is Debian-based
+    chroot "$distro_path" id _apt >/dev/null 2>&1 && chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null || true
     chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null || true
     timezone="$(getprop persist.sys.timezone)"
     chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 2>/dev/null || true
@@ -1463,10 +1469,16 @@ chroot_distro_restore() {
         echo "nameserver 8.8.8.8" > "$resolvconf"
         echo "nameserver 8.8.4.4" >> "$resolvconf"
         cp /etc/hosts "$distro_path"/etc/hosts
-        chroot "$distro_path" /sbin/groupadd -g 3003 aid_inet 2>/dev/null || true
-        chroot "$distro_path" /sbin/groupadd -g 3004 aid_net_raw 2>/dev/null || true
-        chroot "$distro_path" /sbin/groupadd -g 1003 aid_graphics 2>/dev/null || true
-        chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null || true
+        echo "3003 aid_inet">> "$distro_path/etc/group"
+        echo "3004 aid_net_raw">> "$distro_path/etc/group"
+        echo "1003 aid_graphics">> "$distro_path/etc/group"
+        echo "1003 aid_graphics">> "$distro_path/etc/group"
+        echo "1004 aid_input">> "$distro_path/etc/group"
+        echo "1005 aid_audio">> "$distro_path/etc/group"
+        echo "1006 aid_video">> "$distro_path/etc/group"
+        echo "1007 aid_drm">> "$distro_path/etc/group"
+        # Add usermod for _apt only if the distro is Debian-based
+        chroot "$distro_path" id _apt >/dev/null 2>&1 && chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null || true
         chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null || true
         timezone="$(getprop persist.sys.timezone)"
         chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 2>/dev/null || true
