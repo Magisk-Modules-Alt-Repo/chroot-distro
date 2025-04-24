@@ -407,6 +407,8 @@ if [ ! -f "$chroot_distro_path/suid" ]; then
     fixsuid enable
 fi
 
+fixsuid
+
 system_points="/dev /sys /proc /dev/pts /sdcard"
 for file in "/storage"/*; do
     system_points="$system_points $file"
