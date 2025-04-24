@@ -911,7 +911,7 @@ chroot_distro_mount_system_point() {
 mount_android_dirs() {
   for dir in /*; do
     case "$dir" in
-      /bin|/boot|/etc|/home|/lib|/media|/opt|/root|/run|/sbin|/srv|/usr|/var)
+      /bin|/boot|/etc|/home|/lib|/media|/opt|/root|/run|/sbin|/srv|/usr|/var|/linkerconfig)
         ;;
       *)
         [[ " $system_points " == *" $dir "* ]] && continue
