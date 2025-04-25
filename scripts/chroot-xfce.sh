@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [ $(id -u) = 0]; then
+  echo "This script cannot be run as root." 
+  exit
+fi
+
 # Set colors and styles
 normal=$(tput sgr0)
 highlight=$(tput bold; tput setaf 6)
@@ -191,10 +196,10 @@ sudo_fix() {
 
 # Function for the option
 start_termux_server() {
-    pkill -f com.termux.x11
-    sudo pkill mpd
-    killall -9 termux-x11 Xwayland pulseaudio virgl_test_server_android termux-wake-lock
-    sudo fuser -k 4713/tcp
+    sudo pkill -f com.termux.x11 2>/dev/null
+    sudo pkill mpd 2>/dev/null
+    sudo killall -9 termux-x11 Xwayland pulseaudio virgl_test_server_android termux-wake-lock 2>/dev/null
+    sudo fuser -k 4713/tcp 2>/dev/null
     sudo busybox mount --bind "$PREFIX/tmp" "$chrootdistro_dir"/"$selected_distro"/tmp
     XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
     sleep 2
