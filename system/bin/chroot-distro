@@ -478,7 +478,7 @@ $script uninstall <distro> [-f|--force] - uninstall distro
     '-f|--force'    Force closing open files (closes the process accessing them)
                     and/or unmounting active mounts. Use with care.
 
-$script unmount <distro> [-f|--force] [-a|--all] - unmount (system) mount points from distro
+$script unmount <distro|all> [-f|--force] [-a|--all] - unmount (system) mount points from distro
     '-f|--force'    Force closing open files (closes the process accessing them)
                     and/or unmounting active mounts which prevents (system) mount points
                     from unmounting. Use with care.
@@ -1472,6 +1472,18 @@ chroot_distro_unmount() {
     distro="$1"
     force="$2"
     all="$3"
+
+    if [ "$distro" = "all" ]; then
+       for udistro in $supported_distros; do
+           if [ -d "$chroot_distro_path/$udistro/" ]; then
+               if chroot_distro_check_if_system_points_mounted "$chroot_distro_path/$udistro"; then
+                  chroot_distro_unmount "$udistro" "$force" "$all"
+               fi
+           fi
+       done 
+       return 0
+    fi
+
     chroot_distro_check_if_supported "$distro" 
 
     distro_path="$chroot_distro_path/$distro"
@@ -1923,7 +1935,7 @@ elif [ "$command" = "android-bind" ]; then
     fi
     case "$1" in
          enable) android_bind enable;; 
-         disable) android_bind disable;; 
+         disable) android_bind disable && chroot_distro_unmount "all" "yes" "yes";; 
          *) echo "Unknown option $1";; 
     esac
 else
