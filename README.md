@@ -332,7 +332,7 @@ pkg install virglrenderer-android
 (Assuming you have already installed chroot-distro and set up it's chroot environment)  
 Inside your chroot environment, Install XFCE4:
 ```
-apt install xfce4
+apt install dbus-x11 xfce4 xfce4-goodies xfce4-terminal
 
 # Optional: Make sure to set up mpd.conf for music/audio server before running 'Audio Server'.
 apt install mpd
