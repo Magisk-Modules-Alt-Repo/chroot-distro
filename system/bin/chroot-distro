@@ -931,7 +931,7 @@ mount_android_dirs() {
   for dir in /*; do
     [[ -d "$dir" ]] || continue
     case "$dir" in
-      /bin|/boot|/etc|/home|/lib|/media|/opt|/root|/run|/sbin|/srv|/usr|/var|/linkerconfig)
+      /storage|/bin|/boot|/etc|/home|/lib|/media|/opt|/root|/run|/sbin|/srv|/usr|/var|/linkerconfig)
         ;;
       *)
         [[ " $system_points " == *" $dir "* ]] && continue
