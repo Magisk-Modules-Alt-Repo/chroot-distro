@@ -21,12 +21,14 @@ if [ "${user_id}" -ne 0 ]; then
     exit 1
 fi
 
-case "$(uname -m)" in
+architecture=$(uname -m)
+
+case "${architecture}" in
     aarch64|arm64) hardware_machine="arm64" ;;
     arm|armel|armhf|armhfp|armv7|armv7l|armv7a|armv8l) hardware_machine="armhf" ;;
     386|i386|i686|x86) hardware_machine="i386" ;;
     amd64|x86_64) hardware_machine="amd64" ;;
-    *) echo "Unsupported machine hardware: $(uname -m)"; exit 1 ;;
+    *) echo "Unsupported machine hardware: ${architecture}"; exit 1 ;;
 esac
 
 supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream rocky adelie chimera gentoo"
