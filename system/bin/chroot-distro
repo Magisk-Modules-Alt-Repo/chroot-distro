@@ -960,7 +960,11 @@ chroot_distro_mount_system_point() {
         fi
        return 0
      elif [ "$path_to_mount" = "/var/run" ]; then 
-       mkdir -p $mount_point
+       run_path=$(echo "$mount_point" | sed 's|/var/run|/run|')
+       if [ ! -e "$mount_point" ]; then
+          rm -f "$mount_point"
+          ln -s "$run_path" "$mount_point"
+       fi
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             echo "could not mount tmpfs to $mount_point"
             exit 1
