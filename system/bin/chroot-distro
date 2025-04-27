@@ -15,7 +15,8 @@ fi
 chroot_distro_path="/data/local/chroot-distro"
 script=$(basename "$0")
 
-if [ "$(id -u)" -ne 0 ]; then
+user_id=$(id -u)
+if [ "${user_id}" -ne 0 ]; then
     echo "Root access required."
     exit 1
 fi
