@@ -784,10 +784,10 @@ chroot_distro_download() {
             printf "Enter a number (1-4, or 'q' to quit): " 
             read -r number
             case "$number" in
-                1) release_version="4.24.0"; break;;
-                2) release_version="4.23.0"; break;;
-                3) release_version="4.17.3"; break;;
-                4) release_version="4.15.0"; break;;
+                1) release_version="v4.24.0"; break;;
+                2) release_version="v4.23.0"; break;;
+                3) release_version="v4.17.3"; break;;
+                4) release_version="v4.15.0"; break;;
                 q) echo "Operation cancelled"; exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
