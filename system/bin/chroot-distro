@@ -52,6 +52,7 @@ elif [ -e /data/adb/modules/chroot-distro ]; then
                 case "$field" in
                     version) echo "Version: $value" ;;
                     versionCode) echo "Versioncode: $value" ;;
+                    *) echo "Unknown field: ${field}";;
                 esac
             done
             echo "md5 hash: $hash"
