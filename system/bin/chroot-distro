@@ -811,8 +811,8 @@ chroot_distro_download() {
         download_url="${centos_stream_rootfs_base_url}${hardware_machine}/centos_stream-rootfs-${hardware_machine}.tar.xz"
         elif [ "$distro" = "gentoo" ]; then
         distro_name='Gentoo Linux'
-        version=$(curl -s "https://distfiles.gentoo.org/releases/${hardware_machine/armhf/armv7a}/autobuilds/current-stage3-${hardware_machine/armhf/armv7a}-openrc/" | grep -oE "stage3-${hardware_machine/armhf/armv7a}-openrc-[0-9]{8}T[0-9]{6}Z\.tar\.xz" | sed -E "s/.*stage3-${hardware_machine/armhf/armv7a}-openrc-([0-9]{8}T[0-9]{6}Z)\.tar\.xz/\1/" | head -n 1)
-        download_url="${gentoo_rootfs_base_url}${hardware_machine/armhf/armv7a}/autobuilds/current-stage3-${hardware_machine/armhf/armv7a}-openrc/stage3-${hardware_machine/armhf/armv7a}-openrc-${version}.tar.xz"
+        version=$(curl -s "https://distfiles.gentoo.org/releases/$(echo $hardware_machine | sed 's/armhf/armv7a/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc/" | grep -oE "stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc-[0-9]{8}T[0-9]{6}Z\.tar\.xz" | sed -E "s/.*stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc-([0-9]{8}T[0-9]{6}Z)\.tar\.xz/\1/" | head -n 1)
+        download_url="${gentoo_rootfs_base_url}$(echo $hardware_machine | sed 's/armhf/armv7a/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc/stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc-${version}.tar.xz"
     elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
         download_url="${void_rootfs_base_url}current/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
