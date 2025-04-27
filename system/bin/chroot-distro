@@ -392,12 +392,12 @@ fixsuid() {
 
     # If suid is disabled (0), remount /data with nosuid and nodev if needed
     if [ "$suid_val" = "0" ]; then
-        if cat /proc/mounts | grep '^/dev' | grep ' /data ' | grep -wq "suid" || true; then
+        if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "suid" || true; then
             mount -o remount,nodev,nosuid /data || true || echo "Failed to remount /data with nosuid"
         fi
     # If suid is enabled (1), remount /data with suid and dev if needed
     elif [ "$suid_val" = "1" ]; then
-        if cat /proc/mounts | grep '^/dev' | grep ' /data ' | grep -wq "nosuid" || true; then
+        if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "nosuid" || true; then
             mount -o remount,dev,suid /data || true || echo "Failed to remount /data with suid"
         fi
     fi
