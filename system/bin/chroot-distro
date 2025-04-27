@@ -370,8 +370,9 @@ if ! tar --help 2>&1 | grep -q -- "-J" ; then
     exit 1
 fi
 
-mkdir -p "$chroot_distro_path" "$chroot_distro_path/.rootfs" "$chroot_distro_path/.backup"
-suid_file="$chroot_distro_path/suid"
+mkdir -p "$chroot_distro_path" "$chroot_distro_path/.rootfs" "$chroot_distro_path/.backup" "$chroot_distro_path/.config"
+
+suid_file="$chroot_distro_path/.config/suid"
 
 fixsuid() {
     suid_val=$(cat "$suid_file" 2>/dev/null)
@@ -409,13 +410,13 @@ fixsuid() {
 }
 
 # Check if the suid file exists; if not, create it and set value to 1
-if [ ! -f "$chroot_distro_path/suid" ]; then
+if [ ! -f "$chroot_distro_path/.config/suid" ]; then
     fixsuid enable
 fi
 
 fixsuid
 
-ram_bind_file="$chroot_distro_path/ram_bind"
+ram_bind_file="$chroot_distro_path/.config/ram_bind"
 ram_bind_val=""
 
 ram_bind() {
@@ -442,13 +443,13 @@ ram_bind() {
 
 }
 
-if [ ! -f "$chroot_distro_path/ram_bind" ]; then
+if [ ! -f "$chroot_distro_path/.config/ram_bind" ]; then
     ram_bind enable
 fi
 
 ram_bind
 
-android_bind_file="$chroot_distro_path/android_bind"
+android_bind_file="$chroot_distro_path/.config/android_bind"
 android_bind_val=""
 
 android_bind() {
@@ -475,13 +476,14 @@ android_bind() {
 
 }
 
-if [ ! -f "$chroot_distro_path/android_bind" ]; then
+if [ ! -f "$chroot_distro_path/.config/android_bind" ]; then
     android_bind enable
 fi
 
 android_bind
 
 system_points="/dev /sys /proc /dev/pts /sdcard"
+
 for file in "/storage"/*; do
     system_points="$system_points $file"
 done
