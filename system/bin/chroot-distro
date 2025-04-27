@@ -966,7 +966,8 @@ chroot_distro_mount_system_point() {
             exit 1
         fi
         return 0
-     elif [ "$path_to_mount" = "/dev/shm" ]; then
+     elif [ "$path_to_mount" = "/dev/shm" ]; then 
+       mkdir -p $mount_point
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             echo "could not mount tmpfs to $mount_point"
             exit 1
