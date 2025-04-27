@@ -657,7 +657,7 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version=$(curl -s ${ubuntu_rootfs_base_url}${release}/release/ | grep -oE "ubuntu-base-[0-9]+\.[0-9]+-base-${hardware_machine}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+\.[0-9]+)-.*/\1/')
+        version=$(curl -s "${ubuntu_rootfs_base_url}${release}/release/" | grep -oE "ubuntu-base-[0-9]+\.[0-9]+-base-${hardware_machine}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+\.[0-9]+)-.*/\1/')
         download_url="${ubuntu_rootfs_base_url}${release}/release/ubuntu-base-${version}-base-${hardware_machine}.tar.gz"
     elif [ "$distro" = "alpine" ]; then
         distro_name='Alpine Linux'
@@ -678,7 +678,7 @@ chroot_distro_download() {
             esac
         done
         hwm_alpine=$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)
-        download_url="$alpine_rootfs_base_url$hwm_alpine/alpine-$rootfs-$(curl -s $alpine_rootfs_base_url$hwm_alpine/ | grep -oE 'alpine-.*[0-9]+\.[0-9]+\.[0-9]+[^"]*(.tar.gz|.tar|.img)' | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | sort -V | tail -n 1)-$hwm_alpine.tar.gz"
+        download_url="$alpine_rootfs_base_url$hwm_alpine/alpine-$rootfs-$(curl -s "$alpine_rootfs_base_url$hwm_alpine/" | grep -oE 'alpine-.*[0-9]+\.[0-9]+\.[0-9]+[^"]*(.tar.gz|.tar|.img)' | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | sort -V | tail -n 1)-$hwm_alpine.tar.gz"
     elif [ "$distro" = "kali" ]; then
         distro_name='Kali Linux'
         echo "[1] kali linux full"
@@ -1119,7 +1119,7 @@ prepare_chroot_distro() {
    chroot "$distro_path" /bin/id _apt >/dev/null 2>&1 && chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null || true
    chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null || true
    timezone="$(getprop persist.sys.timezone)"
-   chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 2>/dev/null || true
+   chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime 2>/dev/null || true
 } 
 
 chroot_distro_install() {
