@@ -930,12 +930,12 @@ chroot_distro_mount_system_point() {
 
 mount_android_dirs() {
   for dir in /*; do
-    [[ -d "$dir" ]] || continue
+    [ -d "$dir" ] || continue
     case "$dir" in
       /storage|/bin|/boot|/etc|/home|/lib|/media|/opt|/root|/run|/sbin|/srv|/usr|/var|/linkerconfig)
         ;;
       *)
-        [[ " $system_points " == *" $dir "* ]] && continue
+        echo " $system_points " | grep -q " $dir " && continue
         system_points="$system_points $dir"
         ;;
     esac
