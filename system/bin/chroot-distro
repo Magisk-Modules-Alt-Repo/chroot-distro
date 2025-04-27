@@ -5,9 +5,10 @@
 # Code is licensed under terms of GNU GPL v3, see LICENSE file
 # for the full terms.
 
-if [ ! -z "${chroot_distro_log+x}" ]; then
+if [ -n "${chroot_distro_log+x}" ]; then
   set -e
   set -x
+  # shellcheck disable=SC3047
   trap 'echo "Error at line $LINENO"' ERR
 fi
 
