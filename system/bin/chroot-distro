@@ -38,34 +38,35 @@ if [ $# -ge 1 ] && [ "env" = "$1" ]; then
     check_env=true
 fi
 
-if [ "" = "$check_env" ]; then
+hash=$(md5sum "$0" | cut -d " " -f1)
+
+if [ "" = "${check_env}" ]; then
     : # do nothing
 elif [ -e /data/adb/modules/chroot-distro ]; then
     echo "Script: $0"
-    hash=$(md5sum "$0" | cut -d " " -f1)
     if cmp -s "$0" /data/adb/modules/chroot-distro/system/bin/chroot-distro; then
         (
             module_prop=$(cat /data/adb/modules/chroot-distro/module.prop)
-            echo "$module_prop" | while read -r row; do
-                field=$(echo "$row" | cut -d "=" -f 1 )
-                value=$(echo "$row" | cut -d "=" -f 2 )
-                case "$field" in
-                    version) echo "Version: $value" ;;
+            echo "${module_prop}" | while read -r row; do
+                field=$(echo "${row}" | cut -d "=" -f 1 )
+                value=$(echo "${row}" | cut -d "=" -f 2 )
+                case "${field}" in
+                    version) echo "Version: ${value}" ;;
                     versionCode) echo "Versioncode: $value" ;;
                     *) echo "Unknown field: ${field}";;
                 esac
             done
-            echo "md5 hash: $hash"
+            echo "md5 hash: ${hash}"
         )
     else
-        echo "Not matching installed version, md5 hash: $hash"
+        echo "Not matching installed version, md5 hash: ${hash}"
     fi
 else
     echo "Script: $0"
-    echo "Unknown version, md5 hash: $(md5sum "$0" | cut -d " " -f1)"
+    echo "Unknown version, md5 hash: ${hash}"
 fi
 
-if [ "" != "$check_env" ]; then
+if [ "" != "${check_env}" ]; then
     echo "Toybox version: $(toybox --version)"
 fi
 
