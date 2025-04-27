@@ -415,6 +415,39 @@ fi
 
 fixsuid
 
+ram_bind_file="$chroot_distro_path/ram_bind"
+ram_bind_val=""
+
+ram_bind() {
+    ram_bind_val=$(cat "$ram_bind_file" 2>/dev/null)
+
+    # If the argument is "enable", write 1 to the ram bind file
+    if [ "$1" = "enable" ]; then
+        if [ "$ram_bind_val" != "1" ]; then
+            echo 1 > "$ram_bind_file" || true
+        else
+            echo "ram bind is enabled already"
+        fi
+    # If the argument is "disable", write 0 to the ram bind file
+    elif [ "$1" = "disable" ]; then
+        if [ "$ram_bind_val" != "0" ]; then
+            echo 0 > "$ram_bind_file" || true
+        else
+            echo "ram bind is disabled already"
+        fi
+    fi
+
+    # Re-read the value from the ram bind file
+    ram_bind_val=$(cat "$ram_bind_file" 2>/dev/null)
+
+}
+
+if [ ! -f "$chroot_distro_path/ram_bind" ]; then
+    ram_bind enable
+fi
+
+ram_bind
+
 android_bind_file="$chroot_distro_path/android_bind"
 android_bind_val=""
 
@@ -470,6 +503,7 @@ $script env - output debug information about environment
 $script list - list of available linux distributions
 
 $script fixsuid <enable|disable> - force suid option on /data mount (default: enable) 
+$script ram-bind <enable|disable> - Binds some paths in the distro to RAM for performance improvement (default: enable)
 $script android-bind <enable|disable> - Bind all Android root directories, which are not bound by default (default: enable) 
 
 $script download <distro> - download rootfs
@@ -925,6 +959,31 @@ chroot_distro_mount_system_point() {
             echo "could not mount devpts to $mount_point"
             exit 1
         fi
+    elif [ "$path_to_mount" = "/tmp" ]; then
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
+    elif [ "$path_to_mount" = "/run" ]; then
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
+    elif [ "$path_to_mount" = "/var/tmp" ]; then
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
+     elif [ "$path_to_mount" = "/var/run" ]; then
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
+     elif [ "$path_to_mount" = "/dev/shm" ]; then
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
     else
         if ! mount --bind "$path_to_mount" "$mount_point"; then
             echo "could not mount $path_to_mount to $mount_point"
@@ -965,6 +1024,9 @@ chroot_distro_mount_system_points() {
     distro_path="$1"
     if [ "1" = "$android_bind_val" ]; then
         mount_android_dirs
+    fi
+    if [ "1" = "$ram_bind_val" ]; then
+        system_points="$system_points /tmp /run /var/tmp /var/run /dev/shm"
     fi
     for point in $system_points; do
         chroot_distro_mount_system_point "$point" "$distro_path$point"
@@ -1923,6 +1985,29 @@ elif [ "$command" = "fixsuid" ]; then
     case "$1" in
          enable) fixsuid enable;; 
          disable) fixsuid disable;; 
+         *) echo "Unknown option $1";; 
+    esac
+elif [ "$command" = "ram-bind" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
+    if [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    case "$1" in
+         enable) ram_bind ram;; 
+         disable) ram_bind disable && chroot_distro_unmount "all" "yes" "yes";; 
          *) echo "Unknown option $1";; 
     esac
 elif [ "$command" = "android-bind" ]; then
