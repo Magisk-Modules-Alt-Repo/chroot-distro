@@ -773,7 +773,7 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version="$(curl -s ${chimera_rootfs_base_url}latest | grep -oE "chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-[0-9]{8}-${rootfs}\.tar.gz" | sed -E 's/.*chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/' | head -n 1)"
+        version="$(curl -s ${chimera_rootfs_base_url}latest | grep -oE "chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-[0-9]{8}-${rootfs}\.tar.gz" | sed -E "s/.*chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/" | head -n 1)"
         download_url="${chimera_rootfs_base_url}latest/chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-${version}-${rootfs}\.tar.gz"
        elif [ "$distro" = "adelie" ]; then
         distro_name='Adélie Linux'
