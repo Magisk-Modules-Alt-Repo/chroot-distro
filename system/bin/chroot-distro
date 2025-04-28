@@ -694,7 +694,7 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version=$(curl -s "${ubuntu_rootfs_base_url}${release}/release/" | grep -oE "ubuntu-base-[0-9]+\.[0-9]+-base-${hardware_machine}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+\.[0-9]+)-.*/\1/')
+        version="$(curl -s "${ubuntu_rootfs_base_url}${release}/release/" | grep -oE "ubuntu-base-[0-9]+\.[0-9]+-base-${hardware_machine}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+\.[0-9]+)-.*/\1/')"
         download_url="${ubuntu_rootfs_base_url}${release}/release/ubuntu-base-${version}-base-${hardware_machine}.tar.gz"
     elif [ "$distro" = "alpine" ]; then
         distro_name='Alpine Linux'
@@ -714,7 +714,7 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        hwm_alpine=$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)
+        hwm_alpine="$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)"
         download_url="$alpine_rootfs_base_url$hwm_alpine/alpine-$rootfs-$(curl -s "$alpine_rootfs_base_url$hwm_alpine/" | grep -oE 'alpine-.*[0-9]+\.[0-9]+\.[0-9]+[^"]*(.tar.gz|.tar|.img)' | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | sort -V | tail -n 1)-$hwm_alpine.tar.gz"
     elif [ "$distro" = "kali" ]; then
         distro_name='Kali Linux'
@@ -756,7 +756,7 @@ chroot_distro_download() {
              debian_bookworm) download_url="${debian_rootfs_base_url_prootdistro}debian-bookworm-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.17.3.tar.xz";;
         esac
     elif [ "$distro" = "parrot" ]; then
-        distro_name='Parrot OS'
+        distro_name='Parrot Security'
         download_url="$parrot_rootfs_base_url$hardware_machine/parrot-rootfs-$hardware_machine.tar.xz"
     elif [ "$distro" = "archlinux" ]; then
         distro_name='Arch Linux'
@@ -826,7 +826,7 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version=$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ | sed s/i686/pmmx/)-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1);
+        version="$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ | sed s/i686/pmmx/)-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1)"
         download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ | sed s/i686/pmmx/)-1.0-beta6-${version}.txz"
     elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
