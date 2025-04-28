@@ -2020,7 +2020,7 @@ elif [ "$command" = "ram-bind" ]; then
         chroot_distro_user_check_parameters
     fi
     case "$1" in
-         enable) ram_bind ram;; 
+         enable) ram_bind enable;; 
          disable) ram_bind disable && chroot_distro_unmount "all" "yes" "yes";; 
          *) echo "Unknown option $1";; 
     esac
