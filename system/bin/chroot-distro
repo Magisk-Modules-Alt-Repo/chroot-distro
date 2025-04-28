@@ -566,11 +566,10 @@ chroot_distro_list_item() {
 proot_distro_rootfs_base_url=https://github.com/termux/proot-distro/releases/download 
 anlinux_rootfs_base_url=https://github.com/EXALAB/Anlinux-Resources
 # proot distro rootfs: 
-debian_rootfs_base_url_prootdistro=$proot_distro_rootfs_base_url/v4.7.0/
-manjaro_rootfs_base_url=$proot_distro_rootfs_base_url/v4.14.1/
+debian_rootfs_base_url_prootdistro=$proot_distro_rootfs_base_url/v4.17.3/
 openkylin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.10.0/
-pardus_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
-opensuse_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
+pardus_rootfs_base_url=$proot_distro_rootfs_base_url/v4.18.0/
+opensuse_rootfs_base_url=$proot_distro_rootfs_base_url/v4.21.0/
 artix_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
 deepin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
 rocky_rootfs_base_url=$proot_distro_rootfs_base_url/v4.20.0/
@@ -584,6 +583,7 @@ archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
 adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/
 gentoo_rootfs_base_url=https://distfiles.gentoo.org/releases/
 chimera_rootfs_base_url=https://repo.chimera-linux.org/live/
+#manjaro_rootfs_base_url=https://github.com/manjaro-arm/rootfs/
 # AnLinux rootfs: 
 debian_rootfs_base_url_anlinux=$anlinux_rootfs_base_url/raw/master/Rootfs/Debian/
 parrot_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/Parrot/
@@ -756,8 +756,8 @@ chroot_distro_download() {
         done
         case "$rootfs" in
              debian) download_url="$debian_rootfs_base_url_anlinux$hardware_machine/debian-rootfs-$hardware_machine.tar.xz";;
-             debian_bullseye) download_url="${debian_rootfs_base_url_prootdistro}debian-bullseye-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.7.0.tar.xz";;
-             debian_bookworm) download_url="${debian_rootfs_base_url_prootdistro}debian-bookworm-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.7.0.tar.xz";;
+             debian_bullseye) download_url="${debian_rootfs_base_url_prootdistro}debian-bullseye-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.17.3.tar.xz";;
+             debian_bookworm) download_url="${debian_rootfs_base_url_prootdistro}debian-bookworm-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.17.3.tar.xz";;
         esac
     elif [ "$distro" = "parrot" ]; then
         distro_name='Parrot OS'
@@ -834,13 +834,13 @@ chroot_distro_download() {
         download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ | sed s/i686/pmmx/)-1.0-beta6-${version}.txz"
     elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
-        download_url="${manjaro_rootfs_base_url}manjaro-$(echo $hardware_machine | sed s/arm64/aarch64/)-pd-v4.14.1.tar.xz"
+        download_url="$(curl -s https://api.github.com/repos/manjaro-arm/rootfs/releases/latest | grep "browser_download_url" | cut -d '"' -f 4)"
     elif [ "$distro" = "opensuse" ]; then
         distro_name='OpenSuse'
-        download_url="${opensuse_rootfs_base_url}opensuse-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.6.0.tar.xz"
+        download_url="${opensuse_rootfs_base_url}opensuse-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.21.0.tar.xz"
     elif [ "$distro" = "pardus" ]; then
         distro_name='Pardus'
-        download_url="${pardus_rootfs_base_url}pardus-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.6.0.tar.xz"
+        download_url="${pardus_rootfs_base_url}pardus-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.18.0.tar.xz"
     elif [ "$distro" = "backbox" ]; then
         distro_name='BackBox'
         download_url="$backbox_rootfs_base_url$hardware_machine/backbox-rootfs-$hardware_machine.tar.xz"
