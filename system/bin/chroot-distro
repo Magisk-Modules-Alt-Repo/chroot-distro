@@ -31,7 +31,7 @@ case "${architecture}" in
     *) echo "Unsupported machine hardware: ${architecture}"; exit 1 ;;
 esac
 
-supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos centos_stream rocky adelie chimera gentoo"
+supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox  centos_stream rocky adelie chimera gentoo"
 
 check_env=''
 if [ $# -ge 1 ] && [ "env" = "$1" ]; then
@@ -588,7 +588,6 @@ chimera_rootfs_base_url=https://repo.chimera-linux.org/live/
 debian_rootfs_base_url_anlinux=$anlinux_rootfs_base_url/raw/master/Rootfs/Debian/
 parrot_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/Parrot/
 backbox_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/BackBox/
-centos_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS/
 centos_stream_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS_Stream/
 
 chroot_distro_list() {
@@ -629,9 +628,6 @@ chroot_distro_list() {
 
         echo "OpenKylin : openkylin"
         chroot_distro_list_item openkylin
-
-        echo "CentOS : centos"
-        chroot_distro_list_item centos
 
         echo "CentOS Stream : centos_stream"
         chroot_distro_list_item centos_stream
@@ -844,9 +840,6 @@ chroot_distro_download() {
     elif [ "$distro" = "backbox" ]; then
         distro_name='BackBox'
         download_url="$backbox_rootfs_base_url$hardware_machine/backbox-rootfs-$hardware_machine.tar.xz"
-    elif [ "$distro" = "centos" ]; then
-        distro_name='CentOS'
-        download_url="${centos_rootfs_base_url}${hardware_machine}/centos-rootfs-${hardware_machine}.tar.xz"
     elif [ "$distro" = "centos_stream" ]; then
         distro_name='CentOS Stream'
         download_url="${centos_stream_rootfs_base_url}${hardware_machine}/centos_stream-rootfs-${hardware_machine}.tar.xz"
