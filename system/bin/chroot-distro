@@ -383,6 +383,7 @@ fixsuid() {
             echo 1 > "$suid_file" || true
         else
             echo "fixsuid is enabled already"
+            return 1
         fi
     # If the argument is "disable", write 0 to the suid file
     elif [ "$1" = "disable" ]; then
@@ -390,6 +391,7 @@ fixsuid() {
             echo 0 > "$suid_file" || true
         else
             echo "fixsuid is disabled already"
+            return 1
         fi
     fi
 
@@ -428,6 +430,7 @@ ram_bind() {
             echo 1 > "$ram_bind_file" || true
         else
             echo "ram bind is enabled already"
+            return 1
         fi
     # If the argument is "disable", write 0 to the ram bind file
     elif [ "$1" = "disable" ]; then
@@ -435,6 +438,7 @@ ram_bind() {
             echo 0 > "$ram_bind_file" || true
         else
             echo "ram bind is disabled already"
+            return 1
         fi
     fi
 
@@ -461,6 +465,7 @@ android_bind() {
             echo 1 > "$android_bind_file" || true
         else
             echo "android bind is enabled already"
+            return 1
         fi
     # If the argument is "disable", write 0 to the android bind file
     elif [ "$1" = "disable" ]; then
@@ -468,6 +473,7 @@ android_bind() {
             echo 0 > "$android_bind_file" || true
         else
             echo "android bind is disabled already"
+            return 1
         fi
     fi
 
@@ -600,7 +606,7 @@ chroot_distro_list() {
     echo "Debian : debian"
     chroot_distro_list_item debian
 
-    echo "Parrot OS : parrot"
+    echo "Parrot Security : parrot"
     chroot_distro_list_item parrot
 
     echo "Alpine Linux : alpine"
