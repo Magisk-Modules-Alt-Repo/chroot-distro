@@ -941,10 +941,15 @@ list_mount_points() {
 chroot_distro_mount_system_point() {
     path_to_mount="$1"
     mount_point="$2"
-    if [ ! -e "$path_to_mount" ]; then
-        echo "Warning: Missing system path $path_to_mount, skipping"
-        return
-    fi
+    case "$path_to_mount" in
+         /tmp|/run|/var/tmp|/var/run|/dev/shm) : ;;
+         *)
+          if [ ! -e "$path_to_mount" ]; then
+              echo "Warning: Missing system path $path_to_mount, skipping"
+              return
+          fi
+        ;;
+     esac
     if [ ! -d "$mount_point" ]; then
         if ! mkdir -p "$mount_point"; then
             echo "creating mount point $mount_point failed"
