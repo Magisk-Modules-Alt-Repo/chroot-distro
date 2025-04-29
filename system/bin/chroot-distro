@@ -941,44 +941,6 @@ list_mount_points() {
 chroot_distro_mount_system_point() {
     path_to_mount="$1"
     mount_point="$2"
-    if [ "$path_to_mount" = "/tmp" ]; then
-       if ! mount -t tmpfs tmpfs "$mount_point"; then
-            echo "could not mount tmpfs to $mount_point"
-            exit 1
-        fi
-        return 0
-    elif [ "$path_to_mount" = "/run" ]; then 
-       mkdir -p $mount_point
-       if ! mount -t tmpfs tmpfs "$mount_point"; then
-            echo "could not mount tmpfs to $mount_point"
-            exit 1
-        fi
-        return 0
-    elif [ "$path_to_mount" = "/var/tmp" ]; then
-       if ! mount -t tmpfs tmpfs "$mount_point"; then
-            echo "could not mount tmpfs to $mount_point"
-            exit 1
-        fi
-       return 0
-     elif [ "$path_to_mount" = "/var/run" ]; then 
-       run_path=$(echo "$mount_point" | sed 's|/var/run|/run|')
-       if [ ! -e "$mount_point" ]; then
-          rm -f "$mount_point"
-          ln -s "$run_path" "$mount_point"
-       fi
-       if ! mount -t tmpfs tmpfs "$mount_point"; then
-            echo "could not mount tmpfs to $mount_point"
-            exit 1
-        fi
-        return 0
-     elif [ "$path_to_mount" = "/dev/shm" ]; then 
-       mkdir -p $mount_point
-       if ! mount -t tmpfs tmpfs "$mount_point"; then
-            echo "could not mount tmpfs to $mount_point"
-            exit 1
-        fi
-        return 0
-      fi
     if [ ! -e "$path_to_mount" ]; then
         echo "Warning: Missing system path $path_to_mount, skipping"
         return
@@ -993,7 +955,39 @@ chroot_distro_mount_system_point() {
         # nothing to do, already mounted
         return
     fi
-    if [ "$path_to_mount" = "/dev/pts" ]; then
+    if [ "$path_to_mount" = "/tmp" ]; then
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
+    elif [ "$path_to_mount" = "/run" ]; then 
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
+    elif [ "$path_to_mount" = "/var/tmp" ]; then
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
+     elif [ "$path_to_mount" = "/var/run" ]; then 
+       run_path=$(echo "$mount_point" | sed 's|/var/run|/run|')
+       if [ ! -e "$mount_point" ]; then
+          rm -rf "$mount_point"
+          ln -s "$run_path" "$mount_point"
+       fi
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
+        return 0
+     elif [ "$path_to_mount" = "/dev/shm" ]; then 
+       if ! mount -t tmpfs tmpfs "$mount_point"; then
+            echo "could not mount tmpfs to $mount_point"
+            exit 1
+        fi
+        return 0
+    elif [ "$path_to_mount" = "/dev/pts" ]; then
         if ! mount -t devpts devpts "$mount_point"; then
             echo "could not mount devpts to $mount_point"
             exit 1
