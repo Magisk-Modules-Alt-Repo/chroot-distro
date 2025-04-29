@@ -985,13 +985,11 @@ chroot_distro_mount_system_point() {
             echo "could not mount tmpfs to $mount_point"
             exit 1
         fi
-        return 0
      elif [ "$path_to_mount" = "/dev/shm" ]; then 
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             echo "could not mount tmpfs to $mount_point"
             exit 1
         fi
-        return 0
     elif [ "$path_to_mount" = "/dev/pts" ]; then
         if ! mount -t devpts devpts "$mount_point"; then
             echo "could not mount devpts to $mount_point"
