@@ -168,30 +168,7 @@ select_distro() {
 # Function to unmount remaining mounted points
 unmount_chroot() {
   local chmount="$chrootdistro_dir/$selected_distro"
-
-  sudo chroot-distro unmount "$selected_distro" &> /dev/null
-
-  local leftover=(
-    "$chmount/data"
-    "$chmount/tmp"
-    "$chmount/dev"
-  )
-
-  for mount_point in "${leftover[@]}"; do
-    if [[ -d "$mount_point" ]]; then
-      su -c "umount -l '$mount_point'" 2>/dev/null
-    fi
-  done
-}
-
-# Function to fix sudo
-sudo_fix() {
-  if su -c "mountpoint -q /data && grep -q 'dev,suid' /proc/mounts | grep -q /data" 2>/dev/null; then
-    return 0
-  fi
-
-  su -c "mount -o remount,dev,suid /data" 2>/dev/null
-  return $?
+  sudo chroot-distro unmount "$selected_distro" -f -a &> /dev/null
 }
 
 # Function for the option
@@ -276,11 +253,9 @@ while true; do
                     "$(readlink -f "$0")"
                     ;;
                 "Login CLI")
-                    sudo_fix
                     login_cli
                     ;;
                 "Login GUI")
-                    sudo_fix
                     login_gui
                     ;;
             esac
