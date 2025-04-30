@@ -510,10 +510,6 @@ $script help - for more information
 $script env - output debug information about environment
 $script list - list of available linux distributions
 
-$script fixsuid <enable|disable> - force suid option on /data mount (default: enable) 
-$script ram-bind <enable|disable> - Binds some paths in the distro to RAM for performance improvement (default: enable)
-$script android-bind <enable|disable> - Bind all Android root directories, which are not bound by default (default: enable) 
-
 $script download <distro> - download rootfs
 $script redownload <distro> - redownload rootfs
 $script delete <distro> - delete rootfs
@@ -526,6 +522,10 @@ $script uninstall <distro> [-f|--force] - uninstall distro
     '-f|--force'    Force closing open files (closes the process accessing them)
                     and/or unmounting active mounts. Use with care.
 
+$script fixsuid <enable|disable> - force suid option on /data mount (default: enable) 
+$script ram-bind <enable|disable> - Binds some paths in the distro to RAM for performance improvement (default: enable)
+$script android-bind <enable|disable> - Bind all Android root directories, which are not bound by default (default: enable) 
+$script mount <distro> - mount distro rootfs without entering
 $script unmount <distro|all> [-f|--force] [-a|--all] - unmount (system) mount points from distro
     '-f|--force'    Force closing open files (closes the process accessing them)
                     and/or unmounting active mounts which prevents (system) mount points
@@ -1940,6 +1940,27 @@ elif [ "$command" = "login" ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_login "$1"
+elif [ "$command" = "mount" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                exit 3
+                ;;
+        esac
+    done
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_mount_system_points "$1"
 elif [ "$command" = "unmount" ]; then
     PARSED=$(getopt --options=fa --longoptions=force,all --name "$0" -- "$@") || exit 2
     eval set -- "$PARSED"
