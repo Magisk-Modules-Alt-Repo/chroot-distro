@@ -956,7 +956,7 @@ chroot_distro_mount_system_point() {
             exit 1
         fi
     fi
-    if mountpoint -q "$mount_point"; then
+    if chroot_distro_check_if_system_point_mounted "$mount_point"; then
         # nothing to do, already mounted
         return
     fi
@@ -1047,7 +1047,7 @@ chroot_distro_unmount_system_point() {
         # nothing to do, mount point missing
         return
     fi
-    if ! mountpoint -q "$mount_point"; then
+    if ! chroot_distro_check_if_system_point_mounted "$mount_point"; then
         # nothing to do, already unmounted
         return
     fi
@@ -1074,7 +1074,7 @@ chroot_distro_check_if_system_point_mounted() {
         # nothing to do, mount point missing
         return 1
     fi
-    if mountpoint -q "$mount_point" 2>/dev/null || true; then
+    if grep -wq "$mount_point" /proc/mounts; then
        return 0
     else
        return 1
