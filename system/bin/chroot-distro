@@ -8,9 +8,13 @@
 if [ -n "${chroot_distro_log+x}" ]; then
   set -e
   set -x
-  # shellcheck disable=SC3047
-  trap 'echo "Error at line $LINENO"' ERR
 fi
+
+chroot_distro_exit() {
+  if [ -z "${chroot_distro_exit+x}" ]; then
+      exit $1
+  fi
+}
 
 chroot_distro_path="/data/local/chroot-distro"
 script=$(basename "$0")
@@ -18,7 +22,7 @@ script=$(basename "$0")
 user_id=$(id -u)
 if [ "${user_id}" -ne 0 ]; then
     echo "Root access required."
-    exit 1
+    chroot_distro_exit 1
 fi
 
 architecture=$(uname -m)
@@ -28,7 +32,7 @@ case "${architecture}" in
     arm|armel|armhf|armhfp|armv7|armv7l|armv7a|armv8l) hardware_machine="armhf" ;;
     386|i386|i686|x86) hardware_machine="i386" ;;
     amd64|x86_64) hardware_machine="amd64" ;;
-    *) echo "Unsupported machine hardware: ${architecture}"; exit 1 ;;
+    *) echo "Unsupported machine hardware: ${architecture}"; chroot_distro_exit 1 ;;
 esac
 
 supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox  centos_stream rocky adelie chimera gentoo"
@@ -88,7 +92,7 @@ if [ -z "$busyboxpath" ]; then
     if [ "" = "$check_env" ] && [ "" = "$busyboxpath" ]; then
         echo "busybox not found, install Busybox for Android NDK and try again"
         echo "Run '$script env' for extra information"
-        exit 1
+        chroot_distro_exit 1
     fi
 fi
 
@@ -123,7 +127,7 @@ case "$busyboxpath" in
         if [ "" = "$check_env" ]; then
             echo "busybox not found from the expected path, ensure that Busybox for Android NDK has been installed and try again"
             echo "Run '$script env' for extra information"
-            exit 1
+            chroot_distro_exit 1
         fi
     ;;
 esac
@@ -160,7 +164,7 @@ unset busyboxdir
 if [ "" = "$check_env" ] && [ "" = "$chrootpath" ]; then
     echo "chroot not found from the expected path, ensure that Busybox for Android NDK has been installed and try again"
     echo "Run '$script env' for extra information"
-    exit 1
+    chroot_distro_exit 1
 fi
 
 busyboxlsofcaller=''
@@ -356,7 +360,7 @@ if [ "" != "$check_env" ]; then
     fi
     echo "PATH=$PATH"
     # check run successfully, bail out
-    exit 0
+    chroot_distro_exit 0
 fi
 
 getopt --test > /dev/null && true
@@ -364,12 +368,12 @@ if [ $? -ne 4 ]; then
     # shellcheck disable=SC2016
     echo 'I'\''m sorry, `getopt --test` failed in this environment.'
     echo "Run '$script env' for extra information"
-    exit 1
+    chroot_distro_exit 1
 fi
 
 if ! tar --help 2>&1 | grep -q -- "-J" ; then
     echo 'Your Busybox tar does not support xz compression. Update your busybox!'
-    exit 1
+    chroot_distro_exit 1
 fi
 
 mkdir -p "$chroot_distro_path" "$chroot_distro_path/.rootfs" "$chroot_distro_path/.backup" "$chroot_distro_path/.config"
@@ -698,7 +702,7 @@ chroot_distro_download() {
                 6) release="noble"; break;;
                 7) release="oracular"; break;; 
                 8) release="plucky"; break;; 
-                q) echo "Operation cancelled"; exit 1;;
+                q) echo "Operation cancelled"; chroot_distro_exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
@@ -718,7 +722,7 @@ chroot_distro_download() {
                 2) rootfs="netboot"; break;;
                 3) rootfs="rpi"; break;;
                 4) rootfs="uboot";break;;
-                q) echo "Operation cancelled"; exit 1;;
+                q) echo "Operation cancelled"; chroot_distro_exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
@@ -736,7 +740,7 @@ chroot_distro_download() {
                 1) rootfs="full"; break;;
                 2) rootfs="minimal"; break;;
                 3) rootfs="nano"; break;;
-                q) echo "Operation cancelled"; exit 1;;
+                q) echo "Operation cancelled"; chroot_distro_exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
@@ -753,7 +757,7 @@ chroot_distro_download() {
                 1) rootfs="debian"; break;;
                 2) rootfs="debian_bullseye"; break;;
                 3) rootfs="debian_bookworm";break;;
-                q) echo "Operation cancelled"; exit 1;;
+                q) echo "Operation cancelled"; chroot_distro_exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
@@ -791,7 +795,7 @@ chroot_distro_download() {
                 2) release_version="v4.23.0"; break;;
                 3) release_version="v4.17.3"; break;;
                 4) release_version="v4.15.0"; break;;
-                q) echo "Operation cancelled"; exit 1;;
+                q) echo "Operation cancelled"; chroot_distro_exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
@@ -813,7 +817,7 @@ chroot_distro_download() {
             case "$number" in
                 1) rootfs="full"; break;;
                 2) rootfs="bootstrap"; break;;
-                q) echo "Operation cancelled"; exit 1;;
+                q) echo "Operation cancelled"; chroot_distro_exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
@@ -829,7 +833,7 @@ chroot_distro_download() {
             case "$number" in
                 1) rootfs="full"; break;;
                 2) rootfs="minimal"; break;;
-                q) echo "Operation cancelled"; exit 1;;
+                q) echo "Operation cancelled"; chroot_distro_exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
@@ -859,21 +863,21 @@ chroot_distro_download() {
         download_url="${void_rootfs_base_url}current/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
     else
         echo "Unavailable distro: $distro"
-        exit 90
+        chroot_distro_exit 90
     fi
 
     if [ "" = "$download_url" ]; then
         echo "Unsupported machine hardware: $(uname -m)"
-        exit 87
+        chroot_distro_exit 87
     fi
     if ! wget --spider -q -T 10 -t 1 "$download_url"; then
         echo "Failed to access URL: $download_url"
         echo "The architecture '$hardware_machine' may not be supported or the URL is unavailable."
-        exit 87
+        chroot_distro_exit 87
     fi
     if [ -f "$chroot_distro_path/.rootfs/$distro.tar.xz" ]; then
         echo "Already downloaded."
-        exit 89
+        chroot_distro_exit 89
     fi
 
     if ! wget -O "$chroot_distro_path/.rootfs/$distro.tar.xz" "$download_url"; then
@@ -881,7 +885,7 @@ chroot_distro_download() {
         if [ -e "$chroot_distro_path/.rootfs/$distro.tar.xz" ]; then
             rm "$chroot_distro_path/.rootfs/$distro.tar.xz"
         fi
-        exit 88
+        chroot_distro_exit 88
     fi
 }
 
@@ -892,7 +896,7 @@ chroot_distro_check_if_supported() {
         fi
     done
     echo "unavailable distro $1"
-    exit 1
+    chroot_distro_exit 1
 }
 
 chroot_distro_find_processes_with_open_files() {
@@ -923,7 +927,7 @@ chroot_distro_delete() {
         rm "$archive_path"
     else
         echo "$1 not downloaded"
-        exit 1
+        chroot_distro_exit 1
     fi
 }
 
@@ -954,7 +958,7 @@ chroot_distro_mount_system_point() {
     if [ ! -d "$mount_point" ]; then
         if ! mkdir -p "$mount_point"; then
             echo "creating mount point $mount_point failed"
-            exit 1
+            chroot_distro_exit 1
         fi
     fi
     if chroot_distro_check_if_system_point_mounted "$mount_point"; then
@@ -964,17 +968,17 @@ chroot_distro_mount_system_point() {
     if [ "$path_to_mount" = "/tmp" ]; then
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             echo "could not mount tmpfs to $mount_point"
-            exit 1
+            chroot_distro_exit 1
         fi
     elif [ "$path_to_mount" = "/run" ]; then 
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             echo "could not mount tmpfs to $mount_point"
-            exit 1
+            chroot_distro_exit 1
         fi
     elif [ "$path_to_mount" = "/var/tmp" ]; then
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             echo "could not mount tmpfs to $mount_point"
-            exit 1
+            chroot_distro_exit 1
         fi
      elif [ "$path_to_mount" = "/var/run" ]; then 
        run_path=$(echo "$mount_point" | sed 's|/var/run|/run|')
@@ -985,17 +989,17 @@ chroot_distro_mount_system_point() {
      elif [ "$path_to_mount" = "/dev/shm" ]; then 
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             echo "could not mount tmpfs to $mount_point"
-            exit 1
+            chroot_distro_exit 1
         fi
     elif [ "$path_to_mount" = "/dev/pts" ]; then
         if ! mount -t devpts devpts "$mount_point"; then
             echo "could not mount devpts to $mount_point"
-            exit 1
+            chroot_distro_exit 1
         fi
     else
         if ! mount --bind "$path_to_mount" "$mount_point"; then
             echo "could not mount $path_to_mount to $mount_point"
-            exit 1
+            chroot_distro_exit 1
         fi 
     fi
 }
@@ -1208,13 +1212,13 @@ chroot_distro_install() {
     archive_path="$chroot_distro_path/.rootfs/$distro.tar.xz"
     if [ ! -f "$archive_path" ]; then
         echo "$distro not downloaded"
-        exit 1
+        chroot_distro_exit 1
     fi
 
     distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
         echo "$distro already installed"
-        exit 1
+        chroot_distro_exit 1
     fi
 
     common_path="$( chroot_distro_find_archive_common_path "$archive_path" )"
@@ -1230,18 +1234,18 @@ chroot_distro_install() {
     rootdir="$( echo "$common_path" | cut -f1 -d/ )"
     if [ "$rootdir" != "$common_path" ]; then
         echo "Unsupported archive. rootfs archive is expected to have only at most one subdirectory before the actual content."
-        exit 1
+        chroot_distro_exit 1
     fi
     archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$archive_path")}
     if [ "" = "$archive_type" ]; then
         echo "Error: unsupported or corrupt archive"
-        exit 5
+        chroot_distro_exit 5
     fi
     if [ "." = "$rootdir" ]; then
         mkdir -p "$distro_path"
         if ! tar -xf "$archive_path" -C "$distro_path/"; then
             echo "Error: Unpacking the archive failed"
-            exit 5
+            chroot_distro_exit 5
         fi
     else
         tar -xf "$archive_path" -C "$chroot_distro_path/"
@@ -1249,13 +1253,13 @@ chroot_distro_install() {
         if [ $tar_status -ne 0 ] && [ ! -e "$chroot_distro_path/$rootdir" ]; then
             # can bail out early as no files were unpacked
             echo "Error: Unpacking the archive failed"
-            exit 5
+            chroot_distro_exit 5
         fi
         mv "$chroot_distro_path/$rootdir" "$distro_path"
         if [ $tar_status -ne 0 ]; then
             # can bail out only when the environment is in semi consistent state
             echo "Error: Unpacking the archive failed"
-            exit 5
+            chroot_distro_exit 5
         fi
     fi
 
@@ -1321,7 +1325,7 @@ chroot_distro_uninstall() {
         open_files=$(lsof | grep -F "$distro_path")
         if [ "" != "$mounts" ] || [ "" != "$loopbacks" ] || [ "" != "$open_files" ]; then
             chroot_distro_list_unmount_issues "$distro_path" "$command" 'all' "$force" "$mounts" "$loopbacks" "$open_files"
-            exit 1
+            chroot_distro_exit 1
         fi
 
         # when reaching this point it is assumed that uninstalling the distro is ok, no irreversible changes to distro before this line
@@ -1331,7 +1335,7 @@ chroot_distro_uninstall() {
         rm -rf "$distro_path"
     else
         echo "$1 not installed"
-        exit 1
+        chroot_distro_exit 1
     fi
 }
 
@@ -1380,20 +1384,20 @@ chroot_distro_backup() {
         echo "loopback devices under $distro_path:"
         echo "${loopbacks:-Not found}"
         echo "end of loopback devices"
-        exit 1
+        chroot_distro_exit 1
     fi
 
     if [ "" = "$custom_path" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
         if [ -f "$backup_path" ]; then
             echo "backup already exist, unbackup and try agin"
-            exit 1
+            chroot_distro_exit 1
         fi
         (
-            cd "$chroot_distro_path" || exit 1;
+            cd "$chroot_distro_path" || chroot_distro_exit 1;
             if ! tar -caf "$backup_path" "$distro" 2>/dev/null || true; then
                 echo "Error: creating the backup failed"
-                exit 5
+                chroot_distro_exit 5
             fi
         )
     else
@@ -1403,10 +1407,10 @@ chroot_distro_backup() {
             absolute_custom_path="$PWD/$custom_path"
         fi
         (
-            cd "$chroot_distro_path" || exit 1;
+            cd "$chroot_distro_path" || chroot_distro_exit 1;
             if ! tar -caf "$absolute_custom_path" "$distro" 2>/dev/null || true; then
                 echo "Error: creating the backup failed"
-                exit 5
+                chroot_distro_exit 5
             fi
         )
     fi
@@ -1417,7 +1421,7 @@ chroot_distro_find_archive_common_path() {
     archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$archive_path")}
     if [ "" = "$archive_type" ]; then
         echo "Error: unsupported or corrupt archive" >&2
-        exit 5
+        chroot_distro_exit 5
     fi
     paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
 
@@ -1445,7 +1449,7 @@ chroot_distro_unbackup() {
         rm "$backup_path"
     else
         echo "backup not found $1"
-        exit 1
+        chroot_distro_exit 1
     fi
 }
 
@@ -1459,7 +1463,7 @@ chroot_distro_restore() {
     distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
         echo "distro already installed , uninstall and try again"
-        exit 1
+        chroot_distro_exit 1
     fi
 
     if [ "" = "$custom_backup_path" ]; then
@@ -1475,7 +1479,7 @@ chroot_distro_restore() {
 
     if [ ! -f "$backup_path" ]; then
         echo "backup not found"
-        exit 1
+        chroot_distro_exit 1
     fi
 
     common_path="$(chroot_distro_find_archive_common_path "$backup_path")"
@@ -1493,7 +1497,7 @@ chroot_distro_restore() {
     archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$backup_path")}
     if [ "" = "$archive_type" ]; then
         echo "Error: unsupported or corrupt archive"
-        exit 5
+        chroot_distro_exit 5
     fi
 
     if [ "." = "$rootdir" ]; then
@@ -1501,7 +1505,7 @@ chroot_distro_restore() {
         mkdir -p "$distro_path"
         if ! tar -xf "$backup_path" -C "$distro_path/" 2>/dev/null || true; then
             echo "Error: Unpacking the archive failed"
-            exit 5
+            chroot_distro_exit 5
         fi
     elif [ "data" = "$rootdir" ] && [ "yes" = "$force" ]; then
         # Uses old format of backups. Accept only if user has reviewed the content as the backup needs to be
@@ -1512,7 +1516,7 @@ chroot_distro_restore() {
             cd /
             if ! tar -xf "$backup_path" 2>/dev/null || true; then
                 echo "Error: Unpacking the archive failed"
-                exit 5
+                chroot_distro_exit 5
             fi
         )
     elif [ "data" = "$rootdir" ]; then
@@ -1525,19 +1529,19 @@ chroot_distro_restore() {
             echo "- expected common denominator path: $distro_path"
             echo "- archive had following common denominator path: /$common_path"
         fi
-        exit 4
+        chroot_distro_exit 4
     elif [ "$distro" = "$rootdir" ]; then
         # new format backups
         (
-            cd "$chroot_distro_path" || exit 1;
+            cd "$chroot_distro_path" || chroot_distro_exit 1;
             if ! tar -xf "$backup_path" 2>/dev/null || true; then
                 echo "Error: Unpacking the archive failed"
-                exit 5
+                chroot_distro_exit 5
             fi
         )
     else
         echo "Backup may be for wrong distro (root directory $rootdir), review the backup before proceeding"
-        exit 4
+        chroot_distro_exit 4
     fi
 
     chroot_distro_mount_system_points "$distro_path" no
@@ -1569,7 +1573,7 @@ chroot_distro_unmount() {
     distro_path="$chroot_distro_path/$distro"
     if [ ! -d "$distro_path" ]; then
         echo "$distro not installed"
-        exit 1
+        chroot_distro_exit 1
     fi
 
     if [ "yes" = "$all" ]; then
@@ -1605,7 +1609,7 @@ chroot_distro_unmount() {
     fi
     if [ "" != "$mounts" ] || [ "" != "$loopbacks" ] || [ "" != "$open_files" ] || [ "0" = "$system_mount_points_mounted" ]; then
         chroot_distro_list_unmount_issues "$distro_path" 'unmount' "$mode" "$force" "$mounts" "$loopbacks" "$open_files"
-        exit 1
+        chroot_distro_exit 1
     fi
 }
 
@@ -1617,7 +1621,7 @@ chroot_distro_command() {
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
         echo "$1 not installed"
-        exit 1
+        chroot_distro_exit 1
     fi
 
     chroot_distro_mount_system_points "$distro_path" no
@@ -1631,7 +1635,7 @@ chroot_distro_login() {
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
         echo "$1 not installed"
-        exit 1
+        chroot_distro_exit 1
     fi
 
     chroot_distro_mount_system_points "$distro_path" no
@@ -1642,7 +1646,7 @@ chroot_distro_login() {
 chroot_distro_invalid_parameters() {
     echo "$script - $1"
     echo "try '$script help' for more information"
-    exit 2
+    chroot_distro_exit 2
 }
 
 chroot_distro_user_check_parameters() {
@@ -1662,10 +1666,10 @@ command=$1
 shift
 
 if [ "$command" = "help" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     chroot_distro_help
 elif [ "$command" = "list" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1675,7 +1679,7 @@ elif [ "$command" = "list" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1684,7 +1688,7 @@ elif [ "$command" = "list" ]; then
     fi
     chroot_distro_list
 elif [ "$command" = "download" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1694,7 +1698,7 @@ elif [ "$command" = "download" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1706,7 +1710,7 @@ elif [ "$command" = "download" ]; then
     chroot_distro_warn_if_unsupported_busybox
     chroot_distro_download "$1"
 elif [ "$command" = "redownload" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1716,7 +1720,7 @@ elif [ "$command" = "redownload" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1727,7 +1731,7 @@ elif [ "$command" = "redownload" ]; then
     fi
     chroot_distro_download "$1"
 elif [ "$command" = "delete" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1737,7 +1741,7 @@ elif [ "$command" = "delete" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1748,7 +1752,7 @@ elif [ "$command" = "delete" ]; then
     fi
     chroot_distro_delete "$1"
 elif [ "$command" = "install" ]; then
-    PARSED=$(getopt --options=a --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=a --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1758,7 +1762,7 @@ elif [ "$command" = "install" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1770,7 +1774,7 @@ elif [ "$command" = "install" ]; then
     chroot_distro_warn_if_unsupported_busybox
     chroot_distro_install "$1" 
 elif [ "$command" = "uninstall" ]; then
-    PARSED=$(getopt --options=f --longoptions=force --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=f --longoptions=force --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     force=no
     while true; do
@@ -1785,7 +1789,7 @@ elif [ "$command" = "uninstall" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1797,7 +1801,7 @@ elif [ "$command" = "uninstall" ]; then
     chroot_distro_uninstall "$1" "$force" "$command"
 elif [ "$command" = "reinstall" ]; then
     OPTS=af LONGOPTS=force
-    PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     force=no
     while true; do
@@ -1812,7 +1816,7 @@ elif [ "$command" = "reinstall" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1824,7 +1828,7 @@ elif [ "$command" = "reinstall" ]; then
     chroot_distro_uninstall "$1" "$force" "$command"
     chroot_distro_install "$1" 
 elif [ "$command" = "backup" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1834,7 +1838,7 @@ elif [ "$command" = "backup" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1845,7 +1849,7 @@ elif [ "$command" = "backup" ]; then
     fi
     chroot_distro_backup "$1" "$2"
 elif [ "$command" = "unbackup" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1855,7 +1859,7 @@ elif [ "$command" = "unbackup" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1867,7 +1871,7 @@ elif [ "$command" = "unbackup" ]; then
     chroot_distro_unbackup "$1"
 elif [ "$command" = "restore" ]; then
     OPTS=d LONGOPTS=default,force
-    PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     restore_defaults=no
     force=no
@@ -1887,7 +1891,7 @@ elif [ "$command" = "restore" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1898,7 +1902,7 @@ elif [ "$command" = "restore" ]; then
     fi
     chroot_distro_restore "$1" "$2" "$restore_defaults" "$force"
 elif [ "$command" = "command" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1908,7 +1912,7 @@ elif [ "$command" = "command" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1921,7 +1925,7 @@ elif [ "$command" = "command" ]; then
     fi
     chroot_distro_command "$1" "$2"
 elif [ "$command" = "login" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1931,7 +1935,7 @@ elif [ "$command" = "login" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1942,7 +1946,7 @@ elif [ "$command" = "login" ]; then
     fi
     chroot_distro_login "$1"
 elif [ "$command" = "mount" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -1952,7 +1956,7 @@ elif [ "$command" = "mount" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1963,7 +1967,7 @@ elif [ "$command" = "mount" ]; then
     fi
     chroot_distro_mount_system_points "$1"
 elif [ "$command" = "unmount" ]; then
-    PARSED=$(getopt --options=fa --longoptions=force,all --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options=fa --longoptions=force,all --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     force=no
     all=no
@@ -1983,7 +1987,7 @@ elif [ "$command" = "unmount" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -1994,7 +1998,7 @@ elif [ "$command" = "unmount" ]; then
     fi
     chroot_distro_unmount "$1" "$force" "$all"
 elif [ "$command" = "fixsuid" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -2004,7 +2008,7 @@ elif [ "$command" = "fixsuid" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -2017,7 +2021,7 @@ elif [ "$command" = "fixsuid" ]; then
          *) echo "Unknown option $1";; 
     esac
 elif [ "$command" = "ram-bind" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -2027,7 +2031,7 @@ elif [ "$command" = "ram-bind" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
@@ -2040,7 +2044,7 @@ elif [ "$command" = "ram-bind" ]; then
          *) echo "Unknown option $1";; 
     esac
 elif [ "$command" = "android-bind" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
@@ -2050,7 +2054,7 @@ elif [ "$command" = "android-bind" ]; then
                 ;;
             *)
                 echo "Programming error"
-                exit 3
+                chroot_distro_exit 3
                 ;;
         esac
     done
