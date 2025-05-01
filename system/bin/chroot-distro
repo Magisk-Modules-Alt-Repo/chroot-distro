@@ -1680,6 +1680,7 @@ elif [ "$command" = "list" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1699,6 +1700,7 @@ elif [ "$command" = "download" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1721,6 +1723,7 @@ elif [ "$command" = "redownload" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1742,6 +1745,7 @@ elif [ "$command" = "delete" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1763,6 +1767,7 @@ elif [ "$command" = "install" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1790,6 +1795,7 @@ elif [ "$command" = "uninstall" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1817,6 +1823,7 @@ elif [ "$command" = "reinstall" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1839,6 +1846,7 @@ elif [ "$command" = "backup" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1860,6 +1868,7 @@ elif [ "$command" = "unbackup" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1892,6 +1901,7 @@ elif [ "$command" = "restore" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1913,6 +1923,7 @@ elif [ "$command" = "command" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1936,6 +1947,7 @@ elif [ "$command" = "login" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1957,6 +1969,7 @@ elif [ "$command" = "mount" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -1988,6 +2001,7 @@ elif [ "$command" = "unmount" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -2009,6 +2023,7 @@ elif [ "$command" = "fixsuid" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -2032,6 +2047,7 @@ elif [ "$command" = "ram-bind" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
@@ -2055,6 +2071,7 @@ elif [ "$command" = "android-bind" ]; then
             *)
                 echo "Programming error"
                 chroot_distro_exit 3
+                break
                 ;;
         esac
     done
