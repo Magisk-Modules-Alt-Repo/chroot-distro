@@ -99,6 +99,7 @@ if [ "" != "$check_env" ]; then
     fi
 fi
 
+if [ -z "$busyboxpath" ]; then
 unsupported_busybox=''
 case "$busyboxpath" in
     /bin/*) ;; # assume that it is ok (either old android, or linux), nothing to do
@@ -126,6 +127,7 @@ case "$busyboxpath" in
         fi
     ;;
 esac
+fi 
 
 busyboxdir="$(dirname "$busyboxpath")"
 can_use_busyboxdir=true
