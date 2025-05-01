@@ -738,8 +738,7 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version="$(curl -s $kali_rootfs_base_url | grep -oE "kali-nethunter-[0-9]+\.[0-9]+-generic-${hardware_machine}-${rootfs}\.zip" | head -n 1 | sed -E 's/kali-nethunter-([0-9]+\.[0-9]+)-.*/\1/')"
-        download_url="${kali_rootfs_base_url}current/kali-nethunter-${version}-generic-${hardware_machine}-${rootfs}\.zip"
+        download_url="${kali_rootfs_base_url}current/rootfs/kali-nethunter-rootfs-${rootfs}-${hardware_machine}.tar.xz"
     elif [ "$distro" = "debian" ]; then
         distro_name='Debian'
         echo "[1] Debian (AnLinux)"
