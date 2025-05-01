@@ -165,7 +165,7 @@ fi
 
 busyboxlsofcaller=''
 busyboxlsof=''
-if [ "" != "$busyboxpath" ] && "$busyboxpath" lsof > /dev/null 2>&1 || true; then
+if [ "" != "$busyboxpath" ] && "$busyboxpath" lsof --help > /dev/null 2>&1 || true; then
     # prefer the version provided by the found busybox binary
     busyboxlsofcaller=true
     busyboxlsof=true
