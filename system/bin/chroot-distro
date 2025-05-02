@@ -212,6 +212,9 @@ wget() { busybox wget "$@"; }
 # ensure that correct version of chroot is used
 chroot() { "$chrootpath" "$@"; }
 
+# ensure that correct version of unlink is used
+unlink() { busybox unlink "$@"; }
+
 lsof() {
     if [ "" != "$busyboxlsofcaller" ]; then
         busybox lsof
