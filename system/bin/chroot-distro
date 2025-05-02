@@ -74,7 +74,7 @@ if [ "" != "${check_env}" ]; then
     echo "Toybox version: $(toybox --version)"
 fi
 
-busyboxpath="$(command -v busybox 2> /dev/null || true)"
+busyboxpath="$(command -v busybox 2> /dev/null )"
 if [ -z "$busyboxpath" ]; then
     busyboxpath=''
     if [ -e /data/adb ]; then
@@ -169,7 +169,7 @@ fi
 
 busyboxlsofcaller=''
 busyboxlsof=''
-if [ "" != "$busyboxpath" ] && "$busyboxpath" lsof --help > /dev/null 2>&1 || true; then
+if [ "" != "$busyboxpath" ] && "$busyboxpath" lsof --help > /dev/null 2>&1 ; then
     # prefer the version provided by the found busybox binary
     busyboxlsofcaller=true
     busyboxlsof=true
@@ -293,7 +293,7 @@ if [ "" != "$check_env" ]; then
                     # - Remove '0x' prefix if present using sed
                     # - Convert to lowercase for consistency
                     clean_hex=$(echo "$kp_version" | sed 's/^0x//i' | tr '[:upper:]' '[:lower:]')
-                    
+
                     # Convert hex to decimal
                     # Format: 0xb01 = 2817 (decimal)
                     # If conversion fails, dec_value will be empty
@@ -302,7 +302,7 @@ if [ "" != "$check_env" ]; then
                     if [ -n "$dec_value" ]; then
                         # Get length of hex string to handle different formats
                         hex_len=${#clean_hex}
-                        
+
                         # Handle small hex values (≤ 2 digits)
                         if [ "$hex_len" -le 2 ]; then
                             major=0
@@ -318,7 +318,7 @@ if [ "" != "$check_env" ]; then
                             minor=$(( dec_value >> 8 & 15 ))   # Get next 4 bits
                             patch=$(( dec_value & 255 ))       # Get lowest 8 bits
                         fi
-                        
+
                         # Format version string (e.g., "0.11.1")
                         version_string="$major.$minor.$patch"
                         # Combine with binary version (e.g., "0.11.1 [11023]")
@@ -392,7 +392,7 @@ fixsuid() {
     # If the argument is "enable", write 1 to the suid file
     if [ "$1" = "enable" ]; then
         if [ "$suid_val" != "1" ]; then
-            echo 1 > "$suid_file" || true
+            echo 1 > "$suid_file" 
         else
             echo "fixsuid is enabled already"
             return 1
@@ -400,7 +400,7 @@ fixsuid() {
     # If the argument is "disable", write 0 to the suid file
     elif [ "$1" = "disable" ]; then
         if [ "$suid_val" != "0" ]; then
-            echo 0 > "$suid_file" || true
+            echo 0 > "$suid_file" 
         else
             echo "fixsuid is disabled already"
             return 1
@@ -412,13 +412,13 @@ fixsuid() {
 
     # If suid is disabled (0), remount /data with nosuid and nodev if needed
     if [ "$suid_val" = "0" ]; then
-        if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "suid" || true; then
-            mount -o remount,nodev,nosuid /data || true || echo "Failed to remount /data with nosuid"
+        if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "suid" ; then
+            mount -o remount,nodev,nosuid /data  || echo "Failed to remount /data with nosuid"
         fi
     # If suid is enabled (1), remount /data with suid and dev if needed
     elif [ "$suid_val" = "1" ]; then
-        if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "nosuid" || true; then
-            mount -o remount,dev,suid /data || true || echo "Failed to remount /data with suid"
+        if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "nosuid" ; then
+            mount -o remount,dev,suid /data  || echo "Failed to remount /data with suid"
         fi
     fi
 }
@@ -439,7 +439,7 @@ ram_bind() {
     # If the argument is "enable", write 1 to the ram bind file
     if [ "$1" = "enable" ]; then
         if [ "$ram_bind_val" != "1" ]; then
-            echo 1 > "$ram_bind_file" || true
+            echo 1 > "$ram_bind_file" 
         else
             echo "ram bind is enabled already"
             return 1
@@ -447,7 +447,7 @@ ram_bind() {
     # If the argument is "disable", write 0 to the ram bind file
     elif [ "$1" = "disable" ]; then
         if [ "$ram_bind_val" != "0" ]; then
-            echo 0 > "$ram_bind_file" || true
+            echo 0 > "$ram_bind_file" 
         else
             echo "ram bind is disabled already"
             return 1
@@ -474,7 +474,7 @@ android_bind() {
     # If the argument is "enable", write 1 to the android bind file
     if [ "$1" = "enable" ]; then
         if [ "$android_bind_val" != "1" ]; then
-            echo 1 > "$android_bind_file" || true
+            echo 1 > "$android_bind_file" 
         else
             echo "android bind is enabled already"
             return 1
@@ -482,7 +482,7 @@ android_bind() {
     # If the argument is "disable", write 0 to the android bind file
     elif [ "$1" = "disable" ]; then
         if [ "$android_bind_val" != "0" ]; then
-            echo 0 > "$android_bind_file" || true
+            echo 0 > "$android_bind_file" 
         else
             echo "android bind is disabled already"
             return 1
@@ -806,7 +806,7 @@ chroot_distro_download() {
             esac
         done
         download_url="${proot_distro_rootfs_base_url}/${release_version}/fedora-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-${release_version}.tar.xz"
-    
+
     elif [ "$distro" = "openkylin" ]; then
         distro_name='OpenKylin'
         download_url="${openkylin_rootfs_base_url}openkylin-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-v4.10.0.tar.xz"
@@ -939,7 +939,7 @@ chroot_distro_delete() {
 
 list_mount_points() {
     distro_path="$1"
-    
+
     for point in $system_points; do
         echo "$distro_path$point"
     done
@@ -1066,7 +1066,7 @@ chroot_distro_unmount_system_point() {
        chroot_distro_force_unmount "$mount_point/" 
     fi
     # no need to check for the success as the caller will take care of that
-    if ! umount "$mount_point" || true; then
+    if ! umount "$mount_point" ; then
     echo "Warning: Failed to unmount $mount_point"
     fi
 }
@@ -1203,12 +1203,12 @@ prepare_chroot_distro() {
    echo "1007 aid_drm"
   } >> "$distro_path/etc/group"
    # Add usermod for _apt only if the distro is Debian-based
-   if chroot "$distro_path" /bin/id _apt >/dev/null 2>&1 || true; then
+   if chroot "$distro_path" /bin/id _apt >/dev/null 2>&1 ; then
       chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
    fi
-   chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null || true
+   chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null 
    timezone="$(getprop persist.sys.timezone)"
-   chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime 2>/dev/null || true
+   chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime 2>/dev/null 
 } 
 
 chroot_distro_install() {
@@ -1401,7 +1401,7 @@ chroot_distro_backup() {
         fi
         (
             cd "$chroot_distro_path" || chroot_distro_exit 1;
-            if ! tar -caf "$backup_path" "$distro" 2>/dev/null || true; then
+            if ! tar -caf "$backup_path" "$distro" 2>/dev/null ; then
                 echo "Error: creating the backup failed"
                 chroot_distro_exit 5
             fi
@@ -1414,7 +1414,7 @@ chroot_distro_backup() {
         fi
         (
             cd "$chroot_distro_path" || chroot_distro_exit 1;
-            if ! tar -caf "$absolute_custom_path" "$distro" 2>/dev/null || true; then
+            if ! tar -caf "$absolute_custom_path" "$distro" 2>/dev/null ; then
                 echo "Error: creating the backup failed"
                 chroot_distro_exit 5
             fi
@@ -1509,7 +1509,7 @@ chroot_distro_restore() {
     if [ "." = "$rootdir" ]; then
         # backup has relative path, restoring is not a problem
         mkdir -p "$distro_path"
-        if ! tar -xf "$backup_path" -C "$distro_path/" 2>/dev/null || true; then
+        if ! tar -xf "$backup_path" -C "$distro_path/" 2>/dev/null ; then
             echo "Error: Unpacking the archive failed"
             chroot_distro_exit 5
         fi
@@ -1520,7 +1520,7 @@ chroot_distro_restore() {
         # fill the internal storage. There is also possibility of using wrong backup.
         (
             cd /
-            if ! tar -xf "$backup_path" 2>/dev/null || true; then
+            if ! tar -xf "$backup_path" 2>/dev/null ; then
                 echo "Error: Unpacking the archive failed"
                 chroot_distro_exit 5
             fi
@@ -1540,7 +1540,7 @@ chroot_distro_restore() {
         # new format backups
         (
             cd "$chroot_distro_path" || chroot_distro_exit 1;
-            if ! tar -xf "$backup_path" 2>/dev/null || true; then
+            if ! tar -xf "$backup_path" 2>/dev/null ; then
                 echo "Error: Unpacking the archive failed"
                 chroot_distro_exit 5
             fi
