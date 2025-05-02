@@ -6,8 +6,11 @@
 # for the full terms.
 
 if [ -n "${chroot_distro_log+x}" ]; then
-  set -e
-  set -x
+  case "$chroot_distro_log" in
+    0) set -n ;;
+    1) set -e ;;
+    2) set -e -x ;;
+  esac
 fi
 
 chroot_distro_exit() {
