@@ -215,6 +215,9 @@ chroot() { "$chrootpath" "$@"; }
 # ensure that correct version of unlink is used
 unlink() { busybox unlink "$@"; }
 
+# ensure that correct version of sort is used
+sort() { busybox sort "$@"; }
+
 lsof() {
     if [ "" != "$busyboxlsofcaller" ]; then
         busybox lsof
