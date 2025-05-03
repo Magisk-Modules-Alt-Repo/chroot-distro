@@ -221,9 +221,6 @@ unlink() { busybox unlink "$@"; }
 # ensure that correct version of sort is used
 sort() { busybox sort "$@"; }
 
-# ensure that correct version of curl is used
-curl() { busybox curl "$@"; }
-
 lsof() {
     if [ "" != "$busyboxlsofcaller" ]; then
         busybox lsof
