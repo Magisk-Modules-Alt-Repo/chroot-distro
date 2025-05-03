@@ -798,7 +798,7 @@ chroot_distro_download() {
             esac
         done
         version="$(wget -qO- "${chimera_rootfs_base_url}" | grep -oE "chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-[0-9]{8}-${rootfs}\.tar.gz" | sed -E "s/.*ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/" | head -n 1)"
-        download_url="${chimera_rootfs_base_url}/chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-${version}-${rootfs}\.tar.gz"
+        download_url="${chimera_rootfs_base_url}/${version}"
        elif [ "$distro" = "adelie" ]; then
         distro_name='Adélie Linux'
         echo "[1] adelie linux full"
@@ -808,7 +808,7 @@ chroot_distro_download() {
             read -r number
             case "$number" in
                 1) rootfs="full"; break;;
-                2) rootfs="minimal"; break;;
+                2) rootfs="mini"; break;;
                 q) echo "Operation cancelled"; chroot_distro_exit 1;;
                 *) echo "Invalid option: $number. Please try again.";;
             esac
