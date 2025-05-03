@@ -493,8 +493,7 @@ done
 
 chroot_distro_warn_if_unsupported_busybox() {
     current_version=$(busybox | grep -oE 'v[0-9]+(\.[0-9]+)+' | sed 's/v//')
-    echo "Current BusyBox version: $current_version"
-    if [ "$(printf "%s\n%s" "$current_version" "1.36.1" | sort -V | head -n1)" != "1.36.1" ]; then
+    if [ ! "$(echo $current_version | sed 's/\.//g')" -ge "1361" ]; then
        echo "WARNING: Outdated BusyBox version - expect many issues and bugs!"
        echo "         Upgrade to v1.36.1 or newer immediately."
     fi
