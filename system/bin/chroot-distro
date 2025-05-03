@@ -604,7 +604,7 @@ alpine_rootfs_base_url=http://dl-cdn.alpinelinux.org/alpine/latest-stable/releas
 void_rootfs_base_url=https://repo-default.voidlinux.org/live/
 archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
 archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
-adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/
+adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso
 gentoo_rootfs_base_url=https://distfiles.gentoo.org/releases/
 chimera_rootfs_base_url=https://repo.chimera-linux.org/live/latest
 #manjaro_rootfs_base_url=https://github.com/manjaro-arm/rootfs/
@@ -635,7 +635,10 @@ chroot_distro_list() {
 
     if [ "$hardware_machine" != "i386" ]; then
         echo "Arch Linux : archlinux"
-        chroot_distro_list_item archlinux
+        chroot_distro_list_item archlinux 
+
+        echo "Adélie Linux : adelie"
+        chroot_distro_list_item adelie
     fi
 
     if [ "$hardware_machine" = "arm64" ]; then
@@ -678,9 +681,6 @@ chroot_distro_list() {
 
     echo "BackBox : backbox"
     chroot_distro_list_item backbox
-
-    echo "Adélie Linux : adelie"
-    chroot_distro_list_item adelie
 
     echo "Gentoo Linux : gentoo"
     chroot_distro_list_item gentoo
@@ -833,8 +833,8 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version="$(curl -s "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ | sed s/i686/pmmx/)-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1)"
-        download_url="${adelie_rootfs_base_url}adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/ | sed s/i686/pmmx/)-1.0-beta6-${version}.txz"
+        version="$(wget -qO- "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/)-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1)"
+        download_url="${adelie_rootfs_base_url}/adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/)-1.0-beta6-${version}.txz"
     elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
         download_url="$(curl -s https://api.github.com/repos/manjaro-arm/rootfs/releases/latest | grep "browser_download_url" | cut -d '"' -f 4)"
