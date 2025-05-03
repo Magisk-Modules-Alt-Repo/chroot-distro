@@ -606,7 +606,7 @@ archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
 archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
 adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/
 gentoo_rootfs_base_url=https://distfiles.gentoo.org/releases/
-chimera_rootfs_base_url=https://repo.chimera-linux.org/live/
+chimera_rootfs_base_url=https://repo.chimera-linux.org/live/latest
 #manjaro_rootfs_base_url=https://github.com/manjaro-arm/rootfs/
 # AnLinux rootfs: 
 debian_rootfs_base_url_anlinux=$anlinux_rootfs_base_url/raw/master/Rootfs/Debian/
@@ -817,8 +817,8 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version="$(curl -s ${chimera_rootfs_base_url}latest | grep -oE "chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-[0-9]{8}-${rootfs}\.tar.gz" | sed -E "s/.*chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/" | head -n 1)"
-        download_url="${chimera_rootfs_base_url}latest/chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-${version}-${rootfs}\.tar.gz"
+        version="$(wget -qO- "${chimera_rootfs_base_url}" | grep -oE "chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-[0-9]{8}-${rootfs}\.tar.gz" | sed -E "s/.*ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/" | head -n 1)"
+        download_url="${chimera_rootfs_base_url}/chimera-linux-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-${version}-${rootfs}\.tar.gz"
        elif [ "$distro" = "adelie" ]; then
         distro_name='Adélie Linux'
         echo "[1] adelie linux full"
