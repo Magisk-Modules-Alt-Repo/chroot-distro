@@ -703,7 +703,7 @@ chroot_distro_download() {
     elif [ "$distro" = "alpine" ]; then
         distro_name='Alpine Linux'
         hwm_alpine="$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)"
-        download_url=$(wget -qO- "${alpine_rootfs_base_url}/${hwm_alpine}/" | grep -oE "alpine-minirootfs-[0-9]+\.[0-9]+\.[0-9]+-${hwm_alpine}\.tar\.gz" | sed "s/.*-\([0-9]\+\.[0-9]\+\.[0-9]\+\)-.*/\1 &/" | sort -t. -k1,1nr -k2,2nr -k3,3nr | head -n1 | cut -d' ' -f2-)
+        download_url="${alpine_rootfs_base_url}/${hwm_alpine}/$(wget -qO- "${alpine_rootfs_base_url}/${hwm_alpine}/" | grep -oE "alpine-minirootfs-[0-9]+\.[0-9]+\.[0-9]+-${hwm_alpine}\.tar\.gz" | sed "s/.*-\([0-9]\+\.[0-9]\+\.[0-9]\+\)-.*/\1 &/" | sort -t. -k1,1nr -k2,2nr -k3,3nr | head -n1 | cut -d' ' -f2-)"
     elif [ "$distro" = "kali" ]; then
         distro_name='Kali Linux'
         echo "[1] kali linux full"
