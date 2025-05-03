@@ -605,7 +605,7 @@ void_rootfs_base_url=https://repo-default.voidlinux.org/live/
 archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
 archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
 adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso
-gentoo_rootfs_base_url=https://distfiles.gentoo.org/releases/
+gentoo_rootfs_base_url=https://distfiles.gentoo.org/releases
 chimera_rootfs_base_url=https://repo.chimera-linux.org/live/latest
 #manjaro_rootfs_base_url=https://github.com/manjaro-arm/rootfs/
 # AnLinux rootfs: 
@@ -850,10 +850,10 @@ chroot_distro_download() {
     elif [ "$distro" = "centos_stream" ]; then
         distro_name='CentOS Stream'
         download_url="${centos_stream_rootfs_base_url}${hardware_machine}/centos_stream-rootfs-${hardware_machine}.tar.xz"
-        elif [ "$distro" = "gentoo" ]; then
+    elif [ "$distro" = "gentoo" ]; then
         distro_name='Gentoo Linux'
-        version=$(curl -s "https://distfiles.gentoo.org/releases/$(echo $hardware_machine | sed 's/armhf/armv7a/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc/" | grep -oE "stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc-[0-9]{8}T[0-9]{6}Z\.tar\.xz" | sed -E "s/.*stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc-([0-9]{8}T[0-9]{6}Z)\.tar\.xz/\1/" | head -n 1)
-        download_url="${gentoo_rootfs_base_url}$(echo $hardware_machine | sed 's/armhf/armv7a/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc/stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc-${version}.tar.xz"
+        version=$(wget -qO- "${gentoo_rootfs_base_url}/$(echo $hardware_machine | sed 's/armhf/arm/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/arm/')-openrc/" | grep -o "stage3-$(echo $hardware_machine | sed 's/armhf/armv7a/')-openrc-[0-9]\+T[0-9]\+Z\.tar\.xz" | grep -v '\.tar\.xz\.' | head -n1)
+        download_url="${gentoo_rootfs_base_url}/$(echo $hardware_machine | sed 's/armhf/arm/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/arm/')-openrc/${version}"
     elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
         download_url="${void_rootfs_base_url}current/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
