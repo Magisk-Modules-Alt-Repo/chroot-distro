@@ -570,7 +570,7 @@ chroot_distro_list_item() {
 proot_distro_rootfs_base_url=https://github.com/termux/proot-distro/releases/download 
 anlinux_rootfs_base_url=https://github.com/EXALAB/Anlinux-Resources
 # proot distro rootfs: 
-debian_rootfs_base_url_prootdistro=$proot_distro_rootfs_base_url/v4.17.3/
+debian_rootfs_base_url_prootdistro=$proot_distro_rootfs_base_url
 openkylin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.10.0/
 pardus_rootfs_base_url=$proot_distro_rootfs_base_url/v4.18.0/
 opensuse_rootfs_base_url=$proot_distro_rootfs_base_url/v4.21.0/
@@ -739,8 +739,8 @@ chroot_distro_download() {
         done
         case "$rootfs" in
              debian) download_url="$debian_rootfs_base_url_anlinux$hardware_machine/debian-rootfs-$hardware_machine.tar.xz";;
-             debian_bullseye) download_url="${debian_rootfs_base_url_prootdistro}debian-bullseye-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.17.3.tar.xz";;
-             debian_bookworm) download_url="${debian_rootfs_base_url_prootdistro}debian-bookworm-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.17.3.tar.xz";;
+             debian_bullseye) download_url="${debian_rootfs_base_url_prootdistro}/v4.7.0/debian-bullseye-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.7.0.tar.xz";;
+             debian_bookworm) download_url="${debian_rootfs_base_url_prootdistro}/v4.17.3/debian-bookworm-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.17.3.tar.xz";;
         esac
     elif [ "$distro" = "parrot" ]; then
         distro_name='Parrot Security'
