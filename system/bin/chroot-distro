@@ -698,7 +698,7 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version=$(wget -qO- "${ubuntu_rootfs_base_url}/${release}/release/" | sed -n "s/.*href=\"ubuntu-base-\\([0-9]\\+\\.[0-9]\\+\\.[0-9]\\+\\)-base-${hardware_machine}\\.tar\\.gz\".*/\1/p")
+        version="$(wget -qO- "${ubuntu_rootfs_base_url}/${release}/release/" | grep -oE "ubuntu-base-[0-9]+(\.[0-9]+)*-base-${hardware_machine}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+(\.[0-9]+)*)-base-.*/\1/')"
         download_url="${ubuntu_rootfs_base_url}/${release}/release/ubuntu-base-${version}-base-${hardware_machine}.tar.gz"
     elif [ "$distro" = "alpine" ]; then
         distro_name='Alpine Linux'
