@@ -837,7 +837,7 @@ chroot_distro_download() {
         download_url="${adelie_rootfs_base_url}/adelie-rootfs-${rootfs}-$(echo $hardware_machine | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/)-1.0-beta6-${version}.txz"
     elif [ "$distro" = "manjaro" ]; then
         distro_name='Manjaro'
-        download_url="$(curl -s https://api.github.com/repos/manjaro-arm/rootfs/releases/latest | grep "browser_download_url" | cut -d '"' -f 4)"
+        download_url="$(wget -qO- https://api.github.com/repos/manjaro-arm/rootfs/releases/latest | grep "browser_download_url" | cut -d '"' -f 4)"
     elif [ "$distro" = "opensuse" ]; then
         distro_name='OpenSuse'
         download_url="${opensuse_rootfs_base_url}opensuse-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.21.0.tar.xz"
