@@ -601,7 +601,7 @@ rocky_rootfs_base_url=$proot_distro_rootfs_base_url/v4.20.0/
 ubuntu_rootfs_base_url=https://cdimage.ubuntu.com/ubuntu-base/releases
 kali_rootfs_base_url=http://kali.download/nethunter-images/
 alpine_rootfs_base_url=http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases
-void_rootfs_base_url=https://repo-default.voidlinux.org/live/
+void_rootfs_base_url=https://repo-default.voidlinux.org/live/current
 archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
 archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
 adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso
@@ -856,7 +856,7 @@ chroot_distro_download() {
         download_url="${gentoo_rootfs_base_url}/$(echo $hardware_machine | sed 's/armhf/arm/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/arm/')-openrc/${version}"
     elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
-        download_url="${void_rootfs_base_url}current/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(curl -s ${void_rootfs_base_url}current/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
+        download_url="${void_rootfs_base_url}/void-$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(wget -qO- ${void_rootfs_base_url}/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
     else
         echo "Unavailable distro: $distro"
         chroot_distro_exit 90
