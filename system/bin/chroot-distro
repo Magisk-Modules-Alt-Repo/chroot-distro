@@ -600,7 +600,7 @@ rocky_rootfs_base_url=$proot_distro_rootfs_base_url/v4.20.0/
 # Official rootfs: 
 ubuntu_rootfs_base_url=https://cdimage.ubuntu.com/ubuntu-base/releases
 kali_rootfs_base_url=http://kali.download/nethunter-images/
-alpine_rootfs_base_url=http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/
+alpine_rootfs_base_url=http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases
 void_rootfs_base_url=https://repo-default.voidlinux.org/live/
 archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
 archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
@@ -722,24 +722,8 @@ chroot_distro_download() {
         download_url="${ubuntu_rootfs_base_url}/${release}/release/ubuntu-base-${version}-base-${hardware_machine}.tar.gz"
     elif [ "$distro" = "alpine" ]; then
         distro_name='Alpine Linux'
-        echo "[1] alpine minirootfs latest"
-        echo "[2] alpine netboot latest"
-        echo "[3] alpine rpi latest"
-        echo "[4] alpine uboot latest"
-        while true; do
-            printf "Enter a number (1-4, or 'q' to quit): "
-            read -r number
-            case "$number" in
-                1) rootfs="minirootfs";break;;
-                2) rootfs="netboot"; break;;
-                3) rootfs="rpi"; break;;
-                4) rootfs="uboot";break;;
-                q) echo "Operation cancelled"; chroot_distro_exit 1;;
-                *) echo "Invalid option: $number. Please try again.";;
-            esac
-        done
         hwm_alpine="$(echo $hardware_machine | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)"
-        download_url="$alpine_rootfs_base_url$hwm_alpine/alpine-$rootfs-$(curl -s "$alpine_rootfs_base_url$hwm_alpine/" | grep -oE 'alpine-.*[0-9]+\.[0-9]+\.[0-9]+[^"]*(.tar.gz|.tar|.img)' | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | sort -V | tail -n 1)-$hwm_alpine.tar.gz"
+        download_url=$(wget -qO- "${alpine_rootfs_base_url}/${hwm_alpine}/" | grep -oE "alpine-minirootfs-[0-9]+\.[0-9]+\.[0-9]+-${hwm_alpine}\.tar\.gz" | sed "s/.*-\([0-9]\+\.[0-9]\+\.[0-9]\+\)-.*/\1 &/" | sort -t. -k1,1nr -k2,2nr -k3,3nr | head -n1 | cut -d' ' -f2-)
     elif [ "$distro" = "kali" ]; then
         distro_name='Kali Linux'
         echo "[1] kali linux full"
