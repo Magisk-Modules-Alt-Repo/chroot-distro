@@ -832,7 +832,7 @@ chroot_distro_download() {
         download_url="${centos_stream_rootfs_base_url}${hardware_machine}/centos_stream-rootfs-${hardware_machine}.tar.xz"
     elif [ "$distro" = "gentoo" ]; then
         distro_name='Gentoo Linux'
-        version=$(wget -qO- "${gentoo_rootfs_base_url}/$(echo $hardware_machine | sed 's/armhf/arm/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/arm/')-openrc/" | sed 's/armhf/arm/')-openrc/" | sed -n 's/.*href="\([^"]*\)".*/\1/p' | grep '^stage3.*\.xz$' | head -n1)
+        version=$(wget -qO- "${gentoo_rootfs_base_url}/$(echo $hardware_machine | sed 's/armhf/arm/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/arm/')-openrc/" | sed -n 's/.*href="\([^"]*\)".*/\1/p' | grep '^stage3.*\.xz$' | head -n1)
         download_url="${gentoo_rootfs_base_url}/$(echo $hardware_machine | sed 's/armhf/arm/')/autobuilds/current-stage3-$(echo $hardware_machine | sed 's/armhf/arm/')-openrc/${version}"
     elif [ "$distro" = "void" ]; then
         distro_name='Void Linux'
