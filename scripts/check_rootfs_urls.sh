@@ -1,195 +1,215 @@
 #!/system/bin/sh
+#
+# Copyright 2025 Yasser Null
+#
+# Code is licensed under terms of GNU GPL v3, see LICENSE file
+# for the full terms.
 
-# ANSI color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
+script=$(basename "$0")
 
-# List of URLs to check (extracted from the provided script)
-urls=(
-    # Ubuntu
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/trusty/release/ubuntu-base-14.04.6-base-i386.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/trusty/release/ubuntu-base-14.04.6-base-arm64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/trusty/release/ubuntu-base-14.04.6-base-armhf.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/trusty/release/ubuntu-base-14.04.6-base-amd64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/xenial/release/ubuntu-base-16.04.6-base-i386.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/xenial/release/ubuntu-base-16.04.6-base-arm64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/xenial/release/ubuntu-base-16.04.6-base-armhf.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/xenial/release/ubuntu-base-16.04.6-base-amd64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/bionic/release/ubuntu-base-18.04.5-base-i386.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/bionic/release/ubuntu-base-18.04.5-base-arm64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/bionic/release/ubuntu-base-18.04.5-base-armhf.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/bionic/release/ubuntu-base-18.04.5-base-amd64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/focal/release/ubuntu-base-20.04.5-base-arm64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/focal/release/ubuntu-base-20.04.5-base-armhf.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/focal/release/ubuntu-base-20.04.5-base-amd64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/jammy/release/ubuntu-base-22.04.5-base-arm64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/jammy/release/ubuntu-base-22.04.5-base-armhf.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/jammy/release/ubuntu-base-22.04.5-base-amd64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/noble/release/ubuntu-base-24.04.1-base-arm64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/noble/release/ubuntu-base-24.04.1-base-armhf.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/noble/release/ubuntu-base-24.04.1-base-amd64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/oracular/release/ubuntu-base-24.10-base-arm64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/oracular/release/ubuntu-base-24.10-base-armhf.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/oracular/release/ubuntu-base-24.10-base-amd64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/plucky/release/ubuntu-base-25.04-base-arm64.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/plucky/release/ubuntu-base-25.04-base-armhf.tar.gz"
-    "https://cdimage.ubuntu.com/ubuntu-base/releases/plucky/release/ubuntu-base-25.04-base-amd64.tar.gz"
+user_id=$(id -u)
+if [ "${user_id}" -ne 0 ]; then
+    echo "Root access required."
+    chroot_distro_exit 1
+fi
 
-    # Kali Linux
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-full-arm64.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-full-armhf.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-full-amd64.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-full-i386.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-minimal-arm64.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-minimal-armhf.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-minimal-amd64.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-minimal-i386.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-nano-arm64.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-nano-armhf.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-nano-amd64.tar.xz"
-    "http://kali.download/nethunter-images/current/rootfs/kali-nethunter-rootfs-nano-i386.tar.xz"
+busyboxpath="$(command -v busybox 2> /dev/null)"
+if [ -z "$busyboxpath" ]; then
+    busyboxpath=''
+    if [ -e /data/adb ]; then
+        # try harder... -- thanks for the pointer, @osm0sis
+        if [ "" != "$check_env" ]; then
+            echo 'Checking for hidden Busyboxes'
+        fi
+        for possiblepath in /data/adb/modules/busybox-ndk/system/*/busybox /data/adb/magisk/busybox /data/adb/ksu/bin/busybox /data/adb/ap/bin/busybox; do
+            if [ -f "$possiblepath" ]; then
+                busyboxpath="$possiblepath"
+                break
+            fi
+        done
+    fi
+    if [ "" = "$check_env" ] && [ "" = "$busyboxpath" ]; then
+        echo "busybox not found, install Busybox for Android NDK and try again"
+        echo "Run '$script env' for extra information"
+        chroot_distro_exit 1
+    fi
+fi
 
-    # Debian (AnLinux)
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Debian/arm64/debian-rootfs-arm64.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Debian/armhf/debian-rootfs-armhf.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Debian/amd64/debian-rootfs-amd64.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Debian/i386/debian-rootfs-i386.tar.xz"
+if [ "" != "$check_env" ]; then
+    echo "busybox => '$busyboxpath'"
+    if [ "" != "$busyboxpath" ]; then
+        echo "Busybox version: $($busyboxpath | head -n1)"
+    fi
+fi
 
-    # Debian (Proot-distro)
-    "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bullseye-aarch64-pd-v4.7.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bullseye-arm-pd-v4.7.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bullseye-x86_64-pd-v4.7.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bullseye-i686-pd-v4.7.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bookworm-aarch64-pd-v4.7.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bookworm-arm-pd-v4.7.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bookworm-x86_64-pd-v4.7.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-bookworm-i686-pd-v4.7.0.tar.xz"
+if echo "$busyboxpath" | grep -q "^/system/"; then
+    ndk_path="/system/xbin/busybox"
+    if [ "$busyboxpath" != "$ndk_path" ] && [ -e "$ndk_path" ]; then
+        # force use of Busybox for Android NDK in the case there is conflicting versions
+        if [ -n "$check_env" ]; then
+            echo "Forcing Busybox path from '$busyboxpath' to '$ndk_path'"
+            echo "Forced Busybox version: $($ndk_path | head -n1)"
+        fi
+        busyboxpath="$ndk_path"
+    fi
+fi
 
-    # Parrot OS
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Parrot/arm64/parrot-rootfs-arm64.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Parrot/armhf/parrot-rootfs-armhf.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Parrot/amd64/parrot-rootfs-amd64.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/Parrot/i386/parrot-rootfs-i386.tar.xz"
+# ensure that the expected version of busybox is used
+busybox()
+          {
+            "$busyboxpath" "$@"
+}
 
-    # Arch Linux
-    "http://ca.us.mirror.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz"
-    "http://ca.us.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"
-    "https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/archlinux-bootstrap-x86_64.tar.gz"
+# ensure that busybox version of wget is used
+wget()
+       {
+         busybox wget "$@"
+}
 
-    # Artix Linux
-    "https://github.com/termux/proot-distro/releases/download/v4.6.0/artix-aarch64-pd-v4.6.0.tar.xz"
+# ensure that correct version of sort is used
+sort()
+       {
+         busybox sort "$@"
+}
 
-    # Deepin
-    "https://github.com/termux/proot-distro/releases/download/v4.16.0/deepin-aarch64-pd-v4.16.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.16.0/deepin-x86_64-pd-v4.16.0.tar.xz"
+# Notice: if you change one of the base urls, remember to check that the full download link is still correct
+# as some of the full urls may have the version information multiple times
+proot_distro_rootfs_base_url=https://github.com/termux/proot-distro/releases/download
+anlinux_rootfs_base_url=https://github.com/EXALAB/Anlinux-Resources
+# proot distro rootfs:
+debian_rootfs_base_url_prootdistro=$proot_distro_rootfs_base_url
+openkylin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.10.0/
+pardus_rootfs_base_url=$proot_distro_rootfs_base_url/v4.18.0/
+opensuse_rootfs_base_url=$proot_distro_rootfs_base_url/v4.21.0/
+artix_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
+deepin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
+rocky_rootfs_base_url=$proot_distro_rootfs_base_url/v4.20.0/
+# Official rootfs:
+ubuntu_rootfs_base_url=https://cdimage.ubuntu.com/ubuntu-base/releases
+kali_rootfs_base_url=http://kali.download/nethunter-images/
+alpine_rootfs_base_url=http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases
+void_rootfs_base_url=https://repo-default.voidlinux.org/live/current
+archlinux_rootfs_base_url_arm=http://ca.us.mirror.archlinuxarm.org/os/
+archlinux_rootfs_base_url=https://mirrors.ocf.berkeley.edu/archlinux/iso/latest/
+adelie_rootfs_base_url=https://distfiles.adelielinux.org/adelie/1.0-beta6/iso
+gentoo_rootfs_base_url=https://distfiles.gentoo.org/releases
+chimera_rootfs_base_url=https://repo.chimera-linux.org/live/latest
+#manjaro_rootfs_base_url=https://github.com/manjaro-arm/rootfs/
+# AnLinux rootfs:
+debian_rootfs_base_url_anlinux=$anlinux_rootfs_base_url/raw/master/Rootfs/Debian/
+parrot_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/Parrot/
+backbox_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/BackBox/
+centos_stream_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS_Stream/
 
-    # Fedora
-    "https://github.com/termux/proot-distro/releases/download/v4.24.0/fedora-aarch64-pd-v4.24.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.23.0/fedora-aarch64-pd-v4.23.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.17.3/fedora-aarch64-pd-v4.17.3.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.15.0/fedora-aarch64-pd-v4.15.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.24.0/fedora-x86_64-pd-v4.24.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.23.0/fedora-x86_64-pd-v4.23.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.17.3/fedora-x86_64-pd-v4.17.3.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.15.0/fedora-x86_64-pd-v4.15.0.tar.xz"
-
-    # OpenKylin
-    "https://github.com/termux/proot-distro/releases/download/v4.10.0/openkylin-aarch64-pd-v4.10.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.10.0/openkylin-x86_64-pd-v4.10.0.tar.xz"
-
-    # Pardus
-    "https://github.com/termux/proot-distro/releases/download/v4.6.0/pardus-aarch64-pd-v4.6.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.6.0/pardus-x86_64-pd-v4.6.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.6.0/pardus-i686-pd-v4.6.0.tar.xz"
-
-    # OpenSuse
-    "https://github.com/termux/proot-distro/releases/download/v4.6.0/opensuse-aarch64-pd-v4.6.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.6.0/opensuse-arm-pd-v4.6.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.6.0/opensuse-x86_64-pd-v4.6.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases déplacer/download/v4.6.0/opensuse-i686-pd-v4.6.0.tar.xz"
-
-    # BackBox
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/BackBox/arm64/backbox-rootfs-arm64.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/BackBox/armhf/backbox-rootfs-armhf.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/BackBox/amd64/backbox-rootfs-amd64.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/BackBox/i386/backbox-rootfs-i386.tar.xz"
-
-    # CentOS
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/arm64/centos-rootfs-arm64.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS/amd64/centos-rootfs-amd64.tar.xz"
-
-    # CentOS Stream
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS_Stream/arm64/centos_stream-rootfs-arm64.tar.xz"
-    "https://github.com/EXALAB/Anlinux-Resources/raw/master/Rootfs/CentOS_Stream/amd64/centos_stream-rootfs-amd64.tar.xz"
-
-    # Rocky
-    "https://github.com/termux/proot-distro/releases/download/v4.20.0/rocky-aarch64-pd-v4.20.0.tar.xz"
-    "https://github.com/termux/proot-distro/releases/download/v4.20.0/rocky-x86_64-pd-v4.20.0.tar.xz"
-
-    # Adelie
-    "https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-full-aarch64-1.0-beta6-20241223.txz"
-    "https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-minimal-aarch64-1.0-beta6-20241223.txz"
-    "https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-full-armv7-1.0-beta6-20241223.txz"
-    "https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-minimal-armv7-1.0-beta6-20241223.txz"
-    "https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-full-x86_64-1.0-beta6-20241223.txz"
-    "https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-minimal-x86_64-1.0-beta6-20241223.txz"
-
-    # Chimera
-    "https://repo.chimera-linux.org/live/20250420/chimera-linux-aarch64-ROOTFS-20250420-full.tar.gz"
-    "https://repo.chimera-linux.org/live/20250420/chimera-linux-aarch64-ROOTFS-20250420-bootstrap.tar.gz"
-    "https://repo.chimera-linux.org/live/20250420/chimera-linux-x86_64-ROOTFS-20250420-full.tar.gz"
-    "https://repo.chimera-linux.org/live/20250420/chimera-linux-x86_64-ROOTFS-20250420-bootstrap.tar.gz"
-
-    # Gentoo
-    "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-stage3-arm64-openrc/stage3-arm64-openrc-20250420T230518Z.tar.xz"
-    "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/stage3-amd64-openrc-20250420T121009Z.tar.xz"
-    "https://distfiles.gentoo.org/releases/arm/autobuilds/current-stage3-armv7a-openrc/stage3-armv7a-openrc-20250416T215027Z.tar.xz"
-    "https://distfiles.gentoo.org/releases/x86/autobuilds/current-stage3-i686-openrc/stage3-i686-openrc-20250414T165036Z.tar.xz"
-
-    # Void Linux
-    "https://repo-default.voidlinux.org/live/20240314/void-aarch64-ROOTFS-20240314.tar.xz"
-    "https://repo-default.voidlinux.org/live/20240314/void-x86_64-ROOTFS-20240314.tar.xz"
-    "https://repo-default.voidlinux.org/live/20240314/void-i686-ROOTFS-20240314.tar.xz"
-    "https://repo-default.voidlinux.org/live/20240314/void-armv7l-ROOTFS-20240314.tar.xz"
-    "https://repo-default.voidlinux.org/live/20230628/void-aarch64-ROOTFS-20230628.tar.xz"
-    "https://repo-default.voidlinux.org/live/20230628/void-x86_64-ROOTFS-20230628.tar.xz"
-    "https://repo-default.voidlinux.org/live/20230628/void-i686-ROOTFS-20230628.tar.xz"
-    "https://repo-default.voidlinux.org/live/20230628/void-armv7l-ROOTFS-20230628.tar.xz"
-    "https://repo-default.voidlinux.org/live/20221001/void-aarch64-ROOTFS-20221001.tar.xz"
-    "https://repo-default.voidlinux.org/live/20221001/void-x86_64-ROOTFS-20221001.tar.xz"
-    "https://repo-default.voidlinux.org/live/20221001/void-i686-ROOTFS-20221001.tar.xz"
-    "https://repo-default.voidlinux.org/live/20221001/void-armv7l-ROOTFS-20221001.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210930/void-aarch64-ROOTFS-20210930.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210930/void-x86_64-ROOTFS-20210930.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210930/void-i686-ROOTFS-20210930.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210930/void-armv7l-ROOTFS-20210930.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210316/void-aarch64-ROOTFS-20210316.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210316/void-x86_64-ROOTFS-20210316.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210316/void-i686-ROOTFS-20210316.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210316/void-armv7l-ROOTFS-20210316.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210218/void-aarch64-ROOTFS-20210218.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210218/void-x86_64-ROOTFS-20210218.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210218/void-i686-ROOTFS-20210218.tar.xz"
-    "https://repo-default.voidlinux.org/live/20210218/void-armv7l-ROOTFS-20210218.tar.xz"
-)
-
-# Function to check if a URL is accessible
-check_url() {
-    local url="$1"
-    # Use curl to check if the URL is accessible (HTTP 200 or 302 for redirects)
-    if curl --output /dev/null --silent --head --fail "$url" 2>/dev/null; then
-        echo -e "${GREEN}Valid: $url${NC}"
+check_url()
+            {
+    url=$1
+    if wget --spider --quiet --timeout=20 "$url"; then
+        printf "\033[32mvalid $url\033[0m\n"
     else
-        echo -e "${RED}Invalid: $url${NC}"
+        printf "\033[31minvalid $url\033[0m\n"
     fi
 }
 
-# Main loop to check each URL
-echo "Checking URLs..."
-for url in "${urls[@]}"; do
-    check_url "$url"
-done
+architectures="arm64 armhf i386 amd64"
+for architecture in $architectures; do
 
-# Note about dynamic URLs
-echo -e "\n${RED}Note:${NC} URLs for Alpine and Void Linux (current) are dynamic and require runtime fetching of the latest version. These are not included in this check. Please specify exact versions or run the original script to resolve them."
+    # Ubuntu
+    releases="trusty xenial bionic"
+    if [ "$architecture" != "i386" ]; then
+        releases="$releases focal jammy noble oracular plucky"
+    fi
+    for release in $releases; do
+        version="$(wget -qO- "${ubuntu_rootfs_base_url}/${release}/release/" | grep -oE "ubuntu-base-[0-9]+(\.[0-9]+)*-base-${architecture}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+(\.[0-9]+)*)-base-.*/\1/')"
+        download_url="${ubuntu_rootfs_base_url}/${release}/release/ubuntu-base-${version}-base-${architecture}.tar.gz"
+        check_url $download_url
+    done
+
+    # Alpine
+
+    hwm_alpine="$(echo $architecture | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/x86/g)"
+    download_url="${alpine_rootfs_base_url}/${hwm_alpine}/$(wget -qO- "${alpine_rootfs_base_url}/${hwm_alpine}/" | grep -oE "alpine-minirootfs-[0-9]+\.[0-9]+\.[0-9]+-${hwm_alpine}\.tar\.gz" | sed "s/.*-\([0-9]\+\.[0-9]\+\.[0-9]\+\)-.*/\1 &/" | sort -t. -k1,1nr -k2,2nr -k3,3nr | head -n1 | cut -d' ' -f2-)"
+    check_url $download_url
+    # Kali
+    releases="full minimal nano"
+    for release in $releases; do
+        download_url="${kali_rootfs_base_url}current/rootfs/kali-nethunter-rootfs-${release}-${architecture}.tar.xz"
+        check_url $download_url
+    done
+
+    # Debian
+    download_url="$debian_rootfs_base_url_anlinux$architecture/debian-rootfs-$architecture.tar.xz"
+    check_url $download_url
+    download_url="${debian_rootfs_base_url_prootdistro}/v4.7.0/debian-bullseye-$(echo $architecture | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.7.0.tar.xz"
+    check_url $download_url
+    download_url="${debian_rootfs_base_url_prootdistro}/v4.17.3/debian-bookworm-$(echo $architecture | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.17.3.tar.xz"
+    check_url $download_url
+    # Parrot
+
+    download_url="$parrot_rootfs_base_url$architecture/parrot-rootfs-$architecture.tar.xz"
+    check_url $download_url
+
+    case "$architecture" in
+        amd64) download_url="${archlinux_rootfs_base_url}archlinux-bootstrap-$(echo "$architecture" | sed s/amd64/x86_64/).tar.zst" ;;
+        armhf | arm64) download_url="${archlinux_rootfs_base_url_arm}ArchLinuxARM-$(echo "$architecture" | sed 's/arm64/aarch64/; s/amd64/x86_64/; s/armhf/armv7/')-latest.tar.gz" ;;
+    esac
+
+    check_url $download_url
+
+    # Artix
+    download_url="${artix_rootfs_base_url}artix-aarch64-pd-v4.6.0.tar.xz"
+    check_url $download_url
+    # Deepin
+    download_url="${deepin_rootfs_base_url}deepin-$(echo $architecture | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-v4.16.0.tar.xz"
+    check_url $download_url
+    # Fedora
+    releases="v4.24.0 v4.23.0 v4.17.3 v4.15.0"
+    for release in $releases; do
+        download_url="${proot_distro_rootfs_base_url}/${release}/fedora-$(echo $architecture | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-${release}.tar.xz"
+        check_url $download_url
+    done
+
+    # OpenKylin
+    download_url="${openkylin_rootfs_base_url}openkylin-$(echo $architecture | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-v4.10.0.tar.xz"
+    check_url $download_url
+    # Rocky
+    download_url="${rocky_rootfs_base_url}rocky-$(echo $architecture | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-pd-v4.20.0.tar.xz"
+    check_url $download_url
+    # Chimera
+    releases="full bootstrap"
+    for release in $releases; do
+        version="$(wget -qO- "${chimera_rootfs_base_url}" | grep -oE "chimera-linux-$(echo $architecture | sed s/arm64/aarch64/ | sed s/amd64/x86_64/)-ROOTFS-[0-9]{8}-${release}\.tar.gz" | sed -E "s/.*ROOTFS-([0-9]{8})-${rootfs}\.tar\.gz/\1/" | head -n 1)"
+        download_url="${chimera_rootfs_base_url}/${version}"
+        check_url $download_url
+    done
+    # Adélie
+    releases="full mini"
+    for release in $releases; do
+        version="$(wget -qO- "$adelie_rootfs_base_url" | grep -oE "adelie-rootfs-${release}-$(echo $architecture | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/)-[^\" ]+-[0-9]{8}\.txz" | sed -E 's/.*-([0-9]{8})\.txz/\1/' | head -n 1)"
+        download_url="${adelie_rootfs_base_url}/adelie-rootfs-${release}-$(echo $architecture | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/armhf/armv7/)-1.0-beta6-${version}.txz"
+        check_url $download_url
+    done
+
+    # Manjaro
+    download_url="$(wget -qO- https://api.github.com/repos/manjaro-arm/rootfs/releases/latest | grep "browser_download_url" | cut -d '"' -f 4)"
+    check_url $download_url
+    # OpenSuse
+    download_url="${opensuse_rootfs_base_url}opensuse-$(echo $architecture | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.21.0.tar.xz"
+    check_url $download_url
+    # Pardus
+    download_url="${pardus_rootfs_base_url}pardus-$(echo $architecture | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/arm/g)-pd-v4.18.0.tar.xz"
+    check_url $download_url
+    # BackBox
+    download_url="$backbox_rootfs_base_url$architecture/backbox-rootfs-$architecture.tar.xz"
+    check_url $download_url
+    #CentOS Stream
+    download_url="${centos_stream_rootfs_base_url}${architecture}/centos_stream-rootfs-${architecture}.tar.xz"
+    check_url $download_url
+    #Gentoo
+    version=$(wget -qO- "${gentoo_rootfs_base_url}/$(echo $architecture | sed 's/armhf/arm/')/autobuilds/current-stage3-$(echo $architecture | sed 's/armhf/arm/')-openrc/" | sed -n 's/.*href="\([^"]*\)".*/\1/p' | grep '^stage3.*\.xz$' | head -n1)
+    download_url="${gentoo_rootfs_base_url}/$(echo $architecture | sed 's/armhf/arm/')/autobuilds/current-stage3-$(echo $architecture | sed 's/armhf/arm/')-openrc/${version}"
+    check_url $download_url
+    # Void
+    download_url="${void_rootfs_base_url}/void-$(echo $architecture | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(wget -qO- ${void_rootfs_base_url}/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
+    check_url $download_url
+done
