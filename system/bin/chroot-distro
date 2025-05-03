@@ -106,7 +106,6 @@ if [ "" != "$check_env" ]; then
     fi
 fi
 
-if [ -z "$busyboxpath" ]; then
 unsupported_busybox=''
 case "$busyboxpath" in
     /bin/*) ;; # assume that it is ok (either old android, or linux), nothing to do
@@ -127,14 +126,13 @@ case "$busyboxpath" in
     /data/adb/ksu/bin/*) unsupported_busybox=true ;; # KernelSU without Busybox for Android NDK installed
     /data/adb/ap/bin/*) unsupported_busybox=true ;; # APatch without Busybox for Android NDK installed
     *)
-        if [ "" = "$check_env" ]; then
+        if [ "" = "$check_env" ] && [ -z "$busyboxpath" ]; then
             echo "busybox not found from the expected path, ensure that Busybox for Android NDK has been installed and try again"
             echo "Run '$script env' for extra information"
             chroot_distro_exit 1
         fi
     ;;
 esac
-fi 
 
 busyboxdir="$(dirname "$busyboxpath")"
 can_use_busyboxdir=true
