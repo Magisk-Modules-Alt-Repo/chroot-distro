@@ -598,7 +598,7 @@ artix_rootfs_base_url=$proot_distro_rootfs_base_url/v4.6.0/
 deepin_rootfs_base_url=$proot_distro_rootfs_base_url/v4.16.0/
 rocky_rootfs_base_url=$proot_distro_rootfs_base_url/v4.20.0/
 # Official rootfs: 
-ubuntu_rootfs_base_url=https://cdimage.ubuntu.com/ubuntu-base/releases/
+ubuntu_rootfs_base_url=https://cdimage.ubuntu.com/ubuntu-base/releases
 kali_rootfs_base_url=http://kali.download/nethunter-images/
 alpine_rootfs_base_url=http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/
 void_rootfs_base_url=https://repo-default.voidlinux.org/live/
@@ -718,8 +718,8 @@ chroot_distro_download() {
                 *) echo "Invalid option: $number. Please try again.";;
             esac
         done
-        version="$(curl -s "${ubuntu_rootfs_base_url}${release}/release/" | grep -oE "ubuntu-base-[0-9]+(\.[0-9]+)*-base-${hardware_machine}\.tar\.gz" | head -n 1 | sed -E 's/ubuntu-base-([0-9]+(\.[0-9]+)*)-base-.*/\1/')"
-        download_url="${ubuntu_rootfs_base_url}${release}/release/ubuntu-base-${version}-base-${hardware_machine}.tar.gz"
+        version=$(wget -qO- "${ubuntu_rootfs_base_url}/${release}/release/" | sed -n "s/.*href=\"ubuntu-base-\\([0-9]\\+\\.[0-9]\\+\\.[0-9]\\+\\)-base-${hardware_machine}\\.tar\\.gz\".*/\1/p")
+        download_url="${ubuntu_rootfs_base_url}/${release}/release/ubuntu-base-${version}-base-${hardware_machine}.tar.gz"
     elif [ "$distro" = "alpine" ]; then
         distro_name='Alpine Linux'
         echo "[1] alpine minirootfs latest"
