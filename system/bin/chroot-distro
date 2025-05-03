@@ -197,9 +197,6 @@ wget() { busybox wget "$@"; }
 # ensure that correct version of chroot is used
 chroot() { "$chrootpath" "$@"; }
 
-# ensure that correct version of unlink is used
-unlink() { busybox unlink "$@"; }
-
 # ensure that correct version of sort is used
 sort() { busybox sort "$@"; }
 
@@ -1307,7 +1304,7 @@ chroot_distro_uninstall() {
         # when reaching this point it is assumed that uninstalling the distro is ok, no irreversible changes to distro before this line
 
         # ensure that there is no symbolic links before nuking the rootfs, symbolic links may point outside of rootfs when outside of the chroot
-        find "$distro_path" -type l -exec unlink {} \; > /dev/null 2>&1
+        find "$distro_path" -type l -exec "${busyboxpath}" unlink {} \; > /dev/null 2>&1
         rm -rf "$distro_path"
     else
         echo "$1 not installed"
