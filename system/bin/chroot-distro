@@ -1126,24 +1126,26 @@ prepare_chroot_distro() {
    fi
    echo "nameserver 8.8.8.8" > "$resolvconf"
    echo "nameserver 8.8.4.4" >> "$resolvconf"
-   cp /etc/hosts "$distro_path"/etc/hosts
-  {
-   echo "3003 aid_inet"
-   echo "3004 aid_net_raw"
-   echo "1003 aid_graphics"
-   echo "1003 aid_graphics"
-   echo "1004 aid_input"
-   echo "1005 aid_audio"
-   echo "1006 aid_video"
-   echo "1007 aid_drm"
-  } >> "$distro_path/etc/group"
-   # Add usermod for _apt only if the distro is Debian-based
-   if chroot "$distro_path" /bin/id _apt >/dev/null 2>&1; then
-      chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
-   fi
-   chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
-   timezone=$(getprop persist.sys.timezone); [ -z "$timezone" ] && { timezone=$(cat /etc/timezone 2>/dev/null); [ -z "$timezone" ] && timezone=Etc/UTC; }
-   chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime 2>/dev/null
+   cp /etc/hosts "$distro_path"/etc/hosts 
+   if [ "$(uname -o)" = "GNU/Linux" ]; then
+      {
+       echo "3003 aid_inet"
+       echo "3004 aid_net_raw"
+       echo "1003 aid_graphics"
+       echo "1003 aid_graphics"
+       echo "1004 aid_input"
+       echo "1005 aid_audio"
+       echo "1006 aid_video"
+       echo "1007 aid_drm"
+       } >> "$distro_path/etc/group"
+       # Add usermod for _apt only if the distro is Debian-based
+       if chroot "$distro_path" /bin/id _apt >/dev/null 2>&1; then
+          chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
+       fi
+       chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
+    fi
+    timezone=$(getprop persist.sys.timezone); [ -z "$timezone" ] && { timezone=$(cat /etc/timezone 2>/dev/null); [ -z "$timezone" ] && timezone=Etc/UTC; }
+    chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime 2>/dev/null
 } 
 
 chroot_distro_install() {
