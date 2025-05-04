@@ -1142,7 +1142,7 @@ prepare_chroot_distro() {
       chroot "$distro_path" /sbin/usermod -g 3003 -G 3003,3004 -a _apt 2>/dev/null
    fi
    chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
-   timezone="$(getprop persist.sys.timezone)"
+   timezone=$(getprop persist.sys.timezone); [ -z "$timezone" ] && { timezone=$(cat /etc/timezone 2>/dev/null); [ -z "$timezone" ] && timezone=Etc/UTC; }
    chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime 2>/dev/null
 } 
 
