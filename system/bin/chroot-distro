@@ -382,51 +382,51 @@ fi
 
 mkdir -p "$chroot_distro_path" "$chroot_distro_path/.rootfs" "$chroot_distro_path/.backup" "$chroot_distro_path/.config"
 
-suid_file="$chroot_distro_path/.config/suid"
+fix_suid_file="$chroot_distro_path/.config/fix_suid"
 
-fixsuid() {
-    suid_val=$(cat "$suid_file" 2>/dev/null)
+fix_suid() {
+    fix_suid_val=$(cat "$fix_suid_file" 2>/dev/null)
 
     # If the argument is "enable", write 1 to the suid file
     if [ "$1" = "enable" ]; then
-        if [ "$suid_val" != "1" ]; then
-            echo 1 > "$suid_file"
+        if [ "$fix_suid_val" != "1" ]; then
+            echo 1 > "$fix_suid_file"
         else
-            echo "fixsuid is enabled already"
+            echo "fix suid is enabled already"
             return 1
         fi
-    # If the argument is "disable", write 0 to the suid file
+    # If the argument is "disable", write 0 to the fix suid file
     elif [ "$1" = "disable" ]; then
-        if [ "$suid_val" != "0" ]; then
-            echo 0 > "$suid_file"
+        if [ "$fix_suid_val" != "0" ]; then
+            echo 0 > "$fix_suid_file"
         else
-            echo "fixsuid is disabled already"
+            echo "fix suid is disabled already"
             return 1
         fi
     fi
 
     # Re-read the value from the suid file
-    suid_val=$(cat "$suid_file" 2>/dev/null)
+    fix_suid_val=$(cat "$fix_suid_file" 2>/dev/null)
 
-    # If suid is disabled (0), remount /data with nosuid and nodev if needed
-    if [ "$suid_val" = "0" ]; then
+    # If fix suid is disabled (0), remount /data with nosuid and nodev if needed
+    if [ "$fix_suid_val" = "0" ]; then
         if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "suid"; then
             mount -o remount,nodev,nosuid /data || echo "Failed to remount /data with nosuid"
         fi
     # If suid is enabled (1), remount /data with suid and dev if needed
-    elif [ "$suid_val" = "1" ]; then
+    elif [ "$fix_suid_val" = "1" ]; then
         if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "nosuid"; then
             mount -o remount,dev,suid /data || echo "Failed to remount /data with suid"
         fi
     fi
 }
 
-# Check if the suid file exists; if not, create it and set value to 1
-if [ ! -f "$chroot_distro_path/.config/suid" ]; then
-    fixsuid enable
+# Check if the fix suid file exists; if not, create it and set value to 1
+if [ ! -f "$chroot_distro_path/.config/fix_suid" ]; then
+    fix_suid enable
 fi
 
-fixsuid
+fix_suid
 
 ram_bind_file="$chroot_distro_path/.config/ram_bind"
 ram_bind_val=""
@@ -529,7 +529,7 @@ $script uninstall <distro> [-f|--force] - uninstall distro
     '-f|--force'    Force closing open files (closes the process accessing them)
                     and/or unmounting active mounts. Use with care.
 
-$script fixsuid <enable|disable> - force suid option on /data mount (default: enable) 
+$script fix-suid <enable|disable> - force suid option on /data mount (default: enable) 
 $script ram-bind <enable|disable> - Binds some paths in the distro to RAM for performance improvement (default: enable)
 $script android-bind <enable|disable> - Bind all Android root directories, which are not bound by default (default: enable) 
 $script mount <distro> - mount distro rootfs without entering
@@ -1948,7 +1948,7 @@ elif [ "$command" = "unmount" ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_unmount "$1" "$force" "$all"
-elif [ "$command" = "fixsuid" ]; then
+elif [ "$command" = "fix-suid" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
@@ -1968,8 +1968,8 @@ elif [ "$command" = "fixsuid" ]; then
         chroot_distro_user_check_parameters
     fi
     case "$1" in
-         enable) fixsuid enable;; 
-         disable) fixsuid disable;; 
+         enable) fix_suid enable;; 
+         disable) fix_suid disable;; 
          *) echo "Unknown option $1";; 
     esac
 elif [ "$command" = "ram-bind" ]; then
