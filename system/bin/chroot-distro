@@ -58,6 +58,15 @@ for distro in "${chroot_distro_path}"/.config/*; do
    esac
 done
 
+# Check toybox command 
+if ! command -v toybox >/dev/null 2>&1; then
+   if [ -f /system/bin/toybox ]; then
+       toybox() { /system/bin/toybox "$@"; }
+   fi
+   echo "Warning toybox not found" 
+fi
+
+
 check_env=''
 if [ $# -ge 1 ] && [ "env" = "$1" ]; then
     check_env=true
