@@ -46,8 +46,8 @@ esac
 
 supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox  centos_stream rocky adelie chimera gentoo"
 
-for distro in $chroot_distro_path/.config/*; do
-    distro="$(basename ${distro})"
+for distro in "${chroot_distro_path}"/.config/*; do
+    distro="$(basename "${distro}")"
     case "$distro" in
       ram_bind|fix_suid|android_bind)
         ;;
