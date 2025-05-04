@@ -1611,34 +1611,20 @@ chroot_distro_remove() {
     distro="$1"
     chroot_distro_check_if_supported "$distro"
 
-    remove_flag=0
-
+    if [ -e "$chroot_distro_path/.config/${distro}" ]; then
+        rm "$chroot_distro_path/.config/${distro}" 
+    fi
+    
     if [ -e "$chroot_distro_path/.rootfs/${distro}.tar.xz" ]; then
-        echo "try $script delete $distro"
-        remove_flag=1
+        chroot_distro_delete "${distro}" 
     fi
 
     if [ -e "$chroot_distro_path/.backup/${distro}.tar.xz" ]; then
-        echo "try $script unbackup $distro"
-        remove_flag=1
+        chroot_distro_unbackup "${distro}"
     fi
 
     if [ -e "$chroot_distro_path/${distro}" ]; then
-        echo "try $script uninstall $distro -f"
-        remove_flag=1
-    fi
-
-    # If any of the conditions were true, exit
-    if [ "$remove_flag" -eq 1 ]; then
-        chroot_distro_exit 1
-    fi
-
-    rm -f "$chroot_distro_path/.rootfs/${distro}.tar.xz"
-    rm -f "$chroot_distro_path/.backup/${distro}.tar.xz"
-
-    if [ -d "$chroot_distro_path/${distro}" ]; then
-        chroot_distro_unmount "$old_name" "$force" "$all"
-        rm -rf "$chroot_distro_path/${distro}"
+        chroot_distro_uninstall "${distro}" -f "remove" 
     fi
 }
 
