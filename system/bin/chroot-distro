@@ -1563,10 +1563,10 @@ chroot_distro_login() {
 
 chroot_distro_add() {
     for distro in $supported_distros; do
-        [ "$distro" = "$1" ] && {
+        if [ "$distro" = "$1" ]; then
             echo "Error: Distro '$1' already exists."
             chroot_distro_exit 1
-        }
+        fi
     done
 
     case "$1" in
