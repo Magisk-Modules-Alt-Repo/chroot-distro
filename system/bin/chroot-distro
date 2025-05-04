@@ -16,6 +16,8 @@ fi
 chroot_distro_exit() {
   if [ -z "${chroot_distro_exit+x}" ]; then
       exit "$@" 
+  else 
+      return "$@" 
   fi
 }
 
