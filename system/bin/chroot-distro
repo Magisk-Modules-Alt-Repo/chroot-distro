@@ -376,6 +376,7 @@ if [ "" != "$check_env" ]; then
         uname -s -r -v -m -o
     fi
     echo "PATH=$PATH"
+    echo "su : $(su --version)" 
     # check run successfully, bail out
     chroot_distro_exit 0
 fi
