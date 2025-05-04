@@ -506,11 +506,17 @@ android_bind() {
 
 }
 
-if [ ! -f "$chroot_distro_path/.config/android_bind" ]; then
-    android_bind enable
+if [ "$(uname -o)" != "GNU/Linux" ]; then
+    if [ ! -f "$chroot_distro_path/.config/android_bind" ]; then
+        android_bind enable
+    fi
 fi
 
-android_bind
+if [ "$(uname -o)" != "GNU/Linux" ]; then
+    android_bind
+else
+    android_bind_val=0
+fi 
 
 system_points="/dev /sys /proc /dev/pts"
 
