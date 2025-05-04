@@ -63,7 +63,8 @@ if ! command -v toybox >/dev/null 2>&1; then
    if [ -f /system/bin/toybox ]; then
        toybox() { /system/bin/toybox "$@"; }
    fi
-   echo "Warning toybox not found" 
+   echo "Error: toybox not found" 
+   chroot_distro_exit
 fi
 
 
