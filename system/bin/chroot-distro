@@ -1243,7 +1243,7 @@ chroot_distro_uninstall() {
         open_files=$(lsof | grep -F "$distro_path")
         if [ "" != "$mounts" ] || [ "" != "$loopbacks" ] || [ "" != "$open_files" ]; then
             chroot_distro_list_unmount_issues "$distro_path" "$command" 'all' "$force" "$mounts" "$loopbacks" "$open_files"
-            chroot_distro_exit 1
+            exit 1
         fi
 
         # when reaching this point it is assumed that uninstalling the distro is ok, no irreversible changes to distro before this line
@@ -1302,7 +1302,7 @@ chroot_distro_backup() {
         echo "loopback devices under $distro_path:"
         echo "${loopbacks:-Not found}"
         echo "end of loopback devices"
-        chroot_distro_exit 1
+        exit 1
     fi
 
     if [ "" = "$custom_path" ]; then
@@ -1527,7 +1527,7 @@ chroot_distro_unmount() {
     fi
     if [ "" != "$mounts" ] || [ "" != "$loopbacks" ] || [ "" != "$open_files" ] || [ "0" = "$system_mount_points_mounted" ]; then
         chroot_distro_list_unmount_issues "$distro_path" 'unmount' "$mode" "$force" "$mounts" "$loopbacks" "$open_files"
-        chroot_distro_exit 1
+        exit 1
     fi
 }
 
