@@ -44,6 +44,17 @@ esac
 
 supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox  centos_stream rocky adelie chimera gentoo"
 
+for distro in $chroot_distro_path/.config/*; do
+    case "$distro" in
+      /ram_bind|/suid|/android_bind)
+        ;;
+      *)
+        echo " $supported_distros " | grep -q " $distro " && continue
+        supported_distros="$supported_distros $distro"
+        ;;
+   esac
+done
+
 check_env=''
 if [ $# -ge 1 ] && [ "env" = "$1" ]; then
     check_env=true
@@ -1616,6 +1627,25 @@ chroot_distro_login() {
     chroot_distro_jail "$distro_path"
 }
 
+chroot_distro_add() {
+    for distro in $supported_distros; do
+        [ "$distro" = "$1" ] && {
+            echo "Error: Distro '$1' already exists."
+            chroot_distro_exit 1
+        }
+    done
+
+    case "$1" in
+        suid|android_bind|ram_bind)
+            echo "Error: Invalid name '$1'. Choose another."
+            chroot_distro_exit 1
+            ;;
+    esac
+
+    touch "$chroot_distro_path/.config/$1"
+    echo "Distro '$1' added successfully."
+}
+
 chroot_distro_invalid_parameters() {
     echo "$script - $1"
     echo "try '$script help' for more information"
@@ -2056,6 +2086,28 @@ elif [ "$command" = "android-bind" ]; then
          disable) android_bind disable && chroot_distro_unmount "all" "yes" "yes";; 
          *) echo "Unknown option $1";; 
     esac
+elif [ "$command" = "add" ]; then
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
+    eval set -- "$PARSED"
+    while true; do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Programming error"
+                chroot_distro_exit 3
+                break
+                ;;
+        esac
+    done
+    if [ $# -eq 0 ]; then
+        chroot_distro_missing_distro
+    elif [ $# -ne 1 ]; then
+        chroot_distro_user_check_parameters
+    fi
+    chroot_distro_add "$1"
 else
     chroot_distro_invalid_parameters "invalid command $command"
 fi
