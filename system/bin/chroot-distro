@@ -482,11 +482,7 @@ fi
 
 android_bind
 
-system_points="/dev /sys /proc /dev/pts /sdcard"
-
-for file in "/storage"/*; do
-    system_points="$system_points $file"
-done
+system_points="/dev /sys /proc /dev/pts"
 
 chroot_distro_warn_if_unsupported_busybox() {
     current_version=$(busybox | grep -oE 'v[0-9]+(\.[0-9]+)+' | sed 's/v//')
@@ -910,10 +906,6 @@ list_mount_points() {
     for point in $system_points; do
         echo "$distro_path$point"
     done
-
-    for storage in /storage/*; do
-        echo "$distro_path$storage"
-    done
 }
 
 chroot_distro_mount_system_point() {
@@ -978,6 +970,10 @@ chroot_distro_mount_system_point() {
 }
 
 mount_android_dirs() {
+  system_points="$system_points /sdcard"
+  for file in "/storage"/*; do
+    system_points="$system_points $file"
+  done
   for dir in /*; do
     [ -d "$dir" ] || continue
     case "$dir" in
