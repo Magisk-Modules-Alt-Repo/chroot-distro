@@ -20,6 +20,10 @@ chroot_distro_exit() {
 }
 
 chroot_distro_path="/data/local/chroot-distro"
+# If the system is not Android, use /opt instead of /data/local
+if [ ! -d "/data/local" ]; then
+  chroot_distro_path="/opt/chroot-distro"
+fi
 script=$(basename "$0")
 
 user_id=$(id -u)
