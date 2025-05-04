@@ -555,25 +555,6 @@ $script login <distro> - login to distro
     chroot_distro_warn_if_unsupported_busybox
 }
 
-chroot_distro_list_item() {
-    if [ -f "$chroot_distro_path/.rootfs/$1.tar.xz" ]; then
-        echo "Downloaded : Yes"
-    else
-        echo "Downloaded : No"
-    fi
-    if [ -d "$chroot_distro_path/$1/" ]; then
-        echo "Installed: Yes"
-    else
-        echo "Installed: No"
-    fi
-    if [ -f "$chroot_distro_path/.backup/$1.tar.xz" ]; then
-        echo "Backup : Yes"
-    else
-        echo "Backup : No"
-    fi
-    echo
-}
-
 # Notice: if you change one of the base urls, remember to check that the full download link is still correct
 # as some of the full urls may have the version information multiple times
 proot_distro_rootfs_base_url=https://github.com/termux/proot-distro/releases/download 
@@ -603,76 +584,28 @@ parrot_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/Parrot
 backbox_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/BackBox
 centos_stream_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS_Stream
 
-chroot_distro_list() {
-    echo "Ubuntu : ubuntu"
-    chroot_distro_list_item ubuntu
-
-    echo "Kali Linux : kali"
-    chroot_distro_list_item kali
-
-    echo "Debian : debian"
-    chroot_distro_list_item debian
-
-    echo "Parrot Security : parrot"
-    chroot_distro_list_item parrot
-
-    echo "Alpine Linux : alpine"
-    chroot_distro_list_item alpine
-
-    echo "Void Linux : void"
-    chroot_distro_list_item void
-
-    if [ "${architecture}" != "i386" ]; then
-        echo "Arch Linux : archlinux"
-        chroot_distro_list_item archlinux 
-
-        echo "Adélie Linux : adelie"
-        chroot_distro_list_item adelie
-    fi
-
-    if [ "${architecture}" = "arm64" ]; then
-        echo "Artix Linux : artix"
-        chroot_distro_list_item artix
-    fi
-
-    if [ "${architecture}" = "arm64" ] || [ "${architecture}" = "amd64" ]; then
-        echo "Deepin : deepin"
-        chroot_distro_list_item deepin
-
-        echo "Fedora : fedora"
-        chroot_distro_list_item fedora
-
-        echo "OpenKylin : openkylin"
-        chroot_distro_list_item openkylin
-
-        echo "CentOS Stream : centos_stream"
-        chroot_distro_list_item centos_stream
-
-        echo "Rocky Linux : rocky"
-        chroot_distro_list_item rocky
-
-        echo "Chimera Linux : chimera"
-        chroot_distro_list_item chimera
-    fi
-
-    if [ "${architecture}" = "arm64" ]; then
-        echo "Manjaro : manjaro"
-        chroot_distro_list_item manjaro
-    fi
-
-    if [ "${architecture}" != "armhf" ]; then
-        echo "Pardus : pardus"
-        chroot_distro_list_item pardus
-    fi
-
-    echo "openSUSE : opensuse"
-    chroot_distro_list_item opensuse
-
-    echo "BackBox : backbox"
-    chroot_distro_list_item backbox
-
-    echo "Gentoo Linux : gentoo"
-    chroot_distro_list_item gentoo
+chroot_distro_list(){
+  max=0; for d in $supported_distros; do [ ${#d} -gt $max ]&&max=${#d}; done
+  h1=Distro;h2=Downloaded;h3=Installed;h4=Backup
+  [ ${#h1} -gt $max ]&&w1=${#h1}||w1=$max;w2=${#h2};w3=${#h3};w4=${#h4}
+  c1=$((w1+2));c2=$((w2+2));c3=$((w3+2));c4=$((w4+2))
+  rep(){ n=$2;ch=$1;while [ $n -gt 0 ];do printf '%s' "$ch";n=$((n-1));done; }
+  top="┌$(rep '─' $c1)┬$(rep '─' $c2)┬$(rep '─' $c3)┬$(rep '─' $c4)┐"
+  sep="├$(rep '─' $c1)┼$(rep '─' $c2)┼$(rep '─' $c3)┼$(rep '─' $c4)┤"
+  bot="└$(rep '─' $c1)┴$(rep '─' $c2)┴$(rep '─' $c3)┴$(rep '─' $c4)┘"
+  GREEN=$(printf '\033[32m');RESET=$(printf '\033[0m')
+  printf '%b\n│ %-'$w1's │ %-'$w2's │ %-'$w3's │ %-'$w4's │\n%b\n' \
+    "$top" "$h1" "$h2" "$h3" "$h4" "$sep"
+  for d in $supported_distros;do
+    dl=No;[ -f "$chroot_distro_path/.rootfs/$d.tar.xz" ]&&dl=Yes
+    ins=No;[ -d "$chroot_distro_path/$d/" ]&&ins=Yes
+    bk=No;[ -f "$chroot_distro_path/.backup/$d.tar.xz" ]&&bk=Yes
+    printf '│ %-'$w1's │ ' "$d"
+    [ $dl = Yes ]&& printf '%b%-'$w2's%b │ ' "$GREEN" "$dl" "$RESET" || printf '%-'$w2's │ ' "$dl"
+    [ $ins = Yes ]&& printf '%b%-'$w3's%b │ ' "$GREEN" "$ins" "$RESET" || printf '%-'$w3's │ ' "$ins"
+    [ $bk = Yes ]&& printf '%b%-'$w4's%b │\n' "$GREEN" "$bk" "$RESET" || printf '%-'$w4's │\n' "$bk"
+  done
+  printf '%b\n' "$bot"
 }
 
 chroot_distro_download() {
