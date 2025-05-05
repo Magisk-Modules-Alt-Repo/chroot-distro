@@ -1157,7 +1157,7 @@ prepare_chroot_distro() {
        fi
        chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
     fi
-    timezone=$(getprop persist.sys.timezone); [ -z "$timezone" ] && { timezone=$(cat /etc/timezone 2>/dev/null); [ -z "$timezone" ] && timezone=Etc/UTC; }
+    timezone=$(command -v getprop >/dev/null 2>&1 && getprop persist.sys.timezone 2>/dev/null); [ -z "$timezone" ] && { timezone=$(cat /etc/timezone 2>/dev/null); [ -z "$timezone" ] && timezone=Etc/UTC; }
     chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime 2>/dev/null
 } 
 
