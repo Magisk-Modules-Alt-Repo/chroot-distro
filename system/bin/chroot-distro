@@ -14,10 +14,10 @@ if [ -n "${chroot_distro_log+x}" ]; then
 fi
 
 chroot_distro_exit() {
-  if [ -z "${chroot_distro_exit+x}" ]; then
-      exit "$@" 
-  else 
+  if [ "${chroot_distro_exit:-}" == "true" ]; then
       return "$@" 
+  else 
+      exit "$@" 
   fi
 }
 
