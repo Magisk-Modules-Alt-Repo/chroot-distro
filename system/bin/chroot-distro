@@ -1095,10 +1095,10 @@ chroot_distro_jail() {
             unset PREFIX;
             if [ "" != "$command" ]; then
                 # shellcheck disable=SC1007
-                PATH= chroot "$distro_path/" "$su_command" - root -c "$command"
+                PATH= chroot "$distro_path/" "$su_command" -c "$command"
             else
                 # shellcheck disable=SC1007
-                PATH= chroot "$distro_path/" "$su_command" - root
+                PATH= chroot "$distro_path/" "$su_command"
             fi
         )
         return
