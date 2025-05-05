@@ -977,6 +977,9 @@ chroot_distro_force_unmount() {
 }
 
 chroot_distro_mount_system_points() {
+    if [ "${chroot_distro_mount:-}" = "true" ]; then
+       return
+    fi
     distro_path="$1"
     if [ "1" = "$android_bind_val" ]; then
         mount_android_dirs
