@@ -22,8 +22,9 @@ chroot_distro_exit() {
 }
 
 chroot_distro_path="/data/local/chroot-distro"
-# If the system is not Android, use /opt instead of /data/local
-if [ "$(uname -o)" = "GNU/Linux" ]; then
+# If the system is not Android, use /opt instead of /data/local 
+operating_system="$(uname -o)"
+if [ "${operating_system}" = "GNU/Linux" ]; then
   chroot_distro_path="/opt/chroot-distro"
 fi
 script=$(basename "$0")
@@ -174,7 +175,7 @@ elif [ -e /system/bin/chroot ]; then
 else
     # don't want to use a random chroot to ensure it doesn't affect the jail
     # if GNU/Linux, use default chroot
-    if [ "$(uname -s)" = "Linux" ]; then
+    if [ "${operating_system}" = "Linux" ]; then
        chrootpath="$(command -v chroot)"
     else
        chrootpath=''
@@ -227,7 +228,7 @@ getopt() { busybox getopt "$@"; }
 
 # ensure that busybox version of tar is used
 # skip if os is Gnu/Linux 
-if [ "$(uname -o)" != "GNU/Linux" ]; then
+if [ "${operating_system}" != "GNU/Linux" ]; then
    tar() { busybox tar "$@"; }
 fi
 
@@ -516,13 +517,13 @@ android_bind() {
 
 }
 
-if [ "$(uname -o)" != "GNU/Linux" ]; then
+if [ "${operating_system}" != "GNU/Linux" ]; then
     if [ ! -f "$chroot_distro_path/.config/android_bind" ]; then
         android_bind enable
     fi
 fi
 
-if [ "$(uname -o)" != "GNU/Linux" ]; then
+if [ "${operating_system}" != "GNU/Linux" ]; then
     android_bind
 else
     android_bind_val=0
@@ -1140,7 +1141,7 @@ prepare_chroot_distro() {
    echo "nameserver 8.8.8.8" > "$resolvconf"
    echo "nameserver 8.8.4.4" >> "$resolvconf"
    cp /etc/hosts "$distro_path"/etc/hosts 
-   if [ "$(uname -o)" = "GNU/Linux" ]; then
+   if [ "${operating_system}" = "GNU/Linux" ]; then
       {
        echo "3003 aid_inet"
        echo "3004 aid_net_raw"
