@@ -107,6 +107,9 @@ if [ "" != "${check_env}" ]; then
 fi
 
 busyboxpath="$(command -v busybox 2> /dev/null)"
+if [ -n "${chroot_distro_busybox}" ]; then
+   busyboxpath="${chroot_distro_busybox}"
+fi
 if [ -z "$busyboxpath" ]; then
     busyboxpath=''
     if [ -e /data/adb ]; then
