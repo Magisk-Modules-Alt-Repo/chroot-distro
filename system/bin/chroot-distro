@@ -21,12 +21,18 @@ chroot_distro_exit() {
   fi
 }
 
-chroot_distro_path="/data/local/chroot-distro"
-# If the system is not Android, use /opt instead of /data/local 
 operating_system="$(uname -o)"
-if [ "${operating_system}" = "GNU/Linux" ]; then
-  chroot_distro_path="/opt/chroot-distro"
+
+if [ -n "${chroot_distro_path}" ]; then
+    chroot_distro_path="${chroot_distro_path}"
+else
+    chroot_distro_path="/data/local/chroot-distro"
+    if [ "${operating_system}" = "GNU/Linux" ]; then
+         # If the system is Gnu/Linux, use /opt instead of /data/local 
+         chroot_distro_path="/opt/chroot-distro"
+    fi
 fi
+
 script=$(basename "$0")
 
 user_id=$(id -u)
