@@ -218,7 +218,10 @@ uname() {
 getopt() { busybox getopt "$@"; }
 
 # ensure that busybox version of tar is used
-tar() { busybox tar "$@"; }
+# skip if os is Gnu/Linux 
+if [ "$(uname -o)" != "GNU/Linux" ]; then
+   tar() { busybox tar "$@"; }
+fi
 
 # ensure that busybox version of wget is used
 wget() { busybox wget "$@"; }
