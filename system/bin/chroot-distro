@@ -173,7 +173,12 @@ elif [ -e /system/bin/chroot ]; then
     chrootpath=/system/bin/chroot
 else
     # don't want to use a random chroot to ensure it doesn't affect the jail
-    chrootpath=''
+    # if GNU/Linux, use default chroot
+    if [ "$(uname -s)" = "Linux" ]; then
+       chrootpath="$(command -v chroot)"
+    else
+       chrootpath=''
+    fi
 fi
 unset can_use_busyboxdir
 unset busyboxdir
