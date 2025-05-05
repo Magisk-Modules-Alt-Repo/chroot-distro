@@ -4,3 +4,4 @@ version=1.4.0
 versionCode=15
 author=@YasserNull
 description=install linux distributions on android
+updateJson=https://raw.githubusercontent.com/Magisk-Modules-Alt-Repo/chroot-distro/main/update.json
