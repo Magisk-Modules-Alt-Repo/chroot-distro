@@ -51,7 +51,7 @@ case "${architecture}" in
     *) echo "Unsupported architecture: ${architecture}"; chroot_distro_exit 1 ;;
 esac
 
-supported_distros="alpine archlinux artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox  centos_stream rocky adelie chimera gentoo"
+supported_distros="alpine arch artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox  centos_stream rocky adelie chimera gentoo"
 
 for distro in "${chroot_distro_path}"/.config/*; do
     distro="$(basename "${distro}")"
@@ -854,7 +854,7 @@ chroot_distro_download() {
         elif [ "$distro" = "parrot" ]; then
             distro_name='Parrot Security'
             download_url="$parrot_rootfs_base_url/${architecture}/parrot-rootfs-${architecture}.tar.xz"
-        elif [ "$distro" = "archlinux" ]; then
+        elif [ "$distro" = "arch" ]; then
             distro_name='Arch Linux'
             case "${architecture}" in
                 amd64) download_url="${archlinux_rootfs_base_url}/archlinux-bootstrap-$(echo "${architecture}" | sed s/amd64/x86_64/).tar.zst" ;;
