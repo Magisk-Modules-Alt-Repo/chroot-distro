@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ $(id -u) = 0]; then
+if [ $(id -u) = 0 ]; then
   echo "This script cannot be run as root." 
   exit
 fi
@@ -24,20 +24,7 @@ distro_selected=false
 
 # Get Installed Distros
 get_installed_distros() {
-    installed_distros=()
-    while read -r line; do
-        if [[ "$line" =~ ^[A-Za-z].+[[:space:]]*:[[:space:]]*[a-z] ]]; then
-            alias=$(echo "$line" | awk -F': ' '{print $2}')
-            read -r next_line
-            while [[ -n "$next_line" ]]; do
-                if [[ "$next_line" == *"Installed: Yes"* ]]; then
-                    installed_distros+=("$alias")
-                    break
-                fi
-                read -r next_line
-            done
-        fi
-    done < <(sudo chroot-distro list)
+    mapfile -t installed_distros < <(sudo chroot-distro list -i)
 
     if [ ${#installed_distros[@]} -eq 0 ]; then
         echo "No distributions installed."
@@ -177,6 +164,8 @@ start_termux_server() {
     sudo pkill mpd 2>/dev/null
     sudo killall -9 termux-x11 Xwayland pulseaudio virgl_test_server_android termux-wake-lock 2>/dev/null
     sudo fuser -k 4713/tcp 2>/dev/null
+    # skip tmpfs mount for /tmp 
+    export chroot_distro_tmp=true
     sudo busybox mount --bind "$PREFIX/tmp" "$chrootdistro_dir"/"$selected_distro"/tmp
     XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
     sleep 2
@@ -250,7 +239,7 @@ while true; do
                     audio_server
                     echo -e "\nYou can login as CLI now.\nSelect 'Login CLI' to login!\n"
                     wait_for_key_press
-                    "$(readlink -f "$0")"
+                    "$(sudo readlink -f "$0")"
                     ;;
                 "Login CLI")
                     login_cli
