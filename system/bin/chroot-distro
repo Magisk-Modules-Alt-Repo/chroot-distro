@@ -1782,7 +1782,7 @@ if [ "$command" = "help" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     chroot_distro_help
 elif [ "$command" = "list" ]; then
-    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
+    PARSED=$(getopt --options=i --longoptions=installed --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in 
@@ -1801,7 +1801,7 @@ elif [ "$command" = "list" ]; then
                 ;;
         esac
     done
-    if [ $# -ne 1 ]; then
+    if [ $# -ne 0 ]; then
         chroot_distro_user_check_parameters
     fi
     chroot_distro_list "${installed_distros}" 
