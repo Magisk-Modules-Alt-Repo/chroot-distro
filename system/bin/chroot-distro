@@ -546,48 +546,82 @@ chroot_distro_warn_if_unsupported_busybox() {
 }
 
 chroot_distro_help() {
-    echo "$script : install linux distributions
+    echo "$script: Install and manage GNU/Linux distributions in a chroot environment on Android and GNU/Linux.
 
-usage :
+Usage:
+  $script <command> [options] [arguments]
 
-$script help - for more information
-$script env - output debug information about environment
-$script list - list of available linux distributions
+Commands:
 
-$script download <distro> - download rootfs
-$script redownload <distro> - redownload rootfs
-$script delete <distro> - delete rootfs
+General:
+  help                        - Display this help message
+  env                         - Display environment debug information
 
-$script install <distro> - install distro
-$script reinstall <distro> [-f|--force] - reinstall distro
-    '-f|--force'    Force closing open files (closes the process accessing them)
-                    and/or unmounting active mounts. Use with care.
-$script uninstall <distro> [-f|--force] - uninstall distro
-    '-f|--force'    Force closing open files (closes the process accessing them)
-                    and/or unmounting active mounts. Use with care.
+Distribution Management:
+  list [-i|--installed]       - List available distributions
+                                -i, --installed   Show only installed distributions
+  download <distro> [link]    - Download rootfs for a distribution
+                                [link]            Optional custom download link
+  redownload <distro> [link]  - Re-download rootfs for a distribution
+  delete <distro>             - Delete rootfs for a distribution
+  add <distro>                - Add a new custom distribution
+  rename <old_name> <new_name>- Rename an existing distribution
+  remove <distro>             - Completely remove a distribution (rootfs, backup, and directory)
 
-$script fix-suid <enable|disable> - force suid option on /data mount (default: enable) 
-$script ram-bind <enable|disable> - Binds some paths in the distro to RAM for performance improvement (default: enable)
-$script android-bind <enable|disable> - Bind all Android root directories, which are not bound by default (default: enable) 
-$script mount <distro> - mount distro rootfs without entering
-$script unmount <distro|all> [-f|--force] [-a|--all] - unmount (system) mount points from distro
-    '-f|--force'    Force closing open files (closes the process accessing them)
-                    and/or unmounting active mounts which prevents (system) mount points
-                    from unmounting. Use with care.
-    '-a|--all'      Instead of unmounting only system mount points, will try to unmount
-                    all found mount points, be it a normal mount point or a loopback mount point.
+Installation:
+  install <distro>            - Install a distribution
+  reinstall <distro> [-f|--force] - Reinstall a distribution
+                                -f, --force       Force close open files and unmount
+  uninstall <distro> [-f|--force] - Uninstall a distribution
+                                -f, --force       Force close open files and unmount
 
-$script backup <distro> [<path>] - backup distro
-    <path>          Custom path for backup location
-$script restore <distro> [-d|--default] [--force] [<path>] - restore distro
-    <path>          Custom path for backup location
-    '-d|--default'  restore default settings (note: only those set during install)
-    '--force'       Force restore even if may cause unintended side-effects
-$script unbackup <distro> - delete backup from default location
+Mount Management:
+  mount <distro>              - Mount a distribution's rootfs without entering
+  unmount <distro|all> [-f|--force] [-a|--all] - Unmount mount points
+                                -f, --force       Force close files and unmount
+                                -a, --all         Unmount all points, including non-system ones
 
-$script command <distro> <command> - run command
-$script login <distro> - login to distro
-"
+Backup Management:
+  backup <distro> [<path>]    - Create a backup of a distribution
+                                <path>            Custom path for backup location
+  unbackup <distro>           - Delete a backup from the default location
+  restore <distro> [-d|--default] [--force] [<path>] - Restore a distribution
+                                <path>            Custom path for backup location
+                                -d, --default     Restore default settings
+                                --force           Force restore despite potential issues
+
+Execution:
+  command <distro> <command>  - Run a command inside a distribution
+  login <distro>              - Log in to a distribution
+
+Settings:
+  fix-suid <enable|disable>   - Force suid option on /data mount (default: enable)
+  ram-bind <enable|disable>   - Bind certain paths to RAM for performance (default: enable)
+  android-bind <enable|disable> - Bind all Android root directories (default: enable)
+
+Environment Variables:
+  chroot_distro_path=<path>   - Change the default chroot-distro path
+  chroot_distro_busybox=<path>- Manually specify BusyBox path
+  chroot_distro_tmp=true      - Skip tmpfs mount for /tmp
+  chroot_distro_exit=true     - Skip exit on errors (unsafe)
+  chroot_distro_mount=true    - Disable mounting during execution
+
+Notes:
+  - <distro> can be a supported distribution (e.g., ubuntu, debian) or a custom one added via 'add'.
+  - Use lowercase identifiers for distributions.
+  - Some distributions may not support your device's architecture (supported: armv7, arm64, i686, amd64).
+  - Default path: /data/local/chroot-distro (Android) or /opt/chroot-distro (GNU/Linux).
+  - Alternative BusyBox (Magisk, KernelSU, Termux) is supported but may cause issues.
+
+Warning:
+  - Requires root access. Be cautious, as it may lead to file deletion or system modification.
+  - Back up important files and system partitions before use.
+  - Recommended: BusyBox v1.36.1 for Android NDK (avoid v1.32.1 due to bugs).
+
+License:
+  Licensed under GNU GPL v3.0 - Free to use, modify, and distribute.
+
+For more details, refer to the documentation or run '$script help'." 
 
     chroot_distro_warn_if_unsupported_busybox
 }
