@@ -942,7 +942,7 @@ chroot_distro_find_processes_with_open_files() {
 
 chroot_distro_find_all_mount_points() {
     path="$1"
-    mount | grep -F "$path" | grep -Eo '^[[:alnum:][:punct:]\/]+ on [[:alnum:][:punct:]\/]+' | grep -Eo '[[:alnum:][:punct:]\/]+$'
+    cat /proc/mounts | grep -F "$path" | awk '{print $2}'
 }
 
 chroot_distro_find_all_loopback_mount_points() {
@@ -1356,7 +1356,7 @@ chroot_distro_uninstall() {
             chroot_distro_force_unmount "$distro_path/" 
         fi
         chroot_distro_unmount_system_points "$distro_path" no
-        mounts=$(mount | grep -F "$distro_path")
+        mounts=$(cat /proc/mounts | grep -F "$distro_path")
         loopbacks=$(losetup -a | grep -F "$distro_path")
         open_files=$(lsof | grep -F "$distro_path")
         if [ "" != "$mounts" ] || [ "" != "$loopbacks" ] || [ "" != "$open_files" ]; then
@@ -1406,7 +1406,7 @@ chroot_distro_backup() {
 
     # mounted volumes should be backed up outside of this script as it may not work as intended
     # (same reasons as system mount points)
-    mounts=$(mount | grep -F "$distro_path")
+    mounts=$(cat /proc/mounts | grep -F "$distro_path")
     loopbacks=$(losetup -a | grep -F "$distro_path")
     if [ -n "$mounts" ] || [ -n "$loopbacks" ]; then
         echo "distro is potentially running - if needed shutdown the distro, and unmount mounted folders"
@@ -1629,14 +1629,14 @@ chroot_distro_unmount() {
     fi
 
     if [ "yes" = "$all" ]; then
-        mounts=$(mount | grep -F "$distro_path")
+        mounts=$(cat /proc/mounts | grep -F "$distro_path")
         loopbacks=$(losetup -a | grep -F "$distro_path")
         open_files=$(lsof | grep -F "$distro_path")
         # as all mount points are being unmounted, no need to test for system mount points separately
         system_mount_points_mounted=1
         mode=all
     else
-        mounts=$(mount | grep -F "$distro_path" | list_mount_points "$distro_path")
+        mounts=$(cat /proc/mounts | grep -F "$distro_path" | list_mount_points "$distro_path")
         loopbacks=$(losetup -a | grep -F "$distro_path" | list_mount_points "$distro_path")
         open_files=$(lsof | grep -F "$distro_path" | list_mount_points "$distro_path")
         chroot_distro_check_if_system_points_mounted "$distro_path"
