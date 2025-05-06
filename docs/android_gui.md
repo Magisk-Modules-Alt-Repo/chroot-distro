@@ -19,7 +19,7 @@ To view the desktop, install a VNC viewer app on your Android device. Here are s
 
 ### 2. Install Required Packages
 In your chroot environment (e.g., Debian or Ubuntu), open a terminal and run these commands:
-```
+```bash
 apt update                  # Refreshes the package list
 apt upgrade                 # Updates installed packages to the latest versions
 apt install tightvncserver  # Installs the VNC server software
@@ -28,7 +28,7 @@ apt install sudo dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs a text 
 
 ### 3. Configure the Desktop Environment
 Set up the desktop with these steps:
-```
+```bash
 # Set the default terminal emulator
 update-alternatives --config x-terminal-emulator
 # A menu will appear. Type the number for `xfce4-terminal` and press Enter.
@@ -45,7 +45,7 @@ echo 'startxfce4 &' >> ~/.vnc/xstartup
 
 ### 4. Launch the Desktop
 Start the VNC server and connect to it:
-```
+```bash
 # Start the VNC server
 vncserver
 # Note the address it provides, e.g., `localhost:1`.
@@ -73,7 +73,7 @@ Download and install Termux-X11 from the [official repository](https://github.co
 
 ### 2. Install Required Packages in Termux
 Open the Termux app and run these commands:
-```
+```bash
 pkg install x11-repo               # Adds the X11 package repository
 pkg install root-repo              # Adds the root package repository
 pkg install tsu                    # Installs a tool for root access
@@ -85,7 +85,7 @@ pkg install virglrenderer-android  # Enables graphics acceleration
 
 ### 3. Install the Desktop Environment in the Chroot
 Inside your chroot environment, install XFCE4:
-```
+```bash
 apt sudo install dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs the XFCE4 desktop and tools
 
 # Optional: Install an audio server
@@ -97,15 +97,15 @@ apt install mpd
 Use a script to simplify the process:
 1. Download the script `chroot-xfce.sh` from [here](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/blob/main/scripts/chroot-xfce.sh).
 2. Make it executable:
-   ```
+   ```bash
    chmod +x chroot-xfce.sh
    ```
 3. Run it from Termux:
-   ```
+   ```bash
    ./chroot-xfce.sh
    ```
    or
-   ```
+   ```bash
    bash chroot-xfce.sh
    ```
 
