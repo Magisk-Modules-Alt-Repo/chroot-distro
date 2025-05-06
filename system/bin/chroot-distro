@@ -441,12 +441,12 @@ fix_suid() {
 
     # If fix suid is disabled (0), remount /data with nosuid and nodev if needed
     if [ "$fix_suid_val" = "0" ]; then
-        if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "suid"; then
+        if ! grep '^/dev' /proc/mounts | grep ' /data ' | grep -w "nosuid" > /dev/null 2>&1; then
             mount -o remount,nodev,nosuid /data || echo "Failed to remount /data with nosuid"
         fi
     # If suid is enabled (1), remount /data with suid and dev if needed
     elif [ "$fix_suid_val" = "1" ]; then
-        if grep -q '^/dev' /proc/mounts | grep -q ' /data ' | grep -wq "nosuid"; then
+        if grep '^/dev' /proc/mounts | grep ' /data ' | grep -w "nosuid" > /dev/null 2>&1; then
             mount -o remount,dev,suid /data || echo "Failed to remount /data with suid"
         fi
     fi
