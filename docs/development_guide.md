@@ -35,14 +35,16 @@ export chroot_distro_log=<value>
 [scripts/check_rootfs_urls.sh](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/tree/main/scripts/check_rootfs_urls.sh)
 
 2. Make it executable:
-```
+```bash
 chmod +x check_rootfs_urls.sh
 ```
 
 3. Run the script:
-```
+```bash
 ./check_rootfs_urls.sh
+```
 or
+```bash
 sh check_rootfs_urls.sh
 ```
 
