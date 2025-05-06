@@ -1,56 +1,73 @@
 # chroot-distro
 <p align="center">
-<img src="https://img.shields.io/github/downloads/Magisk-Modules-Alt-Repo/chroot-distro/total?label=Downloads"/>
-  <img src="https://img.shields.io/github/v/release/Magisk-Modules-Alt-Repo/chroot-distro?include_prereleases&label=Latest%20Release"/>
+  <img src="https://img.shields.io/github/downloads/Magisk-Modules-Alt-Repo/chroot-distro/total?label=Downloads"/>
+  <img src="https://img.shields.io/github/v/release/Magisk-Modules-Alt-Repo/chroot-distro?include_prereleases&label=Release"/>
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg"/>
 </p>
 
-chroot-distro: Installs Linux distributions in a chroot environment on Android.
+![](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/chroot-distro.jpg) 
+
+***chroot-distro***: Installs GNU/Linux distributions in a chroot environment on Android.  
+> The idea is inspired by [proot-distro](https://github.com/termux/proot-distro).
+
 + Directory Structure
 ```
 /data/local/chroot-distro/
-├── .backup/
-├── .rootfs/
-├── <distro>/
-└── <distro>/
+├── .backup/           # Backup folder for distributions
+├── .rootfs/           # Minimal root filesystem used for bootstrapping distributions
+├── <distro>/          # Folder for each installed distribution (e.g., ubuntu, debian)
+├── <distro>/          # Another folder for a different installed distribution
+├── .config/           # Configuration folder for chroot-distro
+│   ├── <distro>       # Empty file representing a custom distribution
+│   ├── fix_suid       # File for handling SUID permission fixes
+│   ├── ram_bind       # Configuration for RAM disk binding to improve performance
+│   ├── android_bind   # Configuration for binding the Android environment with chroot
 ```
-System paths mount automatically, and the environment supports GUI applications through VNC or X11 forwarding.
-___
+**Note:** If the system is not *Android*, the main path is `/opt/chroot-distro`
+
 ## Requirements
 
 ### Rooted Android Device
 All root implementations are compatible.
 
-You can use chroot-distro on any terminal, for example: MiXplorer, MT Manager, Termux, TWRP and Android Terminal Emulator (ADB Shell).
+You can use `chroot-distro` on any terminal, for example: MiXplorer, MT Manager, Termux, TWRP and Android Terminal Emulator (ADB Shell).
 
-### Busybox for Android NDK
-You need a recent version of the "Busybox for Android NDK by osm0sis" Magisk module installed.
-* **Recommended:** v1.36.1 is confirmed to work.
-* **Avoid:** v1.32.1 is known to cause issues.
-* **Important:** Using an outdated version can lead to problems, such as difficulties downloading the rootfs.
+### BusyBox for Android NDK
+Install the [latest BusyBox for Android NDK](https://github.com/osm0sis/android-busybox-ndk) by [osm0sis](https://github.com/osm0sis) Magisk module.  
+- **Recommended:** v1.36.1 (stable)  
+- **Avoid:** v1.32.1 (known bugs)  
+- **Note:** Outdated versions may cause issues with rootfs downloads.
 
-### Alternative Busybox
-Using the Busybox provided by:
-* Magisk/KernelSU/APatch 
-(without the "Busybox for Android NDK" module) is supported by the community, but it might introduce bugs during use.
+### Alternative BusyBox
+- BusyBox from Magisk, KernelSU, or APatch (without the NDK module) is community-supported but may lead to bugs.
+- Additionally, BusyBox that is automatically detected is also supported, such as the one provided by **Termux** or the user's environment.
 
-## Android Paths
+## Distro Paths
 
 ### System Points
 ```
-/chroot-distro/<distro>
+<distro>/
 ├── /dev
 ├── /sys
 ├── /proc
-├── /dev/pts
-├── /sdcard
-└── /storage
+└── /dev/pts
 ```
 
 ### Optional Mounts
-use `-a` or `--android` flag:
+
+`chroot-distro android-bind <enable|disable>`: 
 
 Binding all Android root directories not mounted by default for full environment access. 
+
+## Supported Distributions
+*Notes*: 
+- Use lowercase identifiers for it to be properly identified.
+- Some distributions may not support your device architecture. The main supported architectures are:
+`armv7 arm64 i686 amd64`
+
+| <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/ubuntu.png" width="50"><br> Ubuntu | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/arch_linux.png" width="50"><br>    Arch    | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/fedora.png" width="50"><br>  Fedora   | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/debian.png" width="50"><br>  Debian  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/rocky_linux.png" width="50"><br>  Rocky | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/centos.png" width="50"><br> CentOS Stream  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/manjaro.png" width="50"><br>  Manjaro   | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/kali_linux.png" width="50"><br>   Kali    | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/parrot_security.png" width="50"><br>  Parrot  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/alpine_linux.png" width="50"><br>  Alpine  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/opensuse.png" width="50"><br> OpenSUSE  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/deepin.png" width="50"><br>  Deepin  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/backbox_linux.png" width="50"><br> BackBox | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/chimera_linux.png" width="50"><br> Chimera  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/openkylin.png" width="50"><br> OpenKylin | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/gentoo.png" width="50"><br>  Gentoo  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/artix_linux.png" width="50"><br>  Artix  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/adelie_linux.png" width="50"><br>  Adélie  | <img src="https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/void_linux.png" width="50"><br>   Void  |
+|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
+| `ubuntu`| `arch`  | `fedora`| `debian`| `rocky` | `centos_stream`  | `manjaro`| `kali`  | `parrot`| `alpine`| `opensuse` | `deepin`| `backbox`  | `chimera`  | `openkylin`| `gentoo`| `artix` | `adelie`| `void`  |
 
 ## Usage Warning
 
@@ -70,344 +87,147 @@ This warning applies to all root-level operations, not just chroot-distro.
 
 As they say: ***With great power comes great responsibility.***
 
-## Commands Usage
+## Commands
 
 ### Basic Commands
-
+```bash
+chroot-distro help                        # Display this help message
+chroot-distro env                         # Display environment information
+chroot-distro list                        # List available distributions
+chroot-distro list -i|--installed         # List installed distributions 
+chroot-distro download <distro> [link]    # Download a distribution
+chroot-distro redownload <distro> [link]  # Redownload a distribution
+chroot-distro add <distro>                # Add a custom distribution
+chroot-distro rename <old> <new>          # Rename a distribution
+chroot-distro delete <distro>             # Delete a distribution (rootfs file only)
+chroot-distro remove <distro>             # Remove all files related to a distribution
 ```
-# Show all commands and usage
-chroot-distro help
-
-# Display environment details
-chroot-distro env
-
-# Show available distributions
-chroot-distro list
-
-# Download a new distribution
-chroot-distro download <distro>
-
-# Refresh existing distribution
-chroot-distro redownload <distro>
-
-# Remove distribution
-chroot-distro delete <distro>
-```
-
-### Usage Examples
-```
-chroot-distro download ubuntu
-chroot-distro redownload debian
-chroot-distro delete ubuntu
-```
->*Replace `<distro>` with your chosen distribution identifier*
+**Note:**
+- `[link]` is an optional parameter for downloading a custom distribution.
 
 ### Installation Commands
+```bash
+chroot-distro install <distro>              # Install a distribution
+chroot-distro reinstall <distro>            # Reinstall a distribution
+chroot-distro reinstall --force <distro>    # Force reinstall
+chroot-distro uninstall <distro>            # Uninstall a distribution
+chroot-distro uninstall --force <distro>    # Force uninstall
 ```
-# Basic installation
-chroot-distro install <distro>
-# Install with Android mounts
-chroot-distro install --android <distro>
 
-# Reinstall distribution
-chroot-distro reinstall <distro>
-# Force reinstall with Android mounts
-chroot-distro reinstall --android --force <distro>
+### Backup and Restore
+```bash
+chroot-distro backup <distro> [path]           # Create a backup
+chroot-distro unbackup <distro>                # Remove a backup
+chroot-distro restore <distro> [path]          # Restore from a backup
+chroot-distro restore --default <distro>       # Restore to default settings
+```
+**Notes:**
+- Use `--default` or `-d` to restore the original installation settings.
+- Specify a custom `[path]` for backup/restore operations.
+- For older backups, use `--force` cautiously to avoid issues like system mount conflicts or storage limitations.
 
-# Remove distribution
-chroot-distro uninstall <distro>
-# Force uninstall
-chroot-distro uninstall --force <distro>
+### Mount 
+```bash
+chroot-distro mount <distro> # command to mount rootfs without entering
 ```
-Usage Note:
-+ By default, all Android root directories are not mounted.
-Binding them requires the `-a` or `--android` flag
-+ The reinstall process will stop if files are open or mounts are active. Using `-f` or `--force` will close running processes and unmount active points. For safety, first run without force to see what's running before using the force option.
-
-### Backup Operations
+### Unmount Commands
+```bash
+chroot-distro unmount <distro|all>                 # Unmount system points
+chroot-distro unmount --force --all <distro|all>   # Force unmount all mounts
 ```
-# Create backup
-chroot-distro backup <distro> [path]
-# Remove backup
-chroot-distro unbackup <distro>
-
-# Restore backup
-chroot-distro restore <distro> [path]
-# Restore to defaults
-chroot-distro restore --default <distro>
-```
-Usage Note:
-+ Restores backup in its current state. Use `-d` or `--default` to restore original install settings.
-+ Optional: Specify custom path to restore from.
-+ For old backups: `--force` may be needed, but review first to avoid issues like:
-  * System mount conflicts
-  * Storage space problems
-
-### Unmount Paths
-```
-# Unmount system points
-chroot-distro unmount <distro>
-# Force unmount all points
-chroot-distro unmount --force --all <distro>
-```
-Usage Note:
-+ Stops if unmount fails. Use `-f` or `--force` to:
-  * Close any process trying to access system points
-  * Unmount any active system points forcefully
-+ By default: Only unmounts system points
-+ Use `-a` or `--all` to unmount everything (system, normal, and loopback mounts)
+**Notes:**
+- You can unmount all distros with `unmount all`
+- Use `--force` to close processes accessing system points.
+- Use `--all` to unmount system, normal, and loopback mounts.
 
 ### Execute Commands
+```bash
+chroot-distro command <distro> "command"       # Run a command in the distribution
+chroot-distro login <distro>                   # Log in to the distribution
 ```
-# Run specific command
-chroot-distro command <distro> "command"
+**Notes:**
+- Enclose commands in quotes for the `command` operation.
+- The `command` operation executes and returns to the host system.
 
-# Login to distro
-chroot-distro login <distro>
-```
-Usage Note:
-+ Execute Commands:
-   ```
-   chroot-distro command <distro> "command"
-   ```
-   * Runs a command within specified distro
-   * Commands must be enclosed in quotes
-   * Executes and returns to host system
-
-### Usage Examples
-```
+### Example Usage
+```bash
 chroot-distro download ubuntu
 chroot-distro install ubuntu
-chroot-distro install --android debian
 chroot-distro login ubuntu
-chroot-distro command debian "sudo -i -u root" 
+chroot-distro command debian "sudo -i -u root"
+chroot-distro backup ubuntu /sdcard/backup
 ```
->*Replace `<distro>` with your chosen distribution identifier.*
+*Replace `<distro>` with the desired distribution identifier.*
+### Settings Commands
 
-## Supported Distributions
-Note: Use lowercase identifiers for it to be properly identified.
-| Distributions   | Identifiers     |
-|----------------|-----------------|
-| Kali Linux     | `kali`         |
-| Parrot OS      | `parrot`       |
-| Alpine Linux   | `alpine`       |
-| Arch Linux     | `archlinux`    |
-| BackBox        | `backbox`      |
-| Centos         | `centos`       |
-| Centos Stream  | `centos_stream`|
-| Artix Linux    | `artix`        |
-| Debian         | `debian`       |
-| Deepin         | `deepin`       |
-| Fedora         | `fedora`       |
-| Manjaro        | `manjaro`      |
-| OpenKylin      | `openkylin`    |
-| OpenSUSE       | `opensuse`     |
-| Pardus         | `pardus`       |
-| Ubuntu         | `ubuntu`       |
-| Void Linux     | `void`         |
-| Rocky Linux    | `rocky`        |
-| Adélie Linux   | `adelie`       |
-| Chimera Linux  | `chimera`      |
-| Gentoo Linux   | `gentoo`       |
-
-## Download Releases
-
-|   Versions  |   Releases   |
-|-------------|--------------|
-|   v1.3.0    | [Download](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/download/v1.3.0/chroot-distro.zip) |
-|   v1.4.0    | [Download](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/download/v1.4.0/chroot-distro.zip) |
-|   Latest    | [Download](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/latest/download/chroot-distro.zip) |
-
-Install via Manager or flash through custom recovery.
-
-## Screenshot Examples
-![Debian console](screenshot/debian.png)
-![Kali Linux console](screenshot/kali-linux.png)
-
-## TODO: How-to Instructions
-
-### Fixing Sudo
-
-By default Android prevents suid usage under `/data` folder. This will prevent using `sudo` inside the rootfs. There is a few alternatives how this can be solved:
-
-1. fixsuid (automatic)
-The fixsuid feature is enabled automatically. It tries to remount /data with the correct suid and dev options, so sudo can work out of the box.
-If you want to disable this and use another method, you can run:
+```bash
+chroot-distro android-bind <enable|disable>
 ```
-chroot-distro fixsuid <enable|disable>
+- Default set to enable.
+- Binds all Android root directories.
+```bash
+chroot-distro fix-suid <enable|disable>
 ```
-- enable : Forces enabling suid handling.
-- disable: Disables automatic remount logic.
+- Default set to enable.
+- Auto-fixes the setuid issue.
+```bash
+chroot-distro ram-bind <enable|disable>
+```
+- Default set to enable.
+- Binds some paths in the distro to RAM for performance improvement.
 
-2. Image File Method
-```
-# Create image (adjust size as needed)
-su -c truncate -S 15G /data/local/distros.img
-su -c mke2fs -t ext4 /data/local/distros.img
+## Installation
+1. Download the [latest release](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/latest) from the table below.
+2. Install via a module manager (e.g., Magisk) or flash through a custom recovery.
 
-# Mount after each reboot
-su -c mount /data/local/distros.img /data/local/chroot-distro
-```
-
-3. SD Card Method  
-https://xdaforums.com/t/mount-ext4-formatted-sd-card.3769344/
-```
-1. Format SD card with ext4
-2. Mount to `/data/local/chroot-distro`
-3. Remount after each reboot
-```
-Overall Note:
-- Methods 2 & 3 are safer (prevent accidental command execution)
-- SD Card Method advantages:
-  - Saves internal storage space
-  - Reduces wear on internal storage
-  - Extends device lifespan
-  - Note: You can't use it for Android stuff (at least by default)
----
-
+## Screenshot Examples 
+![Debian  console](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/screenshot/debian.png)
 ### Desktop Environment with VNC
-
-![Debian GUI over VNC](screenshot/debian_vnc.png)
-![Ubuntu GUI over VNC](screenshot/ubuntu.png)
-
-1. Install VNC app  
-Download and install any VNC viewer app.
-  * RealVNC Viewer
-  * bVNC Pro
-  * MultiVNC
-
-2. Install Required Packages  
-(Assuming you have already installed chroot-distro and set up it's chroot environment)  
-Inside your chroot environment:
-```
-apt update
-apt upgrade
-apt install tightvncserver
-apt install nano dbus-x11 xfce4 xfce4-goodies xfce4-terminal
-```
-
-3. Set Up Desktop Environment
-```
-# Configure Terminal
-update-alternatives --config x-terminal-emulator
-
-# Start VNC first time to create config
-vncserver
-
-# Stop the server
-vncserver -kill :1
-
-# Add XFCE to startup
-echo 'startxfce4 &' >> ~/.vnc/xstartup
-```
-
-4. Launch Desktop Environment
-```
-# Start VNC
-vncserver
-
-# Stop VNC
-vncserver -kill :1
-```
----
-
+![Debian GUI over VNC](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/screenshot/debian_vnc.png)
+![Ubuntu GUI over VNC](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/screenshot/ubuntu.png)
 ### Desktop Environment with Termux-X11
-1. Install Termux-X11  
-Download and install Termux-X11 from the official repository:
-  https://github.com/termux/termux-x11
-
-2. Install Required Packages in Termux
-First, open Termux and run these commands:
-```
-pkg install x11-repo
-pkg install root-repo
-pkg install tsu
-pkg install ncurses-utils
-pkg install termux-x11-nightly
-pkg install pulseaudio
-pkg install virglrenderer-android
-```
-
-3. Set Up Desktop Environment  
-(Assuming you have already installed chroot-distro and set up it's chroot environment)  
-Inside your chroot environment, Install XFCE4:
-```
-apt install dbus-x11 xfce4 xfce4-goodies xfce4-terminal
-
-# Optional: Make sure to set up mpd.conf for music/audio server before running 'Audio Server'.
-apt install mpd
-```
-
-4. Launch the Desktop Environment Easily
-![chroot-xfce.sh](https://github.com/user-attachments/assets/3f5db05f-fdde-40da-aab1-bb754ca98e35)
-Note: Make sure to run the script in Termux.
-
-Save this script as "chroot-xfce.sh" as it provides user-friendly menu and use it to launch your XFCE4 desktop environment later:
-1. Download the provided code:  
-[scripts/chroot-xfce.sh](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/tree/main/scripts/chroot-xfce.sh)
-
-2. Make it executable:
-```
-chmod +x chroot-xfce.sh
-```
-
-3. Run the script:
-```
-./chroot-xfce.sh
-or
-bash chroot-xfce.sh
-```
-
-Once completed, you'll have a fully functional XFCE4 desktop environment with audio capabilities running through Termux-X11.
+![Gui over Termux-X11](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/parrot_termux_x11.jpg)
+**For a complete setup guide of VNC and Termux-X11, see [android_gui.md](docs/android_gui.md).**
+### chroot-distro on Gnu/Linux 
+![Gnu_Linux](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/gnu_linux.jpg) 
+**`chroot-distro` was originally designed for Android, but it has also been made compatible with GNU/Linux systems.**   
+**Installation instructions for GNU/Linux can be found here: [how-to.md](docs/how-to.md).**
+## How-to Instructions
+**For detailed instructions on fixing `sudo` and other setup methods, see [how-to.md](docs/how-to.md).**
 
 ## Development Guide
+**For full development instructions, see [development_guide.md](docs/development_guide.md).**
 
-If you want to help with development or test a bug report against the latest version, create a development build using:
-
-```
-zip chroot-distro.zip config.sh module.prop META-INF/com/google/android/* system/bin/chroot-distro
-```
-
-Alternative approaches:
-- Enable SSH in a distro, update scripts remotely, and test against another distro (no reboot needed thus making the development quicker)
-- Develop directly on the device (physically or via remote connection)
-
-Testing requirements:
-- Test all changes in Termux (or other terminals) AND Android terminal emulator (ADB Shell)
-- Note: ADB Shell only has Busybox and Android Toybox commands, which may behave differently than Termux
-
-Code quality:
-- Use `ShellCheck` for POSIX compliance
-- Document warning exceptions with `# shellcheck disable=SCXXXX` and explanatory comments
-- For shell scripting guidance, refer to [Grymoire's tutorial](https://www.grymoire.com/Unix/Sh.html)
-
-Error Detection: 
-
-To enable command monitoring and stop on errors, use:
-```
-export chroot_distro_log=""
-```
-- Displays executed commands.
-- Stops immediately on error with line number.
-
-Check rootfs urls: 
-
-1. Download the provided code:  
-[scripts/check_rootfs_urls.sh](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/tree/main/scripts/check_rootfs_urls.sh)
-
-2. Make it executable:
-```
-chmod +x check_rootfs_urls.sh
-```
-
-3. Run the script:
-```
-./check_rootfs_urls.sh
-or
-bash check_rootfs_urls.sh
-```
-
-If you see a red link, report it in the [issues](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/issues) section.
+## Environment Variables for chroot-distro Configuration
+- **Change default `chroot-distro` path**: 
+  ```bash
+  export chroot_distro_path=<path>
+  ```
+- **Manual specification for `busybox`**:
+  ```bash
+  export chroot_distro_busybox=<path> 
+  ```
+  Used to manually specify the path to the busybox command.
+- **Skip tmpfs mount for `/tmp`**: 
+  ```bash
+  export chroot_distro_tmp=true
+  ```
+  Useful in some cases.
+- **Skip exit on errors (unsafe)**:
+  ```bash
+  export chroot_distro_exit=true
+  ```
+  Allows bypassing automatic exit on errors.
+- **Disable mounting**:
+  ```bash
+  export chroot_distro_mount=true
+  ```
+  Prevents mounting of file systems during execution.
+- **Developer-specific setting**:
+  ```bash
+  export chroot_distro_log=<value>
+  ```
+  **Reserved for developers, explained in [development_guide.md](docs/development_guide.md).**
 
 ## Semantic Versioning
 
