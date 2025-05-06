@@ -546,7 +546,7 @@ chroot_distro_warn_if_unsupported_busybox() {
 }
 
 chroot_distro_help() {
-    echo "$script: Install and manage GNU/Linux distributions in a chroot environment on Android and GNU/Linux.
+    echo "$script: Install and manage GNU/Linux distributions in a chroot environment on Android.
 
 Usage:
   $script <command> [options] [arguments]
