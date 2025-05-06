@@ -1873,7 +1873,7 @@ elif [ "$command" = "delete" ]; then
     fi
     chroot_distro_delete "$1"
 elif [ "$command" = "install" ]; then
-    PARSED=$(getopt --options=a --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
+    PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
         case "$1" in
