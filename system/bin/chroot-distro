@@ -621,28 +621,101 @@ parrot_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/Parrot
 backbox_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/BackBox
 centos_stream_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS_Stream
 
-chroot_distro_list(){
-  max=0; for d in $supported_distros; do [ ${#d} -gt "$max" ]&&max=${#d}; done
-  h1=Distro;h2=Downloaded;h3=Installed;h4=Backup
-  [ ${#h1} -gt "$max" ]&&w1=${#h1}||w1=$max;w2=${#h2};w3=${#h3};w4=${#h4}
-  c1=$((w1+2));c2=$((w2+2));c3=$((w3+2));c4=$((w4+2))
-  rep(){ n=$2;ch=$1;while [ "$n" -gt 0 ];do printf '%s' "$ch";n=$((n-1));done; }
-  top="┌$(rep '─' $c1)┬$(rep '─' $c2)┬$(rep '─' $c3)┬$(rep '─' $c4)┐"
-  sep="├$(rep '─' $c1)┼$(rep '─' $c2)┼$(rep '─' $c3)┼$(rep '─' $c4)┤"
-  bot="└$(rep '─' $c1)┴$(rep '─' $c2)┴$(rep '─' $c3)┴$(rep '─' $c4)┘"
-  GREEN=$(printf '\033[32m');RESET=$(printf '\033[0m')
-  printf '%b\n│ %-'"$w1"'s │ %-'"$w2"'s │ %-'"$w3"'s │ %-'"$w4"'s │\n%b\n' \
-    "$top" "$h1" "$h2" "$h3" "$h4" "$sep"
-  for d in $supported_distros;do
-    dl=No;[ -f "$chroot_distro_path/.rootfs/$d.tar.xz" ]&&dl=Yes
-    ins=No;[ -d "$chroot_distro_path/$d/" ]&&ins=Yes
-    bk=No;[ -f "$chroot_distro_path/.backup/$d.tar.xz" ]&&bk=Yes
-    printf '│ %-'"$w1"'s │ ' "$d"
-    [ $dl = Yes ]&& printf '%b%-'"$w2"'s%b │ ' "$GREEN" "$dl" "$RESET" || printf '%-'"$w2"'s │ ' "$dl"
-    [ $ins = Yes ]&& printf '%b%-'"$w3"'s%b │ ' "$GREEN" "$ins" "$RESET" || printf '%-'"$w3"'s │ ' "$ins"
-    [ $bk = Yes ]&& printf '%b%-'"$w4"'s%b │\n' "$GREEN" "$bk" "$RESET" || printf '%-'"$w4"'s │\n' "$bk"
+chroot_distro_list() {
+  GREEN=$(printf '\033[32m')
+  RESET=$(printf '\033[0m')
+
+  for file in "$chroot_distro_path/.rootfs/"*.tar.xz; do
+    if [ -f "$file" ]; then
+      name=$(basename "$file" .tar.xz)
+      eval "rootfs_map_${name}=1"
+    fi
   done
-  printf '%b\n' "$bot"
+
+  for file in "$chroot_distro_path/.backup/"*.tar.xz; do
+    if [ -f "$file" ]; then
+      name=$(basename "$file" .tar.xz)
+      eval "backup_map_${name}=1"
+    fi
+  done
+
+  for dir in "$chroot_distro_path/"*/; do
+    if [ -d "$dir" ]; then
+      name=$(basename "$dir")
+      eval "installed_map_${name}=1"
+    fi
+  done
+
+  max=0
+  for d in $supported_distros; do
+    len=$(printf "%s" "$d" | wc -c)
+    if [ "$len" -gt "$max" ]; then
+      max=$len
+    fi
+  done
+
+  h1=Distro; h2=Downloaded; h3=Installed; h4=Backup
+  h1_len=$(printf "%s" "$h1" | wc -c)
+  if [ "$h1_len" -gt "$max" ]; then
+    w1=$h1_len
+  else
+    w1=$max
+  fi
+  w2=$(printf "%s" "$h2" | wc -c)
+  w3=$(printf "%s" "$h3" | wc -c)
+  w4=$(printf "%s" "$h4" | wc -c)
+  c1=$((w1+2))
+  c2=$((w2+2))
+  c3=$((w3+2))
+  c4=$((w4+2))
+
+  rep() {
+    n="$2"
+    while [ "$n" -gt 0 ]; do
+      printf "%s" "$1"
+      n=$((n-1))
+    done
+  }
+
+  top="┌$(rep '─' "$c1")┬$(rep '─' "$c2")┬$(rep '─' "$c3")┬$(rep '─' "$c4")┐"
+  sep="├$(rep '─' "$c1")┼$(rep '─' "$c2")┼$(rep '─' "$c3")┼$(rep '─' "$c4")┤"
+  bot="└$(rep '─' "$c1")┴$(rep '─' "$c2")┴$(rep '─' "$c3")┴$(rep '─' "$c4")┘"
+
+  printf "%b\n│ %-${w1}s │ %-${w2}s │ %-${w3}s │ %-${w4}s │\n%b\n" \
+    "$top" "$h1" "$h2" "$h3" "$h4" "$sep"
+
+  for d in $supported_distros; do
+    dl=No
+    eval "test -n \"\$rootfs_map_$d\"" && dl=Yes
+
+    ins=No
+    eval "test -n \"\$installed_map_$d\"" && ins=Yes
+
+    bk=No
+    eval "test -n \"\$backup_map_$d\"" && bk=Yes
+
+    printf "│ %-${w1}s │ " "$d"
+
+    if [ "$dl" = Yes ]; then
+      printf "%b%-${w2}s%b │ " "$GREEN" "$dl" "$RESET"
+    else
+      printf "%-${w2}s │ " "$dl"
+    fi
+
+    if [ "$ins" = Yes ]; then
+      printf "%b%-${w3}s%b │ " "$GREEN" "$ins" "$RESET"
+    else
+      printf "%-${w3}s │ " "$ins"
+    fi
+
+    if [ "$bk" = Yes ]; then
+      printf "%b%-${w4}s%b │\n" "$GREEN" "$bk" "$RESET"
+    else
+      printf "%-${w4}s │\n" "$bk"
+    fi
+  done
+
+  printf "%b\n" "$bot"
 }
 
 chroot_distro_check_if_supported() {
