@@ -23,7 +23,7 @@ In your chroot environment (e.g., Debian or Ubuntu), open a terminal and run the
 apt update                  # Refreshes the package list
 apt upgrade                 # Updates installed packages to the latest versions
 apt install tightvncserver  # Installs the VNC server software
-apt install nano dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs a text editor, display manager, and XFCE4 desktop
+apt install sudo dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs a text editor, display manager, and XFCE4 desktop
 ```
 
 ### 3. Configure the Desktop Environment
@@ -86,7 +86,7 @@ pkg install virglrenderer-android  # Enables graphics acceleration
 ### 3. Install the Desktop Environment in the Chroot
 Inside your chroot environment, install XFCE4:
 ```
-apt install dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs the XFCE4 desktop and tools
+apt sudo install dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs the XFCE4 desktop and tools
 
 # Optional: Install an audio server
 apt install mpd
