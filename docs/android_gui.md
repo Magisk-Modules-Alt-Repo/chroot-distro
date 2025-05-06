@@ -66,7 +66,7 @@ vncserver -kill :1
 ---
 
 ## Part 2: Using Termux-X11 for the Desktop Environment
-
+![Parrot GUI](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/image/parrot_termux_x11.jpg) 
 ### 1. Install Termux-X11
 Download and install Termux-X11 from the [official repository](https://github.com/termux/termux-x11/releases).
 
