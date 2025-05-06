@@ -622,6 +622,15 @@ backbox_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/BackBox
 centos_stream_rootfs_base_url=$anlinux_rootfs_base_url/raw/master/Rootfs/CentOS_Stream
 
 chroot_distro_list() {
+  installed_distros="$1"
+  if [ "yes" = "$installed_distros" ]; then
+     for distro in $supported_distros; do
+             if [ -d "${chroot_distro_path}/${distro}" ]; then
+                    echo "${distro}" 
+             fi
+      done
+      return 
+  fi
   GREEN=$(printf '\033[32m')
   RESET=$(printf '\033[0m')
 
@@ -1776,7 +1785,11 @@ elif [ "$command" = "list" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
     while true; do
-        case "$1" in
+        case "$1" in 
+           -i|--installed)
+                installed_distros="yes"
+                shift
+                ;;        
             --)
                 shift
                 break
@@ -1788,10 +1801,10 @@ elif [ "$command" = "list" ]; then
                 ;;
         esac
     done
-    if [ $# -ne 0 ]; then
+    if [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_list
+    chroot_distro_list "${installed_distros}" 
 elif [ "$command" = "download" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
