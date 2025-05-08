@@ -181,7 +181,7 @@ elif [ -e /system/bin/chroot ]; then
 else
     # don't want to use a random chroot to ensure it doesn't affect the jail
     # if GNU/Linux, use default chroot
-    if [ "${operating_system}" = "Linux" ]; then
+    if [ "${operating_system}" = "GNU/Linux" ]; then
        chrootpath="$(command -v chroot)"
     else
        chrootpath=''
