@@ -1881,7 +1881,8 @@ elif [ "$command" = "redownload" ]; then
         chroot_distro_missing_distro
     elif [ $# -gt 2 ]; then
         chroot_distro_user_check_parameters
-    fi
+    fi 
+    chroot_distro_delete "$1" 
     chroot_distro_download "$1" "$2"
 elif [ "$command" = "delete" ]; then
     PARSED=$(getopt --options= --longoptions= --name "$0" -- "$@") || chroot_distro_exit 2
