@@ -1258,11 +1258,11 @@ chroot_distro_jail() {
 }
 
 prepare_chroot_distro() {
-   rm "$distro_path"/etc/resolv.conf
+   rm -f "$distro_path"/etc/resolv.conf
    mkdir -p "$distro_path"/run "$distro_path"/run/systemd "$distro_path"/run/systemd/resolve
    echo nameserver 8.8.8.8 > "$distro_path"/run/systemd/resolve/stub-resolv.conf
    echo nameserver 8.8.4.4 >> "$distro_path"/run/systemd/resolve/stub-resolv.conf
-   ln -s "$distro_path"/run/systemd/resolve/stub-resolv.conf "$distro_path"/etc/resolv.conf 
+   chroot "$distro_path" /bin/ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf 
 
    cp /etc/hosts "$distro_path"/etc/hosts 
    if [ "${operating_system}" = "GNU/Linux" ]; then
