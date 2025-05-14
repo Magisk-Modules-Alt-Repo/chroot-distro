@@ -1118,7 +1118,7 @@ chroot_distro_mount_system_points() {
         mount_android_dirs
     fi
     if [ "1" = "$ram_bind_val" ]; then
-        system_points="$system_points /tmp /run /var/tmp /var/run /dev/shm"
+        system_points="$system_points /tmp /run /var/tmp /dev/shm"
     fi
     for point in $system_points; do
         chroot_distro_mount_system_point "$point" "$distro_path$point"
