@@ -2148,7 +2148,7 @@ elif [ "$command" = "mount" ]; then
     elif [ $# -ne 1 ]; then
         chroot_distro_user_check_parameters
     fi
-    chroot_distro_mount_system_points "$1"
+    chroot_distro_mount_system_points "${chroot_distro_path}/$1"
 elif [ "$command" = "unmount" ]; then
     PARSED=$(getopt --options=fa --longoptions=force,all --name "$0" -- "$@") || chroot_distro_exit 2
     eval set -- "$PARSED"
