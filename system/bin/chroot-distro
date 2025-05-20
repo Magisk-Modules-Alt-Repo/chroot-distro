@@ -5,8 +5,8 @@
 # Code is licensed under terms of GNU GPL v3, see LICENSE file
 # for the full terms.
 
-if [ -n "${chroot_distro_log+x}" ]; then
-  case "$chroot_distro_log" in
+if [ -n "${CHROOT_DISTRO_LOG+x}" ]; then
+  case "${CHROOT_DISTRO_LOG}" in
     0) set -n ;;
     1) set -e ;;
     2) set -e -x ;;
@@ -14,7 +14,7 @@ if [ -n "${chroot_distro_log+x}" ]; then
 fi
 
 chroot_distro_exit() {
-  if [ "${chroot_distro_exit:-}" == "true" ]; then
+  if [ "${CHROOT_DISTRO_EXIT:-}" == "true" ]; then
       return "$@" 
   else 
       exit "$@" 
@@ -23,8 +23,8 @@ chroot_distro_exit() {
 
 operating_system="$(uname -o)"
 
-if [ -n "${chroot_distro_path}" ]; then
-    chroot_distro_path="${chroot_distro_path}"
+if [ -n "${CHROOT_DISTRO_PATH}" ]; then
+    chroot_distro_path="${CHROOT_DISTRO_PATH}"
 else
     chroot_distro_path="/data/local/chroot-distro"
     if [ "${operating_system}" = "GNU/Linux" ]; then
@@ -114,8 +114,8 @@ if [ "" != "${check_env}" ]; then
 fi
 
 busyboxpath="$(command -v busybox 2> /dev/null)"
-if [ -n "${chroot_distro_busybox}" ]; then
-   busyboxpath="${chroot_distro_busybox}"
+if [ -n "${CHROOT_DISTRO_BUSYBOX}" ]; then
+   busyboxpath="${CHROOT_DISTRO_BUSYBOX}"
 fi
 if [ -z "$busyboxpath" ]; then
     busyboxpath=''
@@ -1036,7 +1036,7 @@ chroot_distro_mount_system_point() {
         return
     fi
     if [ "$path_to_mount" = "/tmp" ]; then
-       if [ "${chroot_distro_tmp:-}" == "true" ]; then
+       if [ "${CHROOT_DISTRO_TMP:-}" == "true" ]; then
            return 
        fi
        if ! mount -t tmpfs tmpfs "$mount_point"; then
@@ -1110,7 +1110,7 @@ chroot_distro_force_unmount() {
 }
 
 chroot_distro_mount_system_points() {
-    if [ "${chroot_distro_mount:-}" = "true" ]; then
+    if [ "${CHROOT_DISTRO_MOUNT:-}" = "true" ]; then
        return
     fi
     distro_path="$1"
