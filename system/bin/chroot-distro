@@ -457,7 +457,9 @@ fix_suid() {
             return 1
         fi
     fi
-
+    if [ "${CHROOT_DISTRO_MOUNT:-}" = "true" ]; then
+       return
+    fi
     # Re-read the value from the suid file
     fix_suid_val=$(cat "$fix_suid_file" 2>/dev/null)
 
