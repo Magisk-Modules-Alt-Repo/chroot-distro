@@ -1265,7 +1265,7 @@ prepare_chroot_distro() {
    chroot "$distro_path" /bin/ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf 
 
    cp /etc/hosts "$distro_path"/etc/hosts 
-   if [ "${operating_system}" = "GNU/Linux" ]; then
+   if [ "${operating_system}" != "GNU/Linux" ]; then
       {
        echo "3003 aid_inet"
        echo "3004 aid_net_raw"
