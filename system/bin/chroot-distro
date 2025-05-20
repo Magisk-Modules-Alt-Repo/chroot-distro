@@ -1336,7 +1336,6 @@ chroot_distro_install() {
             echo "Error: Unpacking the archive failed"
             chroot_distro_exit 5
         fi
-        mv "$chroot_distro_path/$rootdir" "$distro_path"
         if [ $tar_status -ne 0 ]; then
             # can bail out only when the environment is in semi consistent state
             echo "Error: Unpacking the archive failed"
