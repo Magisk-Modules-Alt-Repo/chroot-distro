@@ -1041,7 +1041,7 @@ chroot_distro_mount_system_point() {
     path_to_mount="$1"
     mount_point="$2"
     case "$path_to_mount" in
-         /tmp|/run|/var/tmp|/var/run|/dev/shm) : ;;
+         /tmp|/run|/var/tmp|/dev/shm) : ;;
          *)
           if [ ! -e "$path_to_mount" ]; then
               print_message warning "Missing system path $path_to_mount, skipping"
@@ -1065,6 +1065,11 @@ chroot_distro_mount_system_point() {
             chroot_distro_exit 1
         fi
     elif [ "$path_to_mount" = "/run" ]; then 
+       run_path=$(printf '%s\n' "$mount_point" | sed 's|^/var/run|/run|')
+       if [ ! -e "$run_path" ]; then
+            rm -rf "$run_path"
+            ln -s "$run_path" "$mount_point"
+       fi
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             print_message error "could not mount tmpfs to $mount_point"
             chroot_distro_exit 1
@@ -1074,12 +1079,6 @@ chroot_distro_mount_system_point() {
             print_message error "could not mount tmpfs to $mount_point"
             chroot_distro_exit 1
         fi
-     elif [ "$path_to_mount" = "/var/run" ]; then 
-       run_path=$(echo "$mount_point" | sed 's|/var/run|/run|')
-       if [ ! -e "$mount_point" ]; then
-          rm -rf "$mount_point"
-          ln -s "$run_path" "$mount_point"
-       fi
      elif [ "$path_to_mount" = "/dev/shm" ]; then 
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             print_message error "could not mount tmpfs to $mount_point"
