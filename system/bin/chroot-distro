@@ -7,11 +7,11 @@
 
 # Function to print messages with specific colors based on type
 print_message() {
-    local type="$1" message="$2"
-    local RED='\033[91m'
-    local PURPLE='\033[95m'
-    local CYAN='\033[96m'
-    local RESET='\033[0m'
+    type="$1" message="$2"
+    RED='\033[91m'
+    PURPLE='\033[95m'
+    CYAN='\033[96m'
+    RESET='\033[0m'
 
     # Check if terminal supports colors
     if [ -t 1 ] && command -v tput >/dev/null 2>&1 && [ "$(tput colors)" -ge 8 ]; then
