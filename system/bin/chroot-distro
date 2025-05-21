@@ -1160,7 +1160,7 @@ chroot_distro_unmount_system_point() {
        chroot_distro_force_unmount "$mount_point/" 
     fi
     # no need to check for the success as the caller will take care of that
-    if ! umount "$mount_point"; then
+    if ! umount "$mount_point" > /dev/null 2>&1; then
     print_message warning "Failed to unmount $mount_point"
     fi
 }
@@ -1700,9 +1700,9 @@ chroot_distro_unmount() {
         system_mount_points_mounted=1
         mode=all
     else
-        mounts=$(cat /proc/mounts | grep -F "$distro_path" | list_mount_points "$distro_path")
-        loopbacks=$(losetup -a | grep -F "$distro_path" | list_mount_points "$distro_path")
-        open_files=$(lsof | grep -F "$distro_path" | list_mount_points "$distro_path")
+        mounts=$(cat /proc/mounts | grep -F "$distro_path" || true; list_mount_points "$distro_path")
+        loopbacks=$(losetup -a | grep -F "$distro_path" || true; list_mount_points "$distro_path")
+        open_files=$(lsof | grep -F "$distro_path" || true; list_mount_points "$distro_path")
         chroot_distro_check_if_system_points_mounted "$distro_path"
         system_mount_points_mounted=$?
         mode=system
