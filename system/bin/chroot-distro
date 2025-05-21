@@ -59,7 +59,7 @@ script=$(basename "$0")
 
 user_id=$(id -u)
 if [ "${user_id}" -ne 0 ]; then
-    print_message error "Root access required."
+    print_message error "This script requires root privileges. Please run it as root."
     chroot_distro_exit 1
 fi
 
@@ -70,7 +70,7 @@ case "${architecture}" in
     arm|armel|armhf|armhfp|armv7|armv7l|armv7a|armv8l) architecture="armhf" ;;
     386|i386|i686|x86) architecture="i386" ;;
     amd64|x86_64) architecture="amd64" ;;
-    *) print_message error "Unsupported architecture: ${architecture}"; chroot_distro_exit 1 ;;
+    *) print_message error "The architecture '${architecture}' is not supported."; chroot_distro_exit 1 ;;
 esac
 
 supported_distros="alpine arch artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox  centos_stream rocky adelie chimera gentoo"
@@ -213,8 +213,8 @@ unset can_use_busyboxdir
 unset busyboxdir
 
 if [ "" = "$check_env" ] && [ "" = "$chrootpath" ]; then
-    print_message error "chroot not found from the expected path, ensure that Busybox for Android NDK has been installed and try again"
-    print_message note "Run '$script env' for extra information"
+    print_message error "The 'chroot' command is not found. Ensure Busybox for Android NDK is installed."
+    print_message note "Run '$script env' for additional environment details."
     chroot_distro_exit 1
 fi
 
@@ -405,7 +405,7 @@ if [ "" != "$check_env" ]; then
     if [ ! -e /data/adb ]; then
         print_message warning 'Could not determine if Busybox for Android NDK Magisk module is installed'
     elif [ -e /data/adb/modules/busybox-ndk ]; then
-        print_message warning 'Busybox for Android NDK Magisk module installed'
+        print_message info 'Busybox for Android NDK Magisk module installed'
     else
         print_message warning 'Busybox for Android NDK Magisk module not installed'
     fi
@@ -424,12 +424,13 @@ getopt --test > /dev/null && true
 if [ $? -ne 4 ]; then
     # shellcheck disable=SC2016
     print_message error "I'm sorry, \`getopt --test\` failed in this environment."
-    print_message note "Run '$script env' for extra information"
+    print_message note "Run '$script env' for more environment details."
     chroot_distro_exit 1
 fi
 
 if ! tar --help 2>&1 | grep -q -- "-J" ; then
-    print_message error "Your Busybox tar does not support xz compression. Update your busybox!"
+    print_message error "The installed Busybox 'tar' does not support xz compression."
+    print_message note "Please update Busybox to version 1.36.1 or newer."
     chroot_distro_exit 1
 fi
 
@@ -564,8 +565,8 @@ system_points="/dev /sys /proc /dev/pts"
 chroot_distro_warn_if_unsupported_busybox() {
     current_version=$(busybox | grep -oE 'v[0-9]+(\.[0-9]+)+' | sed 's/v//')
     if [ "$(echo "$current_version" | sed 's/\.//g')" -lt "1361" ]; then
-       print_message warning "Outdated BusyBox version - expect many issues and bugs!"
-       print_message warning "Upgrade to v1.36.1 or newer immediately."
+       print_message warning "The installed BusyBox version ($current_version) is outdated and may cause compatibility issues."
+       print_message note "Upgrade to BusyBox v1.36.1 or newer for optimal performance."
     fi
 }
 
@@ -791,7 +792,7 @@ chroot_distro_check_if_supported() {
             return 0
         fi
     done
-    print_message error "Unavailable distro $1"
+    print_message error "The distribution $1 is not supported."
     chroot_distro_exit 1
 }
 
@@ -973,18 +974,19 @@ chroot_distro_download() {
     fi
     
     if [ -z "$download_url" ]; then
-        print_message error "Unsupported architecture: ${architecture}"
+        print_message error "The architecture '${architecture}' is not supported."
         chroot_distro_exit 87
     fi
     
     if ! wget --spider -q -T 10 -t 1 "$download_url"; then
-        print_message error "Failed to access URL: $download_url"
-        print_message error "The architecture '${architecture}' may not be supported or the URL is unavailable."
+        print_message error "Failed to access the URL: $download_url"
+        print_message note "Check your internet connection or verify if the URL is correct. The architecture '${architecture}' may not be supported."
         chroot_distro_exit 87
     fi
     
     if [ -f "$chroot_distro_path/.rootfs/$distro.tar.xz" ]; then
-        print_message error "Already downloaded."
+        print_message error "The rootfs for '${distro}' is already downloaded."
+        print_message note "Use '${script} install ${distro}' to proceed with installation or '${script} delete ${distro}' to remove the existing file."
         chroot_distro_exit 89
     fi
     
@@ -1024,7 +1026,8 @@ chroot_distro_delete() {
     if [ -f "$archive_path" ]; then
         rm "$archive_path"
     else
-        print_message error "$1 not downloaded"
+        print_message error "The rootfs for '${distro}' has not been downloaded."
+        print_message note "Use '${script} download ${distro}' to download it."
         chroot_distro_exit 1
     fi
 }
@@ -1044,14 +1047,14 @@ chroot_distro_mount_system_point() {
          /tmp|/run|/var/tmp|/dev/shm) : ;;
          *)
           if [ ! -e "$path_to_mount" ]; then
-              print_message warning "Missing system path $path_to_mount, skipping"
+              print_message warning "System path '$path_to_mount' is missing and will be skipped. This may affect the chroot environment."
               return
           fi
         ;;
      esac
     if [ ! -d "$mount_point" ]; then
         if ! mkdir -p "$mount_point"; then
-            print_message error "creating mount point $mount_point failed"
+            print_message error "Failed to create the mount point $mount_point"
             chroot_distro_exit 1
         fi
     fi
@@ -1061,7 +1064,7 @@ chroot_distro_mount_system_point() {
     fi
     if [ "$path_to_mount" = "/tmp" ]; then
        if ! mount -t tmpfs tmpfs "$mount_point"; then
-            print_message error "could not mount tmpfs to $mount_point"
+            print_message error "Failed to mount tmpfs on $mount_point"
             chroot_distro_exit 1
         fi
     elif [ "$path_to_mount" = "/run" ]; then 
@@ -1071,27 +1074,27 @@ chroot_distro_mount_system_point() {
             ln -s "$run_path" "$mount_point"
        fi
        if ! mount -t tmpfs tmpfs "$mount_point"; then
-            print_message error "could not mount tmpfs to $mount_point"
+            print_message error "Failed to mount tmpfs on $mount_point"
             chroot_distro_exit 1
         fi
     elif [ "$path_to_mount" = "/var/tmp" ]; then
        if ! mount -t tmpfs tmpfs "$mount_point"; then
-            print_message error "could not mount tmpfs to $mount_point"
+            print_message error "Failed to mount tmpfs on $mount_point"
             chroot_distro_exit 1
         fi
      elif [ "$path_to_mount" = "/dev/shm" ]; then 
        if ! mount -t tmpfs tmpfs "$mount_point"; then
-            print_message error "could not mount tmpfs to $mount_point"
+            print_message error "Failed to mount tmpfs on $mount_point"
             chroot_distro_exit 1
         fi
     elif [ "$path_to_mount" = "/dev/pts" ]; then
         if ! mount -t devpts devpts "$mount_point"; then
-            print_message error "could not mount tmpfs to $mount_point"
+            print_message error "Failed to mount devpts on $mount_point"
             chroot_distro_exit 1
         fi
     else
         if ! mount --bind "$path_to_mount" "$mount_point"; then
-            print_message error "could not mount tmpfs to $mount_point"
+            print_message error "Failed to bind mount $path_to_mount on $mount_point"
             chroot_distro_exit 1
         fi 
     fi
@@ -1251,7 +1254,7 @@ chroot_distro_jail() {
     fi
 
     print_message warning "Missing 'su' command, can't do a proper login. Please, install 'su'"
-    print_message note "as soon as possible to ensure consistent login environment."
+    print_message note "As soon as possible to ensure consistent login environment."
 
     # ensure a sane PATH contents for the shell
     JAIL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -1312,13 +1315,15 @@ chroot_distro_install() {
 
     archive_path="$chroot_distro_path/.rootfs/$distro.tar.xz"
     if [ ! -f "$archive_path" ]; then
-        print_message error "$distro not downloaded"
+        print_message error "The rootfs for '${distro}' has not been downloaded."
+        print_message note "Use '${script} download ${distro}' to download it."
         chroot_distro_exit 1
     fi
 
     distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
-        print_message error "$distro already installed"
+        print_message error "The distribution '${distro}' is already installed."
+        print_message note "Use 'uninstall ${distro}' to remove it or 'reinstall ${distro}' to reinstall."
         chroot_distro_exit 1
     fi
 
@@ -1334,18 +1339,18 @@ chroot_distro_install() {
     fi
     rootdir="$( echo "$common_path" | cut -f1 -d/ )"
     if [ "$rootdir" != "$common_path" ]; then
-        print_message error "Unsupported archive. rootfs archive is expected to have only at most one subdirectory before the actual content."
+        print_message error "Unsupported archive, rootfs archive must have at most one subdirectory before the actual content."
         chroot_distro_exit 1
     fi
     archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$archive_path")}
     if [ "" = "$archive_type" ]; then
-        print_message error "Unsupported or corrupt archive"
+        print_message error "Archive is unsupported or corrupted"
         chroot_distro_exit 5
     fi
     if [ "." = "$rootdir" ]; then
         mkdir -p "$distro_path"
         if ! tar -xf "$archive_path" -C "$distro_path/"; then
-            print_message error "Unpacking the archive failed"
+            print_message error "Failed to unpack the '${distro}' rootfs archive. The archive may be corrupted or incomplete."
             chroot_distro_exit 5
         fi
     else
@@ -1353,12 +1358,12 @@ chroot_distro_install() {
         tar_status=$?
         if [ $tar_status -ne 0 ] && [ ! -e "$chroot_distro_path/$rootdir" ]; then
             # can bail out early as no files were unpacked
-            print_message error "Unpacking the archive failed"
+            print_message error "Failed to unpack the '${distro}' rootfs archive. The archive may be corrupted or incomplete."
             chroot_distro_exit 5
         fi
         if [ $tar_status -ne 0 ]; then
             # can bail out only when the environment is in semi consistent state
-            print_message error "Unpacking the archive failed"
+            print_message error "Failed to unpack the '${distro}' rootfs archive. The archive may be corrupted or incomplete."
             chroot_distro_exit 5
         fi
     fi
@@ -1446,7 +1451,8 @@ chroot_distro_backup() {
 
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
-        print_message error "Distro not installed, no need to backup"
+        print_message error "The distribution '${distro}' is not installed. Backup is not needed."
+        print_message note "Use '${script} install ${distro}' to install it first."
         exit
     fi
 
@@ -1490,13 +1496,14 @@ chroot_distro_backup() {
     if [ "" = "$custom_path" ]; then
         backup_path="$chroot_distro_path/.backup/$1.tar.xz"
         if [ -f "$backup_path" ]; then
-            print_message error "Backup already exist, unbackup and try agin"
+            print_message error "Backup already exists."
+            print_message note "You can use '\$script unbackup \$distro' to unbackup it."
             chroot_distro_exit 1
         fi
         (
             cd "$chroot_distro_path" || chroot_distro_exit 1;
             if ! tar -caf "$backup_path" "$distro" 2>/dev/null; then
-                print_message error "Creating the backup failed"
+                print_message error "Failed to create the backup."
                 chroot_distro_exit 5
             fi
         )
@@ -1509,7 +1516,7 @@ chroot_distro_backup() {
         (
             cd "$chroot_distro_path" || chroot_distro_exit 1;
             if ! tar -caf "$absolute_custom_path" "$distro" 2>/dev/null; then
-                print_message error "Creating the backup failed"
+                print_message error "Failed to create the backup."
                 chroot_distro_exit 5
             fi
         )
@@ -1520,7 +1527,7 @@ chroot_distro_find_archive_common_path() {
     archive_path=$1
     archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$archive_path")}
     if [ "" = "$archive_type" ]; then
-        print_message error "Unsupported or corrupt archive" >&2
+        print_message error "Archive is unsupported or corrupted" >&2
         chroot_distro_exit 5
     fi
     paths_to_check="$(tar -tf "$archive_path" 2>/dev/null)"
@@ -1548,7 +1555,8 @@ chroot_distro_unbackup() {
     if [ -f "$backup_path" ]; then
         rm "$backup_path"
     else
-        print_message error "Backup not found $1"
+        print_message error "No backup found for distribution '$1'."
+        print_message note "You can use '\$script backup \$1' to create one."
         chroot_distro_exit 1
     fi
 }
@@ -1562,7 +1570,8 @@ chroot_distro_restore() {
 
     distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
-        print_message error "Distro already installed , uninstall and try again"
+        print_message error "Distro already installe."
+        print_message note "You can use '\$script uninstall \$distro' to uninstall the distribution."
         chroot_distro_exit 1
     fi
 
@@ -1578,7 +1587,8 @@ chroot_distro_restore() {
     fi
 
     if [ ! -f "$backup_path" ]; then
-        print_message error "Backup not found"
+        print_message error "Backup not found."
+        print_message note "You can use '\$script backup \$distro' to create a backup."
         chroot_distro_exit 1
     fi
 
@@ -1596,7 +1606,7 @@ chroot_distro_restore() {
 
     archive_type=${archive_type-$(chroot_distro_check_archive_file_type "$backup_path")}
     if [ "" = "$archive_type" ]; then
-        print_message error "Unsupported or corrupt archive"
+        print_message error "Archive is unsupported or corrupted"
         chroot_distro_exit 5
     fi
 
@@ -1604,7 +1614,7 @@ chroot_distro_restore() {
         # backup has relative path, restoring is not a problem
         mkdir -p "$distro_path"
         if ! tar -xf "$backup_path" -C "$distro_path/" 2>/dev/null; then
-            print_message error "Unpacking the archive failed"
+            print_message error "Failed to unpack the archive."
             chroot_distro_exit 5
         fi
     elif [ "data" = "$rootdir" ] && [ "yes" = "$force" ]; then
@@ -1615,7 +1625,7 @@ chroot_distro_restore() {
         (
             cd /
             if ! tar -xf "$backup_path" 2>/dev/null; then
-                print_message error "Unpacking the archive failed"
+                print_message error "Failed to unpack the archive."
                 chroot_distro_exit 5
             fi
         )
@@ -1635,7 +1645,7 @@ points will be shadowed by system mounts."
         (
             cd "$chroot_distro_path" || chroot_distro_exit 1;
             if ! tar -xf "$backup_path" 2>/dev/null; then
-                print_message error "Unpacking the archive failed"
+                print_message error "Failed to unpack the archive."
                 chroot_distro_exit 5
             fi
         )
@@ -1672,7 +1682,8 @@ chroot_distro_unmount() {
 
     distro_path="$chroot_distro_path/$distro"
     if [ ! -d "$distro_path" ]; then
-        print_message error "$distro not installed"
+        print_message error "The distribution '$distro' is not installed."
+        print_message note "You can install it using: \$script install \$distro"
         chroot_distro_exit 1
     fi
 
@@ -1720,7 +1731,8 @@ chroot_distro_command() {
 
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
-        print_message error "$1 not installed"
+        print_message error "The distribution '$distro' is not installed."
+        print_message note "You can install it using: \$script install \$distro"
         chroot_distro_exit 1
     fi
 
@@ -1734,7 +1746,8 @@ chroot_distro_login() {
 
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
-        print_message error "$1 not installed"
+        print_message error "The distribution '$distro' is not installed."
+        print_message note "You can install it using: \$script install \$distro"
         chroot_distro_exit 1
     fi
 
@@ -1746,7 +1759,7 @@ chroot_distro_login() {
 chroot_distro_add() {
     for distro in $supported_distros; do
         if [ "$distro" = "$1" ]; then
-            print_message error "Distro '$1' already exists."
+            print_message error "The distribution '$1' already exists."
             chroot_distro_exit 1
         fi
     done
@@ -1754,12 +1767,13 @@ chroot_distro_add() {
     case "$1" in
         fix_suid|android_bind|ram_bind)
             print_message error "Invalid name '$1'. Choose another."
+            print_message note "The names 'fix_suid', 'android_bind', and 'ram_bind' are not allowed."
             chroot_distro_exit 1
             ;;
     esac
 
     touch "$chroot_distro_path/.config/$1"
-    print_message info "Distro '$1' added successfully."
+    print_message info "The distribution '$1' added successfully."
 }
 
 chroot_distro_rename() {
@@ -1771,7 +1785,7 @@ chroot_distro_rename() {
 
     # Check if any file or directory with the new name already exists
     if [ -e "$chroot_distro_path/.rootfs/${new_name}.tar.xz" ] || [ -e "$chroot_distro_path/.backup/${new_name}.tar.xz" ] || [ -e "$chroot_distro_path/${new_name}" ]; then
-        print_message error "${new_name} alredy exists"
+        print_message error "A distribution named '${new_name}' already exists."
         chroot_distro_exit 1
     fi
 
@@ -1810,7 +1824,7 @@ chroot_distro_remove() {
 
 chroot_distro_invalid_parameters() {
     print_message error "$script - $1"
-    print_message note "try '$script help' for more information"
+    print_message note "Try '$script help' for more information."
     chroot_distro_exit 2
 }
 
