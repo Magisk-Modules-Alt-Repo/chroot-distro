@@ -792,7 +792,7 @@ chroot_distro_check_if_supported() {
             return 0
         fi
     done
-    print_message error "The distribution $1 is not supported."
+    print_message error "The distribution '$1' is not supported."
     chroot_distro_exit 1
 }
 
@@ -1323,7 +1323,7 @@ chroot_distro_install() {
     distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
         print_message error "The distribution '${distro}' is already installed."
-        print_message note "Use 'uninstall ${distro}' to remove it or 'reinstall ${distro}' to reinstall."
+        print_message note "You can use '$script uninstall ${distro}' to uninstall it or '$script reinstall ${distro}' to reinstall."
         chroot_distro_exit 1
     fi
 
@@ -1451,8 +1451,8 @@ chroot_distro_backup() {
 
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
-        print_message error "The distribution '${distro}' is not installed. Backup is not needed."
-        print_message note "Use '${script} install ${distro}' to install it first."
+        print_message error "The distribution '${distro}' is not installed."
+        print_message note "You can use '${script} install ${distro}' to install the distribution."
         exit
     fi
 
@@ -1570,7 +1570,7 @@ chroot_distro_restore() {
 
     distro_path="$chroot_distro_path/$distro"
     if [ -d "$distro_path" ]; then
-        print_message error "Distro already installe."
+        print_message error "The distribution '$distro' already installed."
         print_message note "You can use '\$script uninstall \$distro' to uninstall the distribution."
         chroot_distro_exit 1
     fi
@@ -1683,7 +1683,7 @@ chroot_distro_unmount() {
     distro_path="$chroot_distro_path/$distro"
     if [ ! -d "$distro_path" ]; then
         print_message error "The distribution '$distro' is not installed."
-        print_message note "You can install it using: \$script install \$distro"
+        print_message note "You can use '\$script install \$distro' to install the distribution."
         chroot_distro_exit 1
     fi
 
@@ -1732,7 +1732,7 @@ chroot_distro_command() {
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
         print_message error "The distribution '$distro' is not installed."
-        print_message note "You can install it using: \$script install \$distro"
+        print_message note "You can use '\$script install \$distro' to install the distribution."
         chroot_distro_exit 1
     fi
 
@@ -1747,7 +1747,7 @@ chroot_distro_login() {
     distro_path="$chroot_distro_path/$1"
     if [ ! -d "$distro_path" ]; then
         print_message error "The distribution '$distro' is not installed."
-        print_message note "You can install it using: \$script install \$distro"
+        print_message note "You can use '\$script install \$distro' to install the distribution."
         chroot_distro_exit 1
     fi
 
