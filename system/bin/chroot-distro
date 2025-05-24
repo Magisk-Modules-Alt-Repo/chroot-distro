@@ -1237,6 +1237,39 @@ chroot_distro_find_su() {
     echo "$su_command"
 }
 
+chroot_distro_fix_env(){
+    distro_path="$1"
+    
+    # Fix resolv.conf
+    if [ ! -e "$distro_path/etc/resolv.conf" ] || [ -L "$distro_path/etc/resolv.conf" ] && [ ! -e "$distro_path/etc/resolv.conf" ] || [ -f "$distro_path/etc/resolv.conf" ] && [ ! -s "$distro_path/etc/resolv.conf" ]; then
+        rm -f "$distro_path/etc/resolv.conf"
+        if [ -d "$distro_path/run/systemd" ] || [ -d "$distro_path/lib/systemd" ]; then
+            mkdir -p "$distro_path/run/systemd/resolve"
+            printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" > "$distro_path/run/systemd/resolve/stub-resolv.conf"
+            chroot "$distro_path" /bin/ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf 2>/dev/null || cp "$distro_path/run/systemd/resolve/stub-resolv.conf" "$distro_path/etc/resolv.conf"
+        else
+            printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" > "$distro_path/etc/resolv.conf"
+        fi
+    fi
+    
+    # Fix timezone
+    if [ -d "$distro_path/usr/share/zoneinfo" ] && [ -n "$(ls -A "$distro_path/usr/share/zoneinfo" 2>/dev/null)" ]; then
+        timezone=""
+        if command -v getprop >/dev/null 2>&1; then
+            timezone=$(getprop persist.sys.timezone 2>/dev/null)
+        fi
+        if [ -z "$timezone" ] && [ -f /etc/timezone ]; then
+            timezone=$(head -n1 /etc/timezone 2>/dev/null | tr -d '\n\r')
+        fi
+        if [ -z "$timezone" ]; then
+            timezone="Etc/UTC"
+        fi
+        if [ -f "$distro_path/usr/share/zoneinfo/$timezone" ]; then
+            chroot "$distro_path" /bin/ln -sf "/usr/share/zoneinfo/$timezone" /etc/localtime 2>/dev/null
+        fi
+    fi
+}
+
 chroot_distro_jail() {
     distro_path=$1
     command=$2
@@ -1285,12 +1318,6 @@ chroot_distro_jail() {
 }
 
 prepare_chroot_distro() {
-   rm -f "$distro_path"/etc/resolv.conf
-   mkdir -p "$distro_path"/run "$distro_path"/run/systemd "$distro_path"/run/systemd/resolve
-   echo nameserver 8.8.8.8 > "$distro_path"/run/systemd/resolve/stub-resolv.conf
-   echo nameserver 8.8.4.4 >> "$distro_path"/run/systemd/resolve/stub-resolv.conf
-   chroot "$distro_path" /bin/ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf 
-
    cp /etc/hosts "$distro_path"/etc/hosts 
    if [ "${operating_system}" != "GNU/Linux" ]; then
       {
@@ -1309,8 +1336,6 @@ prepare_chroot_distro() {
        fi
        chroot "$distro_path" /sbin/usermod -G 3003 -a root 2>/dev/null
     fi
-    timezone=$(command -v getprop >/dev/null 2>&1 && getprop persist.sys.timezone 2>/dev/null); [ -z "$timezone" ] && { timezone=$(cat /etc/timezone 2>/dev/null); [ -z "$timezone" ] && timezone=Etc/UTC; }
-    chroot "$distro_path" /bin/ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime 2>/dev/null
 } 
 
 chroot_distro_install() {
