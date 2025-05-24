@@ -1273,6 +1273,7 @@ chroot_distro_fix_env(){
 chroot_distro_jail() {
     distro_path=$1
     command=$2
+    chroot_distro_fix_env "${distro_path}"
     su_command=$(chroot_distro_find_su "$distro_path")
 
     if [ "" != "$su_command" ]; then
