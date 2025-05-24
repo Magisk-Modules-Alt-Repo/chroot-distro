@@ -73,7 +73,7 @@ case "${architecture}" in
     *) print_message error "The architecture '${architecture}' is not supported."; chroot_distro_exit 1 ;;
 esac
 
-supported_distros="alpine arch artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox  centos_stream rocky adelie chimera gentoo"
+supported_distros="alpine arch artix debian deepin fedora manjaro openkylin opensuse pardus ubuntu void kali parrot backbox centos_stream rocky adelie chimera gentoo"
 
 for distro in "${chroot_distro_path}"/.config/*; do
     distro="$(basename "${distro}")"
@@ -1319,6 +1319,7 @@ chroot_distro_jail() {
 }
 
 prepare_chroot_distro() {
+   distro_path="$1"
    cp /etc/hosts "$distro_path"/etc/hosts 
    if [ "${operating_system}" != "GNU/Linux" ]; then
       {
@@ -1399,7 +1400,7 @@ chroot_distro_install() {
     fi
 
     chroot_distro_mount_system_points "$distro_path" 
-    prepare_chroot_distro
+    prepare_chroot_distro "$distro_path" 
     chroot_distro_jail "$distro_path"
 }
 
@@ -1687,7 +1688,7 @@ points will be shadowed by system mounts."
     chroot_distro_mount_system_points "$distro_path" no
 
     if [ "yes" = "$restore_defaults" ]; then
-       prepare_chroot_distro
+       prepare_chroot_distro "$distro_path" 
     fi
     chroot_distro_jail "$distro_path"
 }
