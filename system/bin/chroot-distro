@@ -1047,10 +1047,11 @@ list_mount_points() {
 }
 
 chroot_distro_mount_system_point() {
-    path_to_mount="$1"
-    mount_point="$2"
+    distro_path="$1"
+    path_to_mount="$2"
+    mount_point="$3"
     case "$path_to_mount" in
-         /tmp|/run|/var/tmp|/dev/shm) : ;;
+         /tmp|/run|/var/tmp|/dev/shm|$distro_path) : ;;
          *)
           if [ ! -e "$path_to_mount" ]; then
               print_message warning "System path '$path_to_mount' is missing and will be skipped. This may affect the chroot environment."
@@ -1102,6 +1103,9 @@ chroot_distro_mount_system_point() {
             chroot_distro_exit 1
         fi
     else
+        if [ "$path_to_mount" = "$distro_path" ]; then 
+           mount_point="$distro_path"
+       fi
         if ! mount --bind "$path_to_mount" "$mount_point"; then
             print_message error "Failed to bind mount $path_to_mount on $mount_point"
             chroot_distro_exit 1
@@ -1152,8 +1156,11 @@ chroot_distro_mount_system_points() {
     if [ "1" = "$ram_bind_val" ]; then
         system_points="$system_points /tmp /run /var/tmp /dev/shm"
     fi
+    if [ -f "${distro_path}/usr/bin/pacman" ] || [ -f "${distro_path}/bin/pacman" ] || [ -f "${distro_path}/usr/local/bin/pacman" ]; then
+        system_points="${distro_path} ${system_points}"
+    fi
     for point in $system_points; do
-        chroot_distro_mount_system_point "$point" "$distro_path$point"
+        chroot_distro_mount_system_point "$distro_path" "$point" "$distro_path$point"
     done
 }
 
