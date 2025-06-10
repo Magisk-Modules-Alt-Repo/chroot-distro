@@ -40,22 +40,22 @@ Overall Note:
 
 ### Custom Distribution Setup
 
-1. **Add Distribution**  
+1. Add Distribution
    ```bash
    chroot-distro add <distro_name>
    ```
 
-2. **Download Distribution**  
+2. Download Distribution
    ```bash
    chroot-distro download <distro_name> <download_link>
    ```
 
-3. **Install Distribution**  
+3. Install Distribution
    ```bash
    chroot-distro install <distro_name>
    ```
 
-4. **Login to Distribution**  
+4. Login to Distribution
    ```bash
    chroot-distro login <distro_name>
    ```
