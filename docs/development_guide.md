@@ -21,9 +21,9 @@ zip chroot-distro.zip config.sh module.prop update.json META-INF/com/google/andr
 
 **Error Detection:**
 
-To control command monitoring and error handling, set the `chroot_distro_log` variable:
+To control command monitoring and error handling, set the `CHROOT_DISTRO_LOG` variable:
 ```bash
-export chroot_distro_log=<value>
+export CHROOT_DISTRO_LOG=<value>
 ```
 - `0`: Checks syntax without executing commands.
 - `1`: Stops on any error.
