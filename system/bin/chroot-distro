@@ -247,7 +247,7 @@ uname() {
         busybox uname "$@";
     else
         # fall back to defaults to ensure at least some output
-        uname -a
+        command uname -a
     fi
 }
 
