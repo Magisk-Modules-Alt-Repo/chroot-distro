@@ -187,47 +187,47 @@ chroot-distro ram-bind <enable|disable>
 ![Ubuntu GUI over VNC](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/screenshot/ubuntu.png)
 ### Desktop Environment with Termux-X11
 ![Gui over Termux-X11](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/parrot_termux_x11.jpg)
-**For a complete setup guide of VNC and Termux-X11, see [android_gui.md](docs/android_gui.md).**
+For a complete setup guide of VNC and Termux-X11, see [android_gui.md](docs/android_gui.md).
 ### chroot-distro on Gnu/Linux 
 ![Gnu_Linux](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/gnu_linux.jpg) 
-**`chroot-distro` was originally designed for Android, but it has also been made compatible with GNU/Linux systems.**   
-**Installation instructions for GNU/Linux can be found here: [how-to.md](docs/how-to.md).**
+`chroot-distro` was originally designed for Android, but it has also been made compatible with GNU/Linux systems.
+Installation instructions for GNU/Linux can be found here: [how-to.md](docs/how-to.md).
 ## How-to Instructions
-**For detailed instructions on fixing `sudo` and other setup methods, see [how-to.md](docs/how-to.md).**
+For detailed instructions on fixing `sudo` and other setup methods, see [how-to.md](docs/how-to.md).
 
 ## Development Guide
-**For full development instructions, see [development_guide.md](docs/development_guide.md).**
+For full development instructions, see [development_guide.md](docs/development_guide.md).
 
 ## Environment Variables for chroot-distro Configuration
 - **Change default `chroot-distro` path**: 
   ```bash
-  export chroot_distro_path=<path>
+  export CHROOT_DISTRO_PATH=<path>
   ```
 - **Manual specification for `busybox`**:
   ```bash
-  export chroot_distro_busybox=<path> 
+  export CHROOT_DISTRO_BUSYBOX=<path> 
   ```
   Used to manually specify the path to the busybox command.
 - **Skip tmpfs mount for `/tmp`**: 
   ```bash
-  export chroot_distro_tmp=true
+  export CHROOT_DISTRO_TMP=false
   ```
   Useful in some cases.
 - **Skip exit on errors (unsafe)**:
   ```bash
-  export chroot_distro_exit=true
+  export CHROOT_DISTRO_EXIT=false
   ```
   Allows bypassing automatic exit on errors.
 - **Disable mounting**:
   ```bash
-  export chroot_distro_mount=true
+  export CHROOT_DISTRO_MOUNT=false
   ```
   Prevents mounting of file systems during execution.
 - **Developer-specific setting**:
   ```bash
-  export chroot_distro_log=<value>
+  export CHROOT_DISTRO_LOG=<value>
   ```
-  **Reserved for developers, explained in [development_guide.md](docs/development_guide.md).**
+  Reserved for developers, explained in [development_guide.md](docs/development_guide.md).
 
 ## Semantic Versioning
 
