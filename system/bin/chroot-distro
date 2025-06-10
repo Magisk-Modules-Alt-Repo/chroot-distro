@@ -973,7 +973,7 @@ chroot_distro_download() {
         fi
     fi
     if [ -z "${distro_name}" ]; then
-       distro_name=${distro}"
+       distro_name="${distro}"
     fi
     print_message info "Distribution Name : ${distro_name}"
     print_message info "Download Link : ${download_url}"
