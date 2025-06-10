@@ -38,6 +38,28 @@ Overall Note:
   - Extends device lifespan
   - Note: You can't use it for Android stuff (at least by default)
 
+### Custom Distribution Setup
+
+1. **Add Distribution**  
+   ```bash
+   chroot-distro add <distro_name>
+   ```
+
+2. **Download Distribution**  
+   ```bash
+   chroot-distro download <distro_name> <download_link>
+   ```
+
+3. **Install Distribution**  
+   ```bash
+   chroot-distro install <distro_name>
+   ```
+
+4. **Login to Distribution**  
+   ```bash
+   chroot-distro login <distro_name>
+   ```
+
 ### chroot-distro on GNU/Linux
 
 Install the chroot-distro script on your GNU/Linux system using the following commands:
