@@ -1069,6 +1069,9 @@ chroot_distro_mount_system_point() {
         return
     fi
     if [ "$path_to_mount" = "/tmp" ]; then
+       if [ "${CHROOT_DISTRO_TMP:-}" == "false" ]; then
+          return 
+       fi
        if ! mount -t tmpfs tmpfs "$mount_point"; then
             print_message error "Failed to mount tmpfs on $mount_point"
             chroot_distro_exit 1
