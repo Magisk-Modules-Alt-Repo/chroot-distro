@@ -37,3 +37,13 @@ Overall Note:
   - Reduces wear on internal storage
   - Extends device lifespan
   - Note: You can't use it for Android stuff (at least by default)
+
+### chroot-distro on GNU/Linux
+
+Install the chroot-distro script on your GNU/Linux system using the following commands:
+
+```bash
+curl "https://raw.githubusercontent.com/Magisk-Modules-Alt-Repo/chroot-distro/refs/heads/main/system/bin/chroot-distro" > /bin/chroot-distro
+dos2unix /bin/chroot-distro && chmod +x /bin/chroot-distro
+sed -i '1s/\/system//g' /bin/chroot-distro
+```
