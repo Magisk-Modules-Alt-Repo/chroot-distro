@@ -46,4 +46,5 @@ Install the chroot-distro script on your GNU/Linux system using the following co
 curl "https://raw.githubusercontent.com/Magisk-Modules-Alt-Repo/chroot-distro/refs/heads/main/system/bin/chroot-distro" > /bin/chroot-distro
 dos2unix /bin/chroot-distro && chmod +x /bin/chroot-distro
 sed -i '1s/\/system//g' /bin/chroot-distro
+sudo CHROOT_DISTRO_MOUNT=false chroot-distro android-bind disable && sudo CHROOT_DISTRO_MOUNT=false chroot-distro fix-suid disable
 ```
