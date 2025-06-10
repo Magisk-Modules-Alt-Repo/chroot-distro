@@ -245,3 +245,17 @@ This software is licensed under the GNU General Public License v3.0 (GPL-3.0). Y
 - Use for commercial purposes
 
 Full license text: [GNU GPL v3](LICENSE)
+
+## Special Thanks 
+
+Special thanks to everyone who contributed to and tested **chroot-distro**.
+
+## Faced an Issue?
+
+If you encounter any problems while using **chroot-distro**, please open an issue [here](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/issues/).
+
+## Donate 
+
+If you found this project helpful and would like to support the developer, you can donate via Bitcoin:
+
+**Bitcoin Address:** `1LksFFCP2HPdpVsUxfFmZShJFnLLrkZTro`
