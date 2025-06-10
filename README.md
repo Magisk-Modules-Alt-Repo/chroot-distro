@@ -192,8 +192,14 @@ For a complete setup guide of VNC and Termux-X11, see [android_gui.md](docs/andr
 ![Gnu_Linux](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/gnu_linux.jpg) 
 `chroot-distro` was originally designed for Android, but it has also been made compatible with GNU/Linux systems.
 Installation instructions for GNU/Linux can be found here: [how-to.md](docs/how-to.md).
-## How-to Instructions
-For detailed instructions on fixing `sudo` and other setup methods, see [how-to.md](docs/how-to.md).
+## How-to Instructions  
+For detailed instructions on:  
+- Fixing `sudo`  
+- Adding a custom distribution  
+- Running `chroot-distro` on GNU/Linux  
+- Deleting a `chroot-distro`  
+
+See [how-to.md](docs/how-to.md).
 
 ## Development Guide
 For full development instructions, see [development_guide.md](docs/development_guide.md).
