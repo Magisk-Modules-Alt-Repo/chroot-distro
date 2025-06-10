@@ -165,7 +165,7 @@ start_termux_server() {
     sudo killall -9 termux-x11 Xwayland pulseaudio virgl_test_server_android termux-wake-lock 2>/dev/null
     sudo fuser -k 4713/tcp 2>/dev/null
     # skip tmpfs mount for /tmp 
-    export chroot_distro_tmp=true
+    export CHROOT_DISTRO_TMP=false
     sudo busybox mount --bind "$PREFIX/tmp" "$chrootdistro_dir"/"$selected_distro"/tmp
     XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
     sleep 2
