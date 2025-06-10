@@ -972,7 +972,9 @@ chroot_distro_download() {
             download_url="${void_rootfs_base_url}/void-$(echo "${architecture}" | sed s/arm64/aarch64/g | sed s/amd64/x86_64/g | sed s/i386/i686/g | sed s/armhf/armv7l/g)-ROOTFS-$(wget -qO- ${void_rootfs_base_url}/ | grep -oE 'void-.*-ROOTFS-[0-9]+\.tar\.xz' | head -n 1 | sed -E 's/.*-ROOTFS-([0-9]+)\.tar\.xz/\1/').tar.xz"
         fi
     fi
-
+    if [ -z "${distro_name}" ]; then
+       distro_name=${distro}"
+    fi
     print_message info "Distribution Name : ${distro_name}"
     print_message info "Download Link : ${download_url}"
     print_message
