@@ -70,3 +70,25 @@ dos2unix /bin/chroot-distro && chmod +x /bin/chroot-distro
 sed -i '1s/\/system//g' /bin/chroot-distro
 sudo CHROOT_DISTRO_MOUNT=false chroot-distro android-bind disable && sudo CHROOT_DISTRO_MOUNT=false chroot-distro fix-suid disable
 ```
+### How to Delete chroot-distro
+
+1. Unmount all distros:
+```bash
+chroot-distro unmount all -a -f
+```
+2. Check the installed distributions:
+```bash
+chroot-distro list
+```
+3. Uninstall distributions one by one:
+```bash
+chroot-distro uninstall <distro>
+```
+4. Remove the chroot-distro module.
+5. Permanently delete chroot-distro:
+```bash
+rm -r /data/local/chroot-distro
+```
+
+
+
