@@ -1,7 +1,7 @@
 id=chroot-distro
 name=chroot-distro
-version=2.0.0
-versionCode=16
+version=2.1.0
+versionCode=17
 author=@YasserNull
 description=Install Gnu/Linux distributions on Android
 updateJson=https://raw.githubusercontent.com/Magisk-Modules-Alt-Repo/chroot-distro/main/update.json
