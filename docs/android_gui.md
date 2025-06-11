@@ -73,7 +73,8 @@ Download and install Termux-X11 from the [official repository](https://github.co
 Open the Termux app and run these commands:
 ```bash
 pkg update -y && pkg upgrade -y 
-pkg install x11-repo root-repo tsu ncurses-utils termux-x11-nightly pulseaudio virglrenderer-android -y
+pkg install x11-repo root-repo -y
+pkg install tsu ncurses-utils termux-x11-nightly pulseaudio virglrenderer-android -y
 ```
 
 ### 3. Install the Desktop Environment in the Chroot
