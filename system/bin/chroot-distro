@@ -625,11 +625,11 @@ Settings:
   android-bind <enable|disable> - Bind all Android root directories (default: enable)
 
 Environment Variables:
-  chroot_distro_path=<path>   - Change the default chroot-distro path
-  chroot_distro_busybox=<path>- Manually specify BusyBox path
-  chroot_distro_tmp=true      - Skip tmpfs mount for /tmp
-  chroot_distro_exit=true     - Skip exit on errors (unsafe)
-  chroot_distro_mount=true    - Disable mounting during execution
+  CHROOT_DISTRO_PATH=<path>   - Change the default chroot-distro path
+  CHROOT_DISTRO_BUSYBOX=<path>- Manually specify BusyBox path
+  CHROOT_DISTRO_TMP=false      - Skip tmpfs mount for /tmp
+  CHROOT_DISTRO_EXIT=false     - Skip exit on errors (unsafe)
+  CHROOT_DISTRO_MOUNT=false    - Disable mounting during execution
 
 Notes:
   - <distro> can be a supported distribution (e.g., ubuntu, debian) or a custom one added via 'add'.
