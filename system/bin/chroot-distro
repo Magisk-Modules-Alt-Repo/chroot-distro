@@ -420,7 +420,7 @@ if [ "" != "$check_env" ]; then
     chroot_distro_exit 0
 fi
 
-getopt --test > /dev/null && true
+getopt --test > /dev/null
 if [ $? -ne 4 ]; then
     # shellcheck disable=SC2016
     print_message error "I'm sorry, \`getopt --test\` failed in this environment."
@@ -1841,7 +1841,7 @@ chroot_distro_rename() {
 
     # Rename the distro directory if it exists
     if [ -d "$chroot_distro_path/${old_name}" ]; then
-        chroot_distro_unmount "$old_name" "$force" "$all" && mv "$chroot_distro_path/${old_name}" "$chroot_distro_path/${new_name}"
+        chroot_distro_unmount "$old_name" && mv "$chroot_distro_path/${old_name}" "$chroot_distro_path/${new_name}"
     fi
 }
 
