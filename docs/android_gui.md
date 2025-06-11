@@ -20,10 +20,8 @@ To view the desktop, install a VNC viewer app on your Android device. Here are s
 ### 2. Install Required Packages
 In your chroot environment (e.g., Debian or Ubuntu), open a terminal and run these commands:
 ```bash
-apt update                  # Refreshes the package list
-apt upgrade                 # Updates installed packages to the latest versions
-apt install tightvncserver  # Installs the VNC server software
-apt install sudo dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs a text editor, display manager, and XFCE4 desktop
+apt update -y && apt upgrade -y 
+apt install tightvncserver sudo dbus-x11 xfce4 xfce4-goodies xfce4-terminal -y 
 ```
 
 ### 3. Configure the Desktop Environment
@@ -74,19 +72,15 @@ Download and install Termux-X11 from the [official repository](https://github.co
 ### 2. Install Required Packages in Termux
 Open the Termux app and run these commands:
 ```bash
-pkg install x11-repo               # Adds the X11 package repository
-pkg install root-repo              # Adds the root package repository
-pkg install tsu                    # Installs a tool for root access
-pkg install ncurses-utils          # Installs utilities for terminal interfaces
-pkg install termux-x11-nightly     # Installs the Termux-X11 package
-pkg install pulseaudio             # Installs the audio server
-pkg install virglrenderer-android  # Enables graphics acceleration
+pkg update -y && pkg upgrade -y 
+pkg install x11-repo root-repo tsu ncurses-utils termux-x11-nightly pulseaudio virglrenderer-android -y
 ```
 
 ### 3. Install the Desktop Environment in the Chroot
 Inside your chroot environment, install XFCE4:
 ```bash
-apt install sudo dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs the XFCE4 desktop and tools
+apt install sudo dbus-x11 xfce4 xfce4-goodies xfce4terminal -y
+# Installs the XFCE4 desktop and tools
 
 # Optional: Install an audio server
 apt install mpd
