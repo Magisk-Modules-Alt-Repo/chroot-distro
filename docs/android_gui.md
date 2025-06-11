@@ -86,7 +86,7 @@ pkg install virglrenderer-android  # Enables graphics acceleration
 ### 3. Install the Desktop Environment in the Chroot
 Inside your chroot environment, install XFCE4:
 ```bash
-apt sudo install dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs the XFCE4 desktop and tools
+apt install sudo dbus-x11 xfce4 xfce4-goodies xfce4-terminal  # Installs the XFCE4 desktop and tools
 
 # Optional: Install an audio server
 apt install mpd
