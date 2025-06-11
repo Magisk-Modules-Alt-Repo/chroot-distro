@@ -1,6 +1,6 @@
 {
-  "version": "2.0.0",
-  "versionCode": 16,
-  "zipUrl": "https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/download/v2.0.0/chroot-distro.zip",
+  "version": "2.1.0",
+  "versionCode": 17,
+  "zipUrl": "https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/releases/download/v2.1.0/chroot-distro.zip",
   "changelog": "https://raw.githubusercontent.com/Magisk-Modules-Alt-Repo/chroot-distro/main/CHANGELOG.md"
 }
