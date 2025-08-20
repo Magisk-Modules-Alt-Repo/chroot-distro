@@ -859,7 +859,8 @@ chroot_distro_download() {
             distro_name='Debian'
             print_message info "[1] Debian (AnLinux)
 [2] Debian bullseye (proot-distro)
-[3] Debian bookworm (proot-distro)"
+[3] Debian bookworm (proot-distro)
+[4] Debian trixie (proot-distro)" 
             while true; do
                 printf "Enter a number (1-3, or 'q' to quit): "
                 read -r number
@@ -867,6 +868,7 @@ chroot_distro_download() {
                     1) rootfs="debian"; break ;;
                     2) rootfs="debian_bullseye"; break ;;
                     3) rootfs="debian_bookworm"; break ;;
+                    4) rootfs="debian_trixie"; break ;;
                     q) print_message error "Operation cancelled"; chroot_distro_exit 1 ;;
                     *) print_message warning "Invalid option: $number. Please try again." ;;
                 esac
@@ -875,6 +877,7 @@ chroot_distro_download() {
                 debian) download_url="$debian_rootfs_base_url_anlinux/${architecture}/debian-rootfs-${architecture}.tar.xz" ;;
                 debian_bullseye) download_url="${debian_rootfs_base_url_prootdistro}/v4.7.0/debian-bullseye-$(echo "${architecture}" | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.7.0.tar.xz" ;;
                 debian_bookworm) download_url="${debian_rootfs_base_url_prootdistro}/v4.17.3/debian-bookworm-$(echo "${architecture}" | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.17.3.tar.xz" ;;
+                debian_trixie) download_url="${debian_rootfs_base_url_prootdistro}/v4.26.0/debian-trixie-$(echo "${architecture}" | sed s/arm64/aarch64/ | sed s/amd64/x86_64/ | sed s/i386/i686/ | sed s/armhf/arm/)-pd-v4.26.0.tar.xz" ;;
             esac
         elif [ "$distro" = "parrot" ]; then
             distro_name='Parrot Security'
