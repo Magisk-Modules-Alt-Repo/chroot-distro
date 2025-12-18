@@ -31,7 +31,8 @@ if [ -n "${CHROOT_DISTRO_LOG+x}" ]; then
   case "${CHROOT_DISTRO_LOG}" in
     0) set -n ;;
     1) set -e ;;
-    2) set -e -x ;;
+    2) set -x ;;
+    3) set -e -x ;;
   esac
 fi
 
