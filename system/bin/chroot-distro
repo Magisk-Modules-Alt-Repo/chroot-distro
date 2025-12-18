@@ -1412,6 +1412,7 @@ chroot_distro_install() {
             chroot_distro_exit 5
         fi
     else
+        mkdir -p "$distro_path"
         tar -xf "$archive_path" -C "$chroot_distro_path/"
         tar_status=$?
         if [ $tar_status -ne 0 ] && [ ! -e "$chroot_distro_path/$rootdir" ]; then
@@ -1424,6 +1425,8 @@ chroot_distro_install() {
             print_message error "Failed to unpack the '${distro}' rootfs archive. The archive may be corrupted or incomplete."
             chroot_distro_exit 5
         fi
+        mv "$chroot_distro_path/$rootdir"/* "$distro_path"/
+        rmdir "$chroot_distro_path/$rootdir" 2>/dev/null
     fi
 
     chroot_distro_mount_system_points "$distro_path" 
