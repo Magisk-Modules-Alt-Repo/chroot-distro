@@ -264,18 +264,13 @@ fi
 wget() { busybox wget "$@"; }
 
 if ! busybox wget --help 2>&1 | grep -q -- "https"; then
-    if command -v wget >/dev/null 2>&1; then
+    if [ -x "$(command -v wget 2>/dev/null)" ]; then
         wget() { command wget "$@"; }
-        if ! command wget --help 2>&1 | grep -q -- "https"; then
-            print_message error "Neither busybox wget nor system wget support HTTPS."
-            print_message note "Please update Busybox (>= 1.36.1) or install GNU wget with HTTPS support."
-            chroot_distro_exit 1
-        fi
-    else
-        print_message error "No functional wget available."
-        print_message note "Please install Busybox (>= 1.36.1) or GNU wget with HTTPS support."
-        chroot_distro_exit 1
     fi
+else
+    print_message error "No functional wget available."
+    print_message note "Please install Busybox (>= 1.36.1) or GNU wget with HTTPS support."
+    chroot_distro_exit 1
 fi
 
 # ensure that correct version of chroot is used
