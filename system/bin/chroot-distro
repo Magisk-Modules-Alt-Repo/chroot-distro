@@ -1274,6 +1274,10 @@ chroot_distro_fix_env(){
             mkdir -p "$distro_path/run/systemd/resolve"
             printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" > "$distro_path/run/systemd/resolve/stub-resolv.conf"
             chroot "$distro_path" /bin/ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf 2>/dev/null || cp "$distro_path/run/systemd/resolve/stub-resolv.conf" "$distro_path/etc/resolv.conf"
+ 
+            chroot "$distro_path" /bin/grep -E '^[[:space:]]*nameserver[[:space:]]+8\.8\.8\.8([[:space:]]|$)' "/etc/resolv.conf" >/dev/null 2>&1 || chroot "$distro_path" /bin/printf "nameserver 8.8.8.8\n" >> "/etc/resolv.conf"
+            chroot "$distro_path" /bin/grep -E '^[[:space:]]*nameserver[[:space:]]+8\.8\.4\.4([[:space:]]|$)' "/etc/resolv.conf" >/dev/null 2>&1 || chroot "$distro_path" /bin/printf "nameserver 8.8.4.4\n" >> "/etc/resolv.conf"
+    
         else
             printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" > "$distro_path/etc/resolv.conf"
         fi
