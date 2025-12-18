@@ -179,10 +179,11 @@ chroot-distro ram-bind <enable|disable>
 2. Install via a module manager (e.g., Magisk) or flash through a custom recovery.
 
 ## Screenshot Examples 
-![Debian  console](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/screenshot/debian.png)
+![Debian  console](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/debian_term.png)
+![Kali console](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/debian_term.png)
 ### Desktop Environment with VNC
-![Debian GUI over VNC](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/screenshot/debian_vnc.png)
-![Ubuntu GUI over VNC](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/screenshot/ubuntu.png)
+![Debian GUI over VNC](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/debian_vnc.png)
+![Ubuntu GUI over VNC](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/ubuntu_vnc.png)
 ### Desktop Environment with Termux-X11
 ![Gui over Termux-X11](https://github.com/Magisk-Modules-Alt-Repo/chroot-distro/raw/main/images/parrot_termux_x11.jpg)
 For a complete setup guide of VNC and Termux-X11, see [android_gui.md](docs/android_gui.md).
